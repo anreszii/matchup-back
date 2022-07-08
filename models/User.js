@@ -1,12 +1,13 @@
-const validator = require('validator')
-const { hashGenerator: generateHash } = require('../utils')
 var { Schema, model } = require('mongoose')
+var uniqueValidator = require('mongoose-unique-validator')
+
+var validator = require('validator')
+var { generateHash } = require('../utils')
 
 const UserSchema = new Schema({
   id: {
     type: Number,
     required: [true, 'ID required'],
-    index: true,
     unique: true,
     validate: {
       validator: function (v) {
@@ -20,6 +21,7 @@ const UserSchema = new Schema({
   nickname: {
     type: String,
     required: [true, 'nickname required'],
+    unique: true,
     validate: {
       validator: function (v) {
         let length = v.length
@@ -32,6 +34,7 @@ const UserSchema = new Schema({
   username: {
     type: String,
     required: [true, 'username required'],
+    unique: true,
     validate: {
       validator: function (v) {
         let length = v.length
@@ -54,6 +57,7 @@ const UserSchema = new Schema({
   email: {
     type: String,
     required: [true, 'email required'],
+    uniqueCaseInsensitive: true,
     validate: {
       validator: function (v) {
         return validator.default.isEmail(v)
@@ -73,18 +77,23 @@ const UserSchema = new Schema({
   },
 })
 
+UserSchema.plugin(uniqueValidator)
+
 UserSchema.methods.validatePasswordFormat = function (password) {
-  return validator.default.isStrongPassword(password, {
-    minLength: 8,
-    minLowerCase: 1,
-    minUpperCase: 1,
-    minNumbers: 0,
-    minSymbols: 0,
-  })
+  if (
+    !validator.default.isStrongPassword(password, {
+      minLength: 8,
+      minLowerCase: 1,
+      minUpperCase: 1,
+      minNumbers: 0,
+      minSymbols: 0,
+    })
+  )
+    throw Error('Invalid password format')
 }
 
 UserSchema.methods.validatePassword = function (password) {
-  return this.password === generateHash(password, this.salt).hash
+  if (this.password !== generateHash(password, this.salt).hash) throw Error('Invalid password')
 }
 
 UserSchema.methods.setPassword = function (password) {
