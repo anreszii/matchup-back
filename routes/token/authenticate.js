@@ -3,13 +3,13 @@ const { JWT_SECRET } = require('../../configs/jwt_token')
 
 module.exports = function (req, res, next) {
   let token = getTokenFromRequest(req)
-  if (!token) return res.status(400).send('Token is required')
+  if (!token) next(Error('token required'))
 
   try {
     let dataFromToken = jwt.verify(token, JWT_SECRET)
     req.payload = dataFromToken
   } catch (e) {
-    return res.status(400).send('Invlaid token')
+    next(Error('invalid token'))
   }
 
   return next()

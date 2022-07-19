@@ -1,0 +1,2 @@
+require('./Battlepass')
+require('./User')
