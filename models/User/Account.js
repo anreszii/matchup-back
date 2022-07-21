@@ -83,14 +83,40 @@ const UserSchema = new Schema({
       },
     },
 
+    avatar: String,
+
+    relations: {
+      type: Schema({
+        friends: [String],
+        subscribers: [String],
+      }),
+      default: {
+        friends: [],
+        subscribers: [],
+      },
+    },
+
     statistic: {
       type: Schema.Types.ObjectId,
       ref: 'Statistic',
     },
-  },
 
-  friends: {
-    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    level: {
+      type: new Schema({
+        nextLevel: new Schema({
+          requiredEXP: Number,
+          reward: RewardSchema,
+        }),
+        currentEXP: Number,
+      }),
+      default: {
+        next: {
+          requiredEXP: 0,
+          reward: undefined,
+        },
+        currentEXP: 0,
+      },
+    },
   },
 
   team: {
@@ -102,23 +128,6 @@ const UserSchema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'UserTask' }],
   },
 
-  level: {
-    type: new Schema({
-      next: new Schema({
-        requiredEXP: Number,
-        reward: RewardSchema,
-      }),
-      currentEXP: Number,
-    }),
-    default: {
-      next: {
-        requiredEXP: 0,
-        reward: undefined,
-      },
-      currentEXP: 0,
-    },
-  },
-
   balance: {
     type: Number,
     default: 0,
@@ -126,6 +135,8 @@ const UserSchema = new Schema({
 })
 
 UserSchema.plugin(uniqueValidator)
+
+/* PASSWORD */
 
 UserSchema.methods.validatePasswordFormat = function (password) {
   if (!password) return
@@ -141,23 +152,12 @@ UserSchema.methods.validatePasswordFormat = function (password) {
     throw Error('invalid password format')
 }
 
-/**
- * Does nothing if password is correct
- *
- * @param {String} password
- */
 UserSchema.methods.validatePassword = function (password) {
   if (!password) throw Error('password required')
 
-  if (this.credentials.password !== generateHash(password, this.credentials.salt).hash)
-    throw Error('incorrect password')
+  if (this.credentials.password !== generateHash(password, this.credentials.salt).hash) throw Error('invalid password')
 }
 
-/**
- * Generate hash with random salt from given string
- *
- * @param {String} password
- */
 UserSchema.methods.setPassword = function (password) {
   if (!password) return
   if (this.credentials.password == generateHash(password, this.credentials.salt).hash) return
@@ -166,6 +166,8 @@ UserSchema.methods.setPassword = function (password) {
   this.credentials.password = result.hash
   this.credentials.salt = result.usedSalt
 }
+
+/* BATTLEPASS & TASKS */
 
 UserSchema.methods.updateDailyTasks = async function () {
   for (let task of this.dailyTasks) {
@@ -205,26 +207,122 @@ UserSchema.methods.updateDailyTasks = async function () {
 }
 
 UserSchema.methods.addEXP = async function (amount) {
-  if (!this.level.next.requiredEXP) {
-    this.level.next = BattlePass.getCurrentLevel(0)
+  let userLevel = this.profile.level
+
+  if (!userLevel.next.requiredEXP) {
+    userLevel.nextLevel = BattlePass.getCurrentLevel(0)
     await this.save()
 
-    this.addEXP(amount)
+    return this.addEXP(amount)
   }
 
-  this.level.currentEXP += amount
-  if (this.level.currentEXP >= this.level.next.requiredEXP) {
-    this.balance += this.level.next.reward.amount
-    this.level.next = BattlePass.getCurrentLevel(this.level.currentEXP)
+  userLevel.currentEXP += amount
+  if (userLevel.currentEXP >= userLevel.nextLevel.requiredEXP) {
+    this.balance += userLevel.nextLevel.reward.amount
+    userLevel.nextLevel = BattlePass.getCurrentLevel(userLevel.currentEXP)
   }
 
-  await this.save()
+  return this.save()
 }
 
 UserSchema.methods.addMP = async function (amount) {
   this.balance += amount
+  return this.save()
+}
 
-  await this.save()
+/* RELATIONS */
+
+/* SUBSCRIBERS */
+UserSchema.methods.getSubscriberList = function () {
+  return this.profile.relations.subscribers
+}
+
+UserSchema.methods.hasSubscriber = function (name) {
+  return this.profile.relations.subscribers.includes(name)
+}
+
+UserSchema.methods.addSubscriber = async function (name) {
+  if (this.hasSubscriber(name)) return
+
+  this.profile.relations.subscribers.push(name)
+
+  return this.save()
+}
+
+UserSchema.methods.deleteSubscriber = async function (name) {
+  if (!this.hasSubscriber(name)) return
+  let subscribers = this.profile.relations.subscribers
+
+  let subscriberIndex = subscribers.indexOf(name)
+
+  if (~subscriberIndex) {
+    subscribers.splice(subscriberIndex, 1)
+    return this.save()
+  }
+}
+
+/* FRIENDS */
+
+UserSchema.methods.getFriendList = function () {
+  return this.profile.relations.friends
+}
+
+UserSchema.methods.hasFriend = function (name) {
+  return this.profile.relations.friends.includes(name)
+}
+
+UserSchema.methods.addFriend = async function (name) {
+  if (this.hasFriend(name)) return
+
+  this.profile.relations.friends.push(name)
+
+  return this.save()
+}
+
+UserSchema.methods.deleteFriend = async function (name) {
+  if (!this.hasFriend(name)) return
+  let friends = this.profile.relations.friends
+
+  let friendIndex = friends.indexOf(name)
+
+  if (~friendIndex) {
+    friends.splice(friendIndex, 1)
+    return this.save()
+  }
+}
+
+/* RELATION ACTIONS */
+
+UserSchema.methods.addRelation = async function (name) {
+  if (!name) throw Error('name required')
+  if (this.hasFriend(name)) return
+
+  let User = model('User')
+  let user = await User.findOne({ 'profile.username': name })
+  if (!user) throw Error(`user doesn't exist`)
+
+  if (!this.hasSubscriber(name)) {
+    return user.addSubscriber(this.profile.username)
+  }
+
+  await user.addFriend(this.profile.username)
+  await this.deleteSubscriber(name)
+
+  return this.addFriend(user.profile.username)
+}
+
+UserSchema.methods.brokeRelation = async function (name) {
+  if (!name) throw Error('name required')
+  if (!this.hasFriend(name)) return
+
+  let User = model('User')
+  let user = await User.findOne({ 'profile.username': name })
+  if (!user.hasFriend(this.profile.username)) return
+
+  await this.deleteFriend(name)
+  await user.deleteFriend(this.profile.username)
+
+  return this.addSubscriber(name)
 }
 
 model('User', UserSchema)
