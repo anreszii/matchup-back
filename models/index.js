@@ -1,2 +1,0 @@
-require('./Battlepass')
-require('./User')

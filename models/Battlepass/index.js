@@ -1,2 +1,0 @@
-require('./Task')
-require('./Battlepass')
