@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Express, NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import fileUploader from 'express-fileupload'
 
@@ -18,14 +18,14 @@ mongoose.connect(
 
 require('./models')
 
-app.use(require('./routes'))
+app.use(require('./api/routes'))
 
 app.use(function (_, _1, next) {
   var err = new Error('Not Found')
   next(err)
 })
 
-app.use(function (err, res) {
+app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
   res.json({ errors: err })
 })
 

@@ -2,22 +2,17 @@ import jwt from 'jsonwebtoken'
 import { NextFunction, Request } from 'express'
 import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token'
 
-export function validateToken(
-  req: Request & { payload: jwt.JwtPayload | string | undefined },
-  _: unknown,
-  next: NextFunction,
-) {
+export function validateToken(req: Request, _: unknown, next: NextFunction) {
   let token = getTokenFromRequest(req)
   if (!token) next(Error('token required'))
 
   try {
     let dataFromToken = jwt.verify(token as string, JWT_SECRET)
-    req.payload = dataFromToken
+    req.body.payload = dataFromToken
+    return next()
   } catch (e) {
     next(Error('invalid token'))
   }
-
-  return next()
 }
 
 function getTokenFromRequest(req: Request) {
@@ -38,5 +33,5 @@ function hasToken(req: Request) {
 }
 
 export function generateToken(payload: Object) {
-  jwt.sign(payload, JWT_SECRET, JWT_OPTIONS)
+  return jwt.sign(payload, JWT_SECRET, JWT_OPTIONS)
 }
