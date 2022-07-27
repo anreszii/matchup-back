@@ -1,5 +1,5 @@
 import type { IReward } from '../models/Reward'
-import { getRounded, minMax } from '../api/utils/math'
+import { getRounded, minMax } from '../utils/math'
 
 class Task {
   constructor(

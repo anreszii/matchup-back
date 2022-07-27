@@ -18,7 +18,7 @@ mongoose.connect(
 
 require('./models')
 
-app.use(require('./api/routes'))
+app.use(require('./api/http'))
 
 app.use(function (_, _1, next) {
   var err = new Error('Not Found')
