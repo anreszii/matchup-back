@@ -1,4 +1,9 @@
-type validationCause = 'invalid format' | 'required' | `doesn't exist` | `invalid`
+export const enum validationCause {
+  INVALID_FORMAT = 'invalid format',
+  REQUIRED = 'required',
+  NOT_EXIST = `doesn't exist`,
+  INVALID = `invalid`,
+}
 
 export class ValidationError extends Error {
   constructor(public name: string, public cause: validationCause) {

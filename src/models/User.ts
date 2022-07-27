@@ -6,8 +6,8 @@ import validator from 'validator'
 import { BattlePassLevelSchema, IBattlePassLevel } from './BattlePassLevel'
 import { IRelations, Relations } from './Relations'
 
-import { generateHash } from '../api/utils/hashGenerator'
-import { ValidationError } from '../error'
+import { generateHash } from '../utils/hashGenerator'
+import { validationCause as cause, ValidationError } from '../error'
 
 interface Level {
   currentEXP: number
@@ -108,11 +108,6 @@ const UserSchema = new Schema<IUser, UserModel, IUserBehavior>({
       type: String,
       required: [true, 'region required'],
     },
-
-    device: {
-      type: String,
-      required: [true, 'device required'],
-    },
   },
 
   profile: {
@@ -144,6 +139,8 @@ const UserSchema = new Schema<IUser, UserModel, IUserBehavior>({
     },
 
     avatar: String,
+
+    relations: Relations,
   },
 
   level: new Schema<Level>({
@@ -164,7 +161,7 @@ UserSchema.statics.getByName = function (name: string) {
 /* PASSWORD */
 
 UserSchema.methods.validatePasswordFormat = function (password) {
-  if (!password) throw new ValidationError('password', 'required')
+  if (!password) throw new ValidationError('password', cause.REQUIRED)
   if (
     !validator.isStrongPassword(password, {
       minLength: 8,
@@ -174,14 +171,14 @@ UserSchema.methods.validatePasswordFormat = function (password) {
       minSymbols: 0,
     })
   )
-    throw new ValidationError('password', 'invalid format')
+    throw new ValidationError('password', cause.INVALID_FORMAT)
 }
 
 UserSchema.methods.validatePassword = function (password) {
-  if (!password) throw new ValidationError('password', 'required')
+  if (!password) throw new ValidationError('password', cause.REQUIRED)
 
   if (this.credentials.password !== generateHash(password, this.credentials.salt).hash)
-    throw new ValidationError('password', 'invalid')
+    throw new ValidationError('password', cause.INVALID)
 }
 
 UserSchema.methods.setPassword = function (password) {
