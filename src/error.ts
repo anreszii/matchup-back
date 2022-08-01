@@ -6,12 +6,15 @@ export const enum validationCause {
 }
 
 export class ValidationError extends Error {
-  constructor(public name: string, public cause: validationCause) {
-    super(`${name} ${cause}`)
+  constructor(public id: string, public cause: validationCause) {
+    super(`${id} ${cause}`)
   }
 }
 
-export function CreateValidationMessage(name: string, cause: validationCause): string {
+export function CreateValidationMessage(
+  name: string,
+  cause: validationCause,
+): string {
   switch (cause) {
     case validationCause.INVALID_FORMAT:
       return FormatError(name)
@@ -38,4 +41,15 @@ function RequiredError(name: string) {
 
 function InvalidError(name: string) {
   return `invalid ${name}`
+}
+
+export const enum matchCause {
+  CREATE = 'creating',
+  ADD_MEMBERS = 'member join',
+}
+
+export class MatchError extends Error {
+  constructor(public id: string, public cause: matchCause) {
+    super(`match ${id} error: ${cause}`)
+  }
 }
