@@ -16,7 +16,7 @@ router.use(function (
   let errors: Array<string> = []
 
   if (errorObject instanceof ValidationError) {
-    errors.push(CreateValidationMessage(errorObject.name, errorObject.cause))
+    errors.push(CreateValidationMessage(errorObject.id, errorObject.cause))
     return next(errors)
   }
 
@@ -24,8 +24,10 @@ router.use(function (
     for (let key of Object.keys(errorObject.errors)) {
       let error = errorObject.errors[key]
       if (error.name == 'ValidatorError') {
-        if (error.kind.includes('defined')) errors.push(error.properties.message)
-        else if (error.kind.includes('unique')) errors.push(`invalid ${error.path}`)
+        if (error.kind.includes('defined'))
+          errors.push(error.properties.message)
+        else if (error.kind.includes('unique'))
+          errors.push(`invalid ${error.path}`)
         else errors.push(error.properties.message)
       } else errors.push('Database cast error')
     }
@@ -34,9 +36,12 @@ router.use(function (
   }
 
   if (errorObject.keyPattern['id']) errors.push('invalid id')
-  else if (errorObject.keyPattern['credentials.email']) errors.push('invalid email')
-  else if (errorObject.keyPattern['profile.nickname']) errors.push('invalid nickname')
-  else if (errorObject.keyPattern['profile.username']) errors.push('invalid username')
+  else if (errorObject.keyPattern['credentials.email'])
+    errors.push('invalid email')
+  else if (errorObject.keyPattern['profile.nickname'])
+    errors.push('invalid nickname')
+  else if (errorObject.keyPattern['profile.username'])
+    errors.push('invalid username')
 
   return next(errors)
 })

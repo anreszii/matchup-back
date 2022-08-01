@@ -1,4 +1,4 @@
-import type { region } from '../Types'
+import type { region } from '../app'
 
 import { Schema, Model, model, HydratedDocument, Types } from 'mongoose'
 import validator from 'validator'
@@ -177,13 +177,20 @@ UserSchema.methods.validatePasswordFormat = function (password) {
 UserSchema.methods.validatePassword = function (password) {
   if (!password) throw new ValidationError('password', cause.REQUIRED)
 
-  if (this.credentials.password !== generateHash(password, this.credentials.salt).hash)
+  if (
+    this.credentials.password !==
+    generateHash(password, this.credentials.salt).hash
+  )
     throw new ValidationError('password', cause.INVALID)
 }
 
 UserSchema.methods.setPassword = function (password) {
   if (!password) return
-  if (this.credentials.password == generateHash(password, this.credentials.salt).hash) return
+  if (
+    this.credentials.password ==
+    generateHash(password, this.credentials.salt).hash
+  )
+    return
 
   let result = generateHash(password)
   this.credentials.password = result.hash
