@@ -1,4 +1,4 @@
-import type { region } from '../types'
+import type { region } from '../Types'
 
 import { Schema, Model, model, HydratedDocument, Types } from 'mongoose'
 import validator from 'validator'
@@ -6,7 +6,7 @@ import validator from 'validator'
 import { BattlePassLevelSchema, IBattlePassLevel } from './BattlePassLevel'
 import { IRelations, Relations } from './Relations'
 
-import { generateHash } from '../utils/hashGenerator'
+import { generateHash } from '../Utils/hashGenerator'
 import { validationCause as cause, ValidationError } from '../error'
 
 interface Level {

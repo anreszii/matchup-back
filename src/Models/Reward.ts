@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose'
-import type { rewardType } from '../types'
+import type { rewardType } from '../Types'
 
 export declare interface IReward {
   amount: number

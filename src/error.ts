@@ -11,15 +11,15 @@ export class ValidationError extends Error {
   }
 }
 
-export function CreateValidationMessage(name: string, cause: validationCause) {
+export function CreateValidationMessage(name: string, cause: validationCause): string {
   switch (cause) {
-    case 'invalid format':
+    case validationCause.INVALID_FORMAT:
       return FormatError(name)
-    case `doesn't exist`:
+    case validationCause.NOT_EXIST:
       return ExistError(name)
-    case 'required':
+    case validationCause.REQUIRED:
       return RequiredError(name)
-    case 'invalid':
+    case validationCause.INVALID:
       return InvalidError(name)
   }
 }
