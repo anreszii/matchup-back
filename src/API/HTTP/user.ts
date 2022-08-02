@@ -8,44 +8,54 @@ import { SMTP, Mail } from '../../Utils/smtp'
 
 let router = Router()
 
-router.put('/', validateToken, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    let { username: newName, email, region, device, password, nickname, id } = req.body.user
-    let username = req.body.payload.username as string
+router.put(
+  '/',
+  validateToken,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let {
+        username: newName,
+        email,
+        region,
+        device,
+        password,
+        nickname,
+        id,
+      } = req.body.user
+      let username = req.body.payload.username as string
 
-    let user = await User.getByName(username)
-    if (!user) throw new ValidationError('user', cause.NOT_EXIST)
+      let user = await User.getByName(username)
+      if (!user) throw new ValidationError('user', cause.NOT_EXIST)
 
-    if (id) user.id = id
+      if (id) user.id = id
 
-    if (email) user.credentials.email = email
-    if (region) user.credentials.region = region
-    if (device) user.credentials.device = device
+      if (email) user.credentials.email = email
+      if (region) user.credentials.region = region
 
-    if (nickname) user.profile.nickname = nickname
-    if (newName) user.profile.username = newName
+      if (nickname) user.profile.nickname = nickname
+      if (newName) user.profile.username = newName
 
-    if (password) {
-      user.validatePasswordFormat(password)
-      user.setPassword(password)
+      if (password) {
+        user.validatePasswordFormat(password)
+        user.setPassword(password)
+      }
+
+      await user.validate()
+      await user.save()
+
+      let token = generateToken({
+        username: user.profile.username,
+        nickname: user.profile.nickname,
+        region: user.credentials.region,
+        email: user.credentials.email,
+      })
+
+      res.status(201).json({ token: token })
+    } catch (e) {
+      next(e)
     }
-
-    await user.validate()
-    await user.save()
-
-    let token = generateToken({
-      username: user.profile.username,
-      nickname: user.profile.nickname,
-      region: user.credentials.region,
-      email: user.credentials.email,
-      device: user.credentials.device,
-    })
-
-    res.status(201).json({ token: token })
-  } catch (e) {
-    next(e)
-  }
-})
+  },
+)
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -62,7 +72,6 @@ router.post('/login', async (req, res, next) => {
       nickname: user.profile.nickname,
       region: user.credentials.region,
       email: user.credentials.email,
-      device: user.credentials.device,
     })
 
     res.status(201).json({ token: token })
@@ -87,12 +96,13 @@ router.post('/registration', async (req, res, next) => {
     user.profile.nickname = nickname
     user.credentials.email = email
     user.credentials.region = region
-    user.credentials.device = device
 
     await user.validate()
     await user.save()
 
-    let token = generateToken(({ username, nickname, region, email, device } = req.body.user))
+    let token = generateToken(
+      ({ username, nickname, region, email } = req.body.user),
+    )
     res.status(201).json({ token: token })
   } catch (e) {
     next(e)

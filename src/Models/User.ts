@@ -21,7 +21,6 @@ export declare interface IUser {
     salt: string
     email: string
     region: region
-    device: string
   }
 
   profile: {
