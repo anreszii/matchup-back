@@ -1,18 +1,28 @@
 import jwt from 'jsonwebtoken'
 import { NextFunction, Request } from 'express'
 import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token'
+import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataManager'
+import { validationCause, ValidationError } from '../error'
 
 export function validateToken(req: Request, _: unknown, next: NextFunction) {
   let token = getTokenFromRequest(req)
-  if (!token) next(Error('token required'))
+  if (!token) next(new ValidationError('token', validationCause.REQUIRED))
 
   try {
     let dataFromToken = jwt.verify(token as string, JWT_SECRET)
     req.body.payload = dataFromToken
     return next()
   } catch (e) {
-    next(Error('invalid token'))
+    next(new ValidationError('token', validationCause.INVALID))
   }
+}
+
+export function validatePacket(escort: IDataEscort) {
+  let token = escort.get('token')
+  if (typeof token != 'string')
+    throw new ValidationError('token', validationCause.REQUIRED)
+
+  return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload
 }
 
 function getTokenFromRequest(req: Request) {
@@ -24,8 +34,10 @@ function getTokenFromRequest(req: Request) {
 
 function hasToken(req: Request) {
   if (
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') ||
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Token')
+    (req.headers.authorization &&
+      req.headers.authorization.split(' ')[0] === 'Bearer') ||
+    (req.headers.authorization &&
+      req.headers.authorization.split(' ')[0] === 'Token')
   )
     return true
 
