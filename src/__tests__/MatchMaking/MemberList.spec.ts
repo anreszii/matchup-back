@@ -3,7 +3,7 @@ import { MemberList } from '../../MatchMaking/MemberListl'
 import type { Member } from '../../MatchMaking/Lobby'
 
 describe('Member List', () => {
-  let pool: MemberList
+  let list: MemberList
   const TEAM_1: Array<Member> = [
     {name: 'test', command: 'command1', readyFlag: false},
     {name: 'test1', command: 'command1', readyFlag: false},
@@ -38,51 +38,61 @@ describe('Member List', () => {
   ]
 
   beforeEach(() => {
-    pool = new MemberList()
+    list = new MemberList()
   })
   test('add members', () => {
     let status: boolean
-    status = pool.add(...TEAM_1)
+    status = list.add(...TEAM_1)
     expect(status).toBeTruthy()
 
-    status = pool.add(...TEAM_2)
+    status = list.add(...TEAM_2)
     expect(status).toBeTruthy()
 
-    status = pool.add(...TEAM_NEUTRAL)
+    status = list.add(...TEAM_NEUTRAL)
     expect(status).toBeFalsy()
 
-    status = pool.add(...SPECTATORS)
+    status = list.add(...SPECTATORS)
     expect(status).toBeTruthy()
 
-    status = pool.add(...SPECTATORS)
+    status = list.add(...SPECTATORS)
     expect(status).toBeFalsy()
   })
 
   test('delete members', () => {
     let status: boolean
-    pool.add(...TEAM_1)
-    pool.add(...SPECTATORS)
+    list.add(...TEAM_1)
+    list.add(...SPECTATORS)
 
-    status = pool.delete(UNDEFINED_MEMBER)
+    status = list.delete(UNDEFINED_MEMBER)
     expect(status).toBeFalsy()
 
-    status = pool.delete({name: 'test511', command: 'neutral', readyFlag: false})
+    status = list.delete({name: 'test511', command: 'neutral', readyFlag: false})
     expect(status).toBeFalsy()
 
-    status = pool.delete(TEAM_1[0], TEAM_1[1], SPECTATORS[0])
+    status = list.delete(TEAM_1[0], TEAM_1[1], SPECTATORS[0])
     expect(status).toBeTruthy()
-    expect(pool.quantityOfPlayers).toBe(TEAM_1.length - 2)
-    expect(pool.quantityOfSpectators).toBe(SPECTATORS.length - 1)
+    expect(list.quantityOfPlayers).toBe(TEAM_1.length - 2)
+    expect(list.quantityOfSpectators).toBe(SPECTATORS.length - 1)
   })
 
   test('basic work', () => {
-    pool.add(...TEAM_1)
-    pool.add(...SPECTATORS)
+    list.add(...TEAM_1)
+    list.add(...SPECTATORS)
 
-    expect(pool.quantityOfPlayers).toBe(5)
-    expect(pool.quantityOfSpectators).toBe(5)
+    expect(list.quantityOfPlayers).toBe(5)
+    expect(list.quantityOfSpectators).toBe(5)
 
-    expect(pool.spectators).toEqual(SPECTATORS)
-    expect(pool.players).toEqual(TEAM_1)
+    expect(list.spectators).toEqual(SPECTATORS)
+    expect(list.players).toEqual(TEAM_1)
+
+  })
+
+  test('member object check', () => {
+    expect(MemberList.isMember(null)).toBeFalsy()
+    expect(MemberList.isMember(1)).toBeFalsy()
+    expect(MemberList.isMember({})).toBeFalsy()
+    expect(MemberList.isMember({name: 'test'})).toBeFalsy()
+    expect(MemberList.isMember(TEAM_1)).toBeFalsy()
+    expect(MemberList.isMember(TEAM_1[0])).toBeTruthy()
   })
 })

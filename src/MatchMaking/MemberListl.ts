@@ -47,6 +47,11 @@ export class MemberList extends List<Member> {
     return players
   }
 
+  public static isMember(member: unknown): member is Member {
+    if (!member || typeof member != 'object') return false
+    return 'name' in member && 'command' in member && 'readyFlag' in member
+  }
+
   private _increaseMemberCounter(member: Member) {
     return member.command == 'spectator'
       ? this._increaseSpectatorCounter()
