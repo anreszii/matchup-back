@@ -1,7 +1,7 @@
 import { Router, NextFunction, Request, Response } from 'express'
 import { Error as MongoError } from 'mongoose'
 import { MongoServerError } from 'mongodb'
-import { CreateValidationMessage, ValidationError } from '../../error'
+import { ValidationError } from '../../error'
 
 let router = Router()
 
@@ -16,7 +16,7 @@ router.use(function (
   let errors: Array<string> = []
 
   if (errorObject instanceof ValidationError) {
-    errors.push(CreateValidationMessage(errorObject.id, errorObject.cause))
+    errors.push(errorObject.genericMessage)
     return next(errors)
   }
 

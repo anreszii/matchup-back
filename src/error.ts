@@ -5,25 +5,47 @@ export const enum validationCause {
   INVALID = `invalid`,
 }
 
+export const enum matchCause {
+  CREATE = 'create',
+  ADD_MEMBER = 'add member',
+  REMOVE_MEMBER = 'remove member',
+}
+
 export class ValidationError extends Error {
-  constructor(public id: string, public cause: validationCause) {
-    super(`${id} ${cause}`)
+  name: 'ValidationError' = 'ValidationError'
+  constructor(private _key: string, public cause: validationCause) {
+    super(`${_key} ${cause}`)
+  }
+
+  public get genericMessage(): string {
+    switch (this.cause) {
+      case validationCause.INVALID_FORMAT:
+        return FormatError(this._key)
+      case validationCause.REQUIRED:
+        return RequiredError(this._key)
+      case validationCause.NOT_EXIST:
+        return ExistError(this._key)
+      case validationCause.INVALID:
+        return InvalidError(this._key)
+    }
   }
 }
 
-export function CreateValidationMessage(
-  name: string,
-  cause: validationCause,
-): string {
-  switch (cause) {
-    case validationCause.INVALID_FORMAT:
-      return FormatError(name)
-    case validationCause.NOT_EXIST:
-      return ExistError(name)
-    case validationCause.REQUIRED:
-      return RequiredError(name)
-    case validationCause.INVALID:
-      return InvalidError(name)
+export class MatchError extends Error {
+  name: 'MatchControllError' = 'MatchControllError'
+  constructor(private _lobbyID: string, public cause: matchCause) {
+    super(`match ${_lobbyID} error: ${cause}`)
+  }
+
+  public get genericMessage(): string {
+    switch (this.cause) {
+      case matchCause.CREATE:
+        return createMatchError(this._lobbyID)
+      case matchCause.ADD_MEMBER:
+        return addMemberError(this._lobbyID)
+      case matchCause.REMOVE_MEMBER:
+        return removeMemberError(this._lobbyID)
+    }
   }
 }
 
@@ -43,13 +65,14 @@ function InvalidError(name: string) {
   return `invalid ${name}`
 }
 
-export const enum matchCause {
-  CREATE = 'creating',
-  ADD_MEMBERS = 'member join',
+function createMatchError(lobbyID: string) {
+  return `Lobby#${lobbyID}: failed to create match`
 }
 
-export class MatchError extends Error {
-  constructor(public id: string, public cause: matchCause) {
-    super(`match ${id} error: ${cause}`)
-  }
+function addMemberError(lobbyID: string) {
+  return `Lobby#${lobbyID}: failed to add member`
+}
+
+function removeMemberError(lobbyID: string) {
+  return `Lobby#${lobbyID}: failed to remove member`
 }
