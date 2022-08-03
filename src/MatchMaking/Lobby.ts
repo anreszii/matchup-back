@@ -2,7 +2,10 @@ import { matchCause, MatchError } from '../error'
 import { MemberList } from './MemberListl'
 
 import { v4 as uuid } from 'uuid'
-import type { MatchController } from './Controllers/MatchController'
+import type {
+  MatchController,
+  matchStatus,
+} from './Controllers/MatchController'
 
 export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
 
@@ -12,18 +15,19 @@ export type Member = {
   readyFlag: boolean
 }
 
-export interface MatchLobby {
+export declare interface MatchLobby {
+  get id(): string
+  get status(): matchStatus
   start(): Promise<boolean>
   stop(): Promise<boolean>
+  addMember(member: Member): Promise<boolean>
+  removeMember(member: Member): Promise<boolean>
 }
 
 export class LobbyManager {
   private static _lobbyList: Map<string, Lobby> = new Map()
 
-  public static spawn(
-    controller: MatchController,
-    ...members: Array<Member>
-  ): Lobby {
+  public static spawn(controller: MatchController): Lobby {
     const ID = this.createID()
 
     let lobby = new Lobby(controller, ID)
@@ -56,7 +60,7 @@ class Lobby implements MatchLobby {
   ) {
     if (members) {
       _matchController.addMembers(...members).then((status) => {
-        if (!status) throw new MatchError(_id, matchCause.ADD_MEMBERS)
+        if (!status) throw new MatchError(_id, matchCause.ADD_MEMBER)
         this.members.add(...members)
       })
     }
@@ -64,6 +68,11 @@ class Lobby implements MatchLobby {
 
   public get id() {
     return this._id
+  }
+
+  public get status() {
+    if (this.members.quantityOfPlayers < 10) return 'searching'
+    else return this._matchController.status
   }
 
   public async start() {
