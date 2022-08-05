@@ -45,6 +45,15 @@ describe('Member List', () => {
     status = list.add(...TEAM_1)
     expect(status).toBeTruthy()
 
+    status = list.add(...TEAM_1)
+    expect(status).toBeFalsy()
+
+    status = list.add(TEAM_1[0])
+    expect(status).toBeFalsy()
+
+    status = list.add({name:'fake1', command:'command1', readyFlag:false})
+    expect(status).toBeFalsy()
+
     status = list.add(...TEAM_2)
     expect(status).toBeTruthy()
 
@@ -73,6 +82,14 @@ describe('Member List', () => {
     expect(status).toBeTruthy()
     expect(list.quantityOfPlayers).toBe(TEAM_1.length - 2)
     expect(list.quantityOfSpectators).toBe(SPECTATORS.length - 1)
+  })
+
+  test('get member', () => {
+    let status: boolean
+    list.add(...TEAM_1)
+
+    expect(list.getMember(TEAM_1[0])).toBe(TEAM_1[0])
+    expect(list.getMember(TEAM_2[0])).toBe(UNDEFINED_MEMBER)
   })
 
   test('basic work', () => {

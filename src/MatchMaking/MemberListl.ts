@@ -1,17 +1,22 @@
 import { List } from '../Classes/List'
 import { UNDEFINED_MEMBER } from '../configs/match_manager'
-import type { Member } from './Lobby'
+import type { command, Member } from './Lobby'
 
 export class MemberList extends List<Member> {
   private _spectators = 0
-  private _players = 0
+  private _players = {
+    command1: 0,
+    command2: 0,
+    neutral: 0,
+  }
   constructor(size?: number) {
     super(size, UNDEFINED_MEMBER)
   }
 
   public add(...members: Member[]): boolean {
     for (let member of members.values()) {
-      if (!this._hasFreeSpaceForMember(member)) return false
+      if (!this._hasFreeSpaceForMember(member) || this._hasMember(member))
+        return false
       this._increaseMemberCounter(member)
     }
 
@@ -25,12 +30,21 @@ export class MemberList extends List<Member> {
     return true
   }
 
+  public getMember(entity: string | Member) {
+    let name = typeof entity == 'string' ? entity : entity.name
+    let member = this._elements.find((_member) => _member?.name == name)
+    if (!member) return UNDEFINED_MEMBER
+    return member
+  }
+
   public get quantityOfSpectators() {
     return this._spectators
   }
 
   public get quantityOfPlayers() {
-    return this._players
+    return (
+      this._players.command1 + this._players.command2 + this._players.neutral
+    )
   }
 
   public get players() {
@@ -55,11 +69,11 @@ export class MemberList extends List<Member> {
   private _increaseMemberCounter(member: Member) {
     return member.command == 'spectator'
       ? this._increaseSpectatorCounter()
-      : this._increasePlayerCounter()
+      : this._increasePlayerCounter(member.command)
   }
 
-  private _increasePlayerCounter() {
-    this._players++
+  private _increasePlayerCounter(command: Exclude<command, 'spectator'>) {
+    this._players[command]++
   }
 
   private _increaseSpectatorCounter() {
@@ -69,28 +83,36 @@ export class MemberList extends List<Member> {
   private _decreaseMemberCounter(member: Member) {
     return member.command == 'spectator'
       ? this._decreaseSpectatorCounter()
-      : this._decreasePlayerCounter()
+      : this._decreasePlayerCounter(member.command)
   }
 
-  private _decreasePlayerCounter() {
-    this._players--
+  private _decreasePlayerCounter(command: Exclude<command, 'spectator'>) {
+    this._players[command]--
   }
 
   private _decreaseSpectatorCounter() {
     this._spectators--
   }
 
+  private _hasMember(entity: string | Member): boolean {
+    let name = typeof entity == 'string' ? entity : entity.name
+    for (var i = 0; i < this._elements.length; i++)
+      if (this._elements[i]?.name == name) return true
+    return false
+  }
+
   private _hasFreeSpaceForMember(member: Member) {
     return member.command == 'spectator'
       ? this._hasFreeSpaceForSpectaror()
-      : this._hasFreeSpaceForPlayer()
+      : this._hasFreeSpaceForPlayer(member.command)
   }
 
-  private _hasFreeSpaceForPlayer() {
-    return this._players < 10
+  private _hasFreeSpaceForPlayer(command: Exclude<command, 'spectator'>) {
+    let status = command == 'neutral' ? true : this._players[command] < 5
+    return this.quantityOfPlayers < 10 && status
   }
 
   private _hasFreeSpaceForSpectaror() {
-    return this._spectators < 5
+    return this.quantityOfSpectators < 5
   }
 }
