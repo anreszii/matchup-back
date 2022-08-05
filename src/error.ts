@@ -9,9 +9,22 @@ export const enum matchCause {
   CREATE = 'create',
   ADD_MEMBER = 'add member',
   REMOVE_MEMBER = 'remove member',
+  CHANGE_COMMAND = 'change command',
 }
 
-export class ValidationError extends Error {
+export const enum wsManageCause {
+  NOT_FOUND = 'not found',
+}
+
+interface genericMessage {
+  get genericMessage(): string
+}
+
+export abstract class MatchUpError extends Error implements genericMessage {
+  abstract get genericMessage(): string
+}
+
+export class ValidationError extends MatchUpError {
   name: 'ValidationError' = 'ValidationError'
   constructor(private _key: string, public cause: validationCause) {
     super(`${_key} ${cause}`)
@@ -31,7 +44,7 @@ export class ValidationError extends Error {
   }
 }
 
-export class MatchError extends Error {
+export class MatchError extends MatchUpError {
   name: 'MatchControllError' = 'MatchControllError'
   constructor(private _lobbyID: string, public cause: matchCause) {
     super(`match ${_lobbyID} error: ${cause}`)
@@ -40,11 +53,26 @@ export class MatchError extends Error {
   public get genericMessage(): string {
     switch (this.cause) {
       case matchCause.CREATE:
-        return createMatchError(this._lobbyID)
+        return CreateMatchError(this._lobbyID)
       case matchCause.ADD_MEMBER:
-        return addMemberError(this._lobbyID)
+        return AddMemberError(this._lobbyID)
       case matchCause.REMOVE_MEMBER:
-        return removeMemberError(this._lobbyID)
+        return RemoveMemberError(this._lobbyID)
+      case matchCause.CHANGE_COMMAND:
+        return changeCommandError(this._lobbyID)
+    }
+  }
+}
+
+export class WebSocketManageError extends MatchUpError {
+  constructor(private _id: string, public cause: wsManageCause) {
+    super(`socket#${_id}: ${cause}`)
+  }
+
+  public get genericMessage() {
+    switch (this.cause) {
+      case wsManageCause.NOT_FOUND:
+        return FoundError(this._id)
     }
   }
 }
@@ -65,14 +93,22 @@ function InvalidError(name: string) {
   return `invalid ${name}`
 }
 
-function createMatchError(lobbyID: string) {
+function CreateMatchError(lobbyID: string) {
   return `Lobby#${lobbyID}: failed to create match`
 }
 
-function addMemberError(lobbyID: string) {
+function AddMemberError(lobbyID: string) {
   return `Lobby#${lobbyID}: failed to add member`
 }
 
-function removeMemberError(lobbyID: string) {
+function RemoveMemberError(lobbyID: string) {
   return `Lobby#${lobbyID}: failed to remove member`
+}
+
+function changeCommandError(lobbyID: string) {
+  return `Lobby#${lobbyID}: failed to change member command`
+}
+
+function FoundError(socketID: string) {
+  return `socket#s${socketID}: doesn't exist`
 }
