@@ -51,7 +51,7 @@ export class MemberList extends List<Member> {
 
   public add(...members: Member[]): boolean {
     for (let member of members.values()) {
-      if (!this._hasFreeSpaceForMember(member) || this._hasMember(member))
+      if (!this._hasFreeSpaceForMember(member) || this.hasMember(member))
         return false
       this._increaseMemberCounter(member)
     }
@@ -88,9 +88,25 @@ export class MemberList extends List<Member> {
     return member
   }
 
+  public hasMember(entity: string | Member): boolean {
+    let name = typeof entity == 'string' ? entity : entity.name
+    for (var i = 0; i < this._elements.length; i++)
+      if (this._elements[i]?.name == name) return true
+    return false
+  }
+
   public static isMember(member: unknown): member is Member {
     if (!member || typeof member != 'object') return false
     return 'name' in member && 'command' in member && 'readyFlag' in member
+  }
+
+  public static isCommand(entity: unknown): entity is command {
+    if (typeof entity != 'string' || !entity) return false
+    if (entity == 'spectator') return true
+    if (entity == 'neutral') return true
+    if (entity == 'command1') return true
+    if (entity == 'command2') return true
+    return false
   }
 
   private set command1(value) {
@@ -135,13 +151,6 @@ export class MemberList extends List<Member> {
 
   private _decreaseSpectatorCounter() {
     this._spectator--
-  }
-
-  private _hasMember(entity: string | Member): boolean {
-    let name = typeof entity == 'string' ? entity : entity.name
-    for (var i = 0; i < this._elements.length; i++)
-      if (this._elements[i]?.name == name) return true
-    return false
   }
 
   private _hasFreeSpaceForMember(entity: Member | command) {
