@@ -154,11 +154,13 @@ clientServer.on('remove member', async (escort) => {
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
-    let member = escort.get('member')
-    if (!MemberList.isMember(member))
-      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+    let name = escort.get('name')
+    if (typeof name != 'string')
+      throw new ValidationError('name', validationCause.REQUIRED)
+    if (!lobby.members.hasMember(name))
+      throw new ValidationError('name', validationCause.INVALID)
 
-    let status = await lobby.removeMember(member)
+    let status = await lobby.removeMember(lobby.members.getMember(name)!)
     if (!status) throw new MatchError(lobbyID, matchCause.REMOVE_MEMBER)
 
     clientServer.control(socketID).emit('sync lobby', {
@@ -197,12 +199,17 @@ clientServer.on('change command', async (escort) => {
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
-    let member = escort.get('member')
-    if (!MemberList.isMember(member))
-      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+    let name = escort.get('name')
+    if (typeof name != 'string')
+      throw new ValidationError('name', validationCause.REQUIRED)
+    if (!lobby.members.hasMember(name))
+      throw new ValidationError('name', validationCause.INVALID)
 
-    let status = await lobby.addMember(member)
-    if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
+    let command = escort.get('command')
+    if (!MemberList.isCommand(command))
+      throw new ValidationError('command', validationCause.INVALID_FORMAT)
+    let status = lobby.members.changeCommand(name, command)
+    if (!status) throw new MatchError(lobbyID, matchCause.CHANGE_COMMAND)
 
     clientServer.control(socketID).emit('sync lobby', {
       status: lobby.status,
