@@ -2,6 +2,7 @@ import io from 'gamesocket.io'
 import {
   matchCause,
   MatchError,
+  MatchUpError,
   validationCause,
   ValidationError,
 } from '../../error'
@@ -9,64 +10,30 @@ import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
 import { LobbyManager, Member } from '../../MatchMaking/Lobby'
 import { MemberList } from '../../MatchMaking/MemberListl'
 import { validatePacket } from '../../Token'
+import { WebSocketValidatior } from '../../validation/websocket'
 
-let Server = io()
+let app = io()
+let wsValidator = new WebSocketValidatior(app)
 
-let clientServer = Server.of('client')
+let clientServer = app.of('client')
 
 clientServer.on('authorize', (escort) => {
   let token = validatePacket(escort)
+  let socketID = escort.get('socket_id') as string
 
+  wsValidator.authorizeSocket(socketID)
   let name = token.username as string
-  let socketID = escort.get('id') as string
 
-  Server.aliases.set(name, socketID)
+  app.aliases.set(name, socketID)
   return clientServer.control(socketID).emit('authorize', { complete: true })
-})
-
-clientServer.on('sync lobby', async (escort) => {
-  try {
-    let token = validatePacket(escort)
-
-    let socketID = escort.get('id') as string
-    let lobbyID = escort.get('lobby_id')
-
-    if (typeof lobbyID != 'string')
-      throw new ValidationError('lobby', validationCause.REQUIRED)
-
-    let lobby = LobbyManager.get(lobbyID)
-    if (!lobby) throw new ValidationError('lobby', validationCause.INVALID)
-
-    clientServer.control(socketID).emit('sync lobby', {
-      status: lobby.status,
-      players: lobby.members.players,
-      spectators: lobby.members.spectators,
-    })
-  } catch (e) {
-    let socketID = escort.get('id') as string
-    if (e instanceof Error) {
-      if (e instanceof ValidationError || e instanceof MatchError)
-        return clientServer
-          .control(socketID)
-          .emit('sync lobby error', { reason: e.genericMessage })
-
-      return clientServer
-        .control(socketID)
-        .emit('sync lobby error', { reason: e.message })
-    }
-
-    clientServer
-      .control(escort.get('id') as string)
-      .emit('sync lobby error', { reason: 'unknwon error' })
-  }
 })
 
 clientServer.on('create match', async (escort) => {
   try {
-    let token = validatePacket(escort)
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
 
-    let socketID = escort.get('id') as string
-    let lobby = LobbyManager.spawn(new StandOffController())
+    let lobby = await LobbyManager.spawn(new StandOffController())
 
     let member = escort.get('member')
     if (member) {
@@ -75,108 +42,188 @@ clientServer.on('create match', async (escort) => {
       await lobby.addMember(member)
     }
 
-    clientServer.control(socketID).emit('create match', { lobbyID: lobby.id })
+    clientServer.control(socketID).emit('create match', { lobby_id: lobby.id })
   } catch (e) {
-    let socketID = escort.get('id') as string
-    if (e instanceof Error) {
-      if (e instanceof ValidationError || e instanceof MatchError)
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
         return clientServer
           .control(socketID)
           .emit('add member error', { reason: e.genericMessage })
-
+    } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
         .emit('add member error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('add member', { reason: 'unknown error' })
     }
+  }
+})
 
-    clientServer
-      .control(escort.get('id') as string)
-      .emit('add member', { reason: 'unknwon error' })
+clientServer.on('sync lobby', async (escort) => {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobbyID = escort.get('lobby_id')
+
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobby', validationCause.REQUIRED)
+
+    let lobby = LobbyManager.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+
+    clientServer.control(socketID).emit('sync lobby', {
+      status: lobby.status,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
+    })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('add member error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('add member error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('add member', { reason: 'unknown error' })
+    }
   }
 })
 
 clientServer.on('add member', async (escort) => {
   try {
-    let token = validatePacket(escort)
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
 
-    let socketID = escort.get('id') as string
-    let lobbyID = escort.get('lobby_id')
-
+    let lobbyID = escort.get('lobby_id') as string
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
     let lobby = LobbyManager.get(lobbyID)
-    if (!lobby) throw new ValidationError('lobby', validationCause.INVALID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
-    let status = await lobby.addMember({
-      name: token.username as string,
-      command: 'neutral',
-      readyFlag: false,
-    })
+    let member = escort.get('member')
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
 
+    let status = await lobby.addMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
 
-    return clientServer.control(socketID).emit('add member', {
-      lobbyID: lobby.id,
-      command: 'neutral',
-      readyFlag: false,
+    clientServer.control(socketID).emit('sync lobby', {
+      status: lobby.status,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
     })
   } catch (e) {
-    let socketID = escort.get('id') as string
-    if (e instanceof Error) {
-      if (e instanceof ValidationError || e instanceof MatchError)
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
         return clientServer
           .control(socketID)
           .emit('add member error', { reason: e.genericMessage })
-
+    } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
         .emit('add member error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('add member', { reason: 'unknown error' })
     }
-
-    clientServer
-      .control(escort.get('id') as string)
-      .emit('add member', { reason: 'unknwon error' })
   }
 })
 
 clientServer.on('remove member', async (escort) => {
   try {
-    let token = validatePacket(escort)
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
 
-    let socketID = escort.get('id') as string
-    let lobbyID = escort.get('lobby_id')
-
+    let lobbyID = escort.get('lobby_id') as string
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
     let lobby = LobbyManager.get(lobbyID)
-    if (!lobby) throw new ValidationError('lobby', validationCause.INVALID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
-    let status = await lobby.removeMember(escort.get('member') as Member)
+    let member = escort.get('member')
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
 
+    let status = await lobby.removeMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.REMOVE_MEMBER)
 
-    return clientServer.control(socketID).emit('remove member', {
-      lobbyID: lobby.id,
-      command: 'neutral',
-      readyFlag: false,
+    clientServer.control(socketID).emit('sync lobby', {
+      status: lobby.status,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
     })
   } catch (e) {
-    let socketID = escort.get('id') as string
-    if (e instanceof Error) {
-      if (e instanceof ValidationError || e instanceof MatchError)
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('remove member error', { reason: e.genericMessage })
-
+          .emit('add member error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('remove member error', { reason: e.message })
+        .emit('add member error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('add member', { reason: 'unknown error' })
     }
+  }
+})
 
-    clientServer
-      .control(escort.get('id') as string)
-      .emit('remove member error', { reason: 'unknwon error' })
+clientServer.on('change command', async (escort) => {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobbyID = escort.get('lobby_id') as string
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobby', validationCause.REQUIRED)
+
+    let lobby = LobbyManager.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+
+    let member = escort.get('member')
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+
+    let status = await lobby.addMember(member)
+    if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
+
+    clientServer.control(socketID).emit('sync lobby', {
+      status: lobby.status,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
+    })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('add member error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('add member error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('add member', { reason: 'unknown error' })
+    }
   }
 })

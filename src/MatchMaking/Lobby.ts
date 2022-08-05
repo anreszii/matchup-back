@@ -27,8 +27,10 @@ export declare interface MatchLobby {
 export class LobbyManager {
   private static _lobbyList: Map<string, Lobby> = new Map()
 
-  public static spawn(controller: MatchController): Lobby {
+  public static async spawn(controller: MatchController): Promise<Lobby> {
     const ID = this.createID()
+    if (!(await controller.create()))
+      throw new MatchError('uncreated', matchCause.CREATE)
 
     let lobby = new Lobby(controller, ID)
     this._lobbyList.set(ID, lobby)
@@ -52,6 +54,8 @@ export class LobbyManager {
 
 class Lobby implements MatchLobby {
   public members = new MemberList()
+  _command1: number = 0
+  _command2: number = 0
 
   constructor(
     private _matchController: MatchController,
