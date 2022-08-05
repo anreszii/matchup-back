@@ -17,7 +17,6 @@ router.put(
         username: newName,
         email,
         region,
-        device,
         password,
         nickname,
         id,
