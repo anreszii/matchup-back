@@ -84,6 +84,28 @@ describe('Member List', () => {
     expect(list.quantityOfSpectators).toBe(SPECTATORS.length - 1)
   })
 
+  test('change command', () => {
+    let status: boolean
+    list.add(...TEAM_NEUTRAL)
+    list.add(...TEAM_2)
+
+    status = list.changeCommand(TEAM_NEUTRAL[0], 'command1')
+    expect(status).toBeTruthy()
+
+    status = list.changeCommand(TEAM_NEUTRAL[0], 'command2')
+    expect(status).toBeFalsy()
+
+    status = list.changeCommand(TEAM_NEUTRAL[0], 'spectator')
+    expect(status).toBeTruthy()
+
+    status = list.changeCommand(TEAM_2[0], 'command2')
+    expect(status).toBeFalsy()
+
+    list.changeCommand(TEAM_2[0], 'command1')
+    status = list.changeCommand(TEAM_NEUTRAL[0], 'command2')
+    expect(status).toBeTruthy()
+  })
+
   test('get member', () => {
     let status: boolean
     list.add(...TEAM_1)
