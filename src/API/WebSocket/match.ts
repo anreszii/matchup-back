@@ -174,15 +174,15 @@ clientServer.on('remove member', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add member error', { reason: e.genericMessage })
+          .emit('remove member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add member error', { reason: e.message })
+        .emit('remove member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add member', { reason: 'unknown error' })
+        .emit('remove member', { reason: 'unknown error' })
     }
   }
 })
@@ -222,15 +222,15 @@ clientServer.on('change command', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add member error', { reason: e.genericMessage })
+          .emit('change command error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add member error', { reason: e.message })
+        .emit('change command error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add member', { reason: 'unknown error' })
+        .emit('change command erorr', { reason: 'unknown error' })
     }
   }
 })
