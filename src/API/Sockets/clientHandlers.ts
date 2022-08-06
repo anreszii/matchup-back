@@ -4,7 +4,8 @@
  * И передавать в пакете JSON объект, содержащий поле event, а также оговоренные в конкретном хэндлере поля
  *
  * В случае ошибок шлет на ${event} error объект JSON с полем reason
- * @module MatchHandlers
+ * @module LobbyHandlers
+ * @packageDocumentation
  */
 
 import io from 'gamesocket.io'
@@ -28,7 +29,7 @@ let wsValidator = new WebSocketValidatior(app)
 let clientServer = app.of('client')
 
 /**
- * Событие для авторизации сокета
+ * Событие для авторизации сокета. </br>
  * Используемый пакет:
  *
  * ```json
@@ -38,12 +39,15 @@ let clientServer = app.of('client')
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ *
+ * ```json
  * {
  *  "complete": true
  * }
+ * ```
  * @event authorize
  */
-function authorize(escort: IDataEscort) {
+export function authorize(escort: IDataEscort) {
   let token = validatePacket(escort)
   let socketID = escort.get('socket_id') as string
 
@@ -55,22 +59,24 @@ function authorize(escort: IDataEscort) {
 }
 
 /**
- * Событие для создания матча со стороны клиента.
+ * Событие для создания матча со стороны клиента.</br>
  * Используемый пакет:
  *
  * ```json
  * {
- *  "member": Member //объект соответствующий {@link module!Lobby.Member}
+ *  "member": Member
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```json
  * {
  *  "lobby_id": string
  * }
+ * ```
  * @event create_match
  */
-async function createMatch(escort: IDataEscort) {
+export async function createMatch(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -105,7 +111,7 @@ async function createMatch(escort: IDataEscort) {
 }
 
 /**
- * Событие для ручной синхронизации пользователя с лобби
+ * Событие для ручной синхронизации пользователя с лобби.</br>
  * Используемый пакет:
  *
  * ```json
@@ -115,13 +121,17 @@ async function createMatch(escort: IDataEscort) {
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ *
+ * ```json
  * {
- *  status: 'searching' | 'filled' | 'started'
- *  players: Array<{@link module!Lobby.Member}>
- *  spectators: Array<{@link module!Lobby.Member}>
+ *  status: 'searching' | 'filled' | 'started',
+ *  players: Array<Member>,
+ *  spectators: Array<Member>
  * }
+ * ```
+ * @event sync_lobby
  */
-async function syncLobby(escort: IDataEscort) {
+export async function syncLobby(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -159,24 +169,28 @@ async function syncLobby(escort: IDataEscort) {
 }
 
 /**
- * Событие для добавления пользователя в лобби
+ * Событие для добавления пользователя в лобби.</br>
  * Используемый пакет:
  *
  * ```json
  * {
- *  "lobby_id": string //строка с id существующего лобби
- *  "member": {@link module!Lobby.Member}
+ *  "lobby_id": string, //строка с id существующего лобби
+ *  "member": Member
  * }
  * ```
  *
  * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
+ *
+ * ```json
  * {
- *  status: 'searching' | 'filled' | 'started'
- *  players: Array<{@link module!Lobby.Member}>
- *  spectators: Array<{@link module!Lobby.Member}>
+ *  status: 'searching' | 'filled' | 'started',
+ *  players: Array<Member>,
+ *  spectators: Array<Member>
  * }
+ * ```
+ * @event add_member
  */
-async function addMember(escort: IDataEscort) {
+export async function addMember(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -220,24 +234,28 @@ async function addMember(escort: IDataEscort) {
 }
 
 /**
- * Событие для удаления пользователя из лобби
+ * Событие для удаления пользователя из лобби.</br>
  * Используемый пакет:
  *
  * ```json
  * {
- *  "lobby_id": string //строка с id существующего лобби
+ *  "lobby_id": string, //строка с id существующего лобби
  *  "name": string //имя пользователя
  * }
  * ```
  *
  * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
+ *
+ * ```json
  * {
- *  status: 'searching' | 'filled' | 'started'
- *  players: Array<{@link module!Lobby.Member}>
- *  spectators: Array<{@link module!Lobby.Member}>
+ *  status: 'searching' | 'filled' | 'started',
+ *  players: Array<Member>,
+ *  spectators: Array<Member>
  * }
+ * ```
+ * @event remove_member
  */
-async function removeMember(escort: IDataEscort) {
+export async function removeMember(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -283,7 +301,7 @@ async function removeMember(escort: IDataEscort) {
 }
 
 /** */
-async function changeCommand(escort: IDataEscort) {
+export async function changeCommand(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
