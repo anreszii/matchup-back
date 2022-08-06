@@ -64,7 +64,7 @@ export declare interface IUserBehavior {
   deleteFriend(name: string): Promise<undefined | void>
 }
 
-interface UserModel extends Model<IUser, {}, IUserBehavior> {
+export interface UserModel extends Model<IUser, {}, IUserBehavior> {
   getByName(name: string): Promise<HydratedDocument<IUser, IUserBehavior>>
 }
 

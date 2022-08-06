@@ -1,4 +1,4 @@
-import type { Member } from '../Lobby'
+import type { command, Member } from '../Lobby'
 export declare type matchStatus = 'searching' | 'filled' | 'started'
 
 export declare interface MatchController {
@@ -10,4 +10,5 @@ export declare interface MatchController {
 
   addMembers(...members: Array<Member>): Promise<boolean>
   removeMembers(...members: Array<Member>): Promise<boolean>
+  changeCommand(member: string | Member, command: command): Promise<boolean>
 }

@@ -1,4 +1,4 @@
-import { Member } from '../Lobby'
+import { command, Member } from '../Lobby'
 import { MatchController, matchStatus } from './MatchController'
 
 export class StandOffController implements MatchController {
@@ -28,6 +28,13 @@ export class StandOffController implements MatchController {
   }
 
   async removeMembers(...members: Member[]): Promise<boolean> {
+    return true
+  }
+
+  async changeCommand(
+    member: string | Member,
+    command: command,
+  ): Promise<boolean> {
     return true
   }
 }

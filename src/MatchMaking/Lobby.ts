@@ -22,6 +22,7 @@ export declare interface MatchLobby {
   stop(): Promise<boolean>
   addMember(member: Member): Promise<boolean>
   removeMember(member: Member): Promise<boolean>
+  changeCommand(member: Member, team: command): Promise<boolean>
 }
 
 export class LobbyManager {
@@ -81,6 +82,13 @@ class Lobby implements MatchLobby {
 
   public async start() {
     return this._matchController.start()
+  }
+
+  public async changeCommand(
+    member: Member,
+    command: command,
+  ): Promise<boolean> {
+    return await this._matchController.changeCommand(member.name, command)
   }
 
   public async stop() {

@@ -18,6 +18,12 @@ export function validateToken(req: Request, _: unknown, next: NextFunction) {
   }
 }
 
+/**
+ *  Функция валидации JWT-токена для работы с библиотекой gamesocket.io
+ *
+ * @param escort
+ * @returns расшированный токен, находящийся в поле 'token' JSON-пакета или ошибку валидации
+ */
 export function validatePacket(escort: IDataEscort) {
   let token = escort.get('token')
   if (typeof token != 'string')

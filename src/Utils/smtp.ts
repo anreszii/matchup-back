@@ -16,7 +16,7 @@ class Mailer {
   }
 }
 
-declare interface IMail {
+export declare interface IMail {
   to(address: MailAddress): Mail
   subject(data: string | undefined): Mail
   text(data: MailData): Mail

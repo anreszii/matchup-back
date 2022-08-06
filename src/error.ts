@@ -26,12 +26,12 @@ export abstract class MatchUpError extends Error implements genericMessage {
 
 export class ValidationError extends MatchUpError {
   name: 'ValidationError' = 'ValidationError'
-  constructor(private _key: string, public cause: validationCause) {
-    super(`${_key} ${cause}`)
+  constructor(private _key: string, public errorCause: validationCause) {
+    super(`${_key} ${errorCause}`)
   }
 
   public get genericMessage(): string {
-    switch (this.cause) {
+    switch (this.errorCause) {
       case validationCause.INVALID_FORMAT:
         return FormatError(this._key)
       case validationCause.REQUIRED:
@@ -46,12 +46,12 @@ export class ValidationError extends MatchUpError {
 
 export class MatchError extends MatchUpError {
   name: 'MatchControllError' = 'MatchControllError'
-  constructor(private _lobbyID: string, public cause: matchCause) {
-    super(`match ${_lobbyID} error: ${cause}`)
+  constructor(private _lobbyID: string, public errorCause: matchCause) {
+    super(`match ${_lobbyID} error: ${errorCause}`)
   }
 
   public get genericMessage(): string {
-    switch (this.cause) {
+    switch (this.errorCause) {
       case matchCause.CREATE:
         return CreateMatchError(this._lobbyID)
       case matchCause.ADD_MEMBER:
@@ -65,12 +65,12 @@ export class MatchError extends MatchUpError {
 }
 
 export class WebSocketManageError extends MatchUpError {
-  constructor(private _id: string, public cause: wsManageCause) {
-    super(`socket#${_id}: ${cause}`)
+  constructor(private _id: string, public errorCause: wsManageCause) {
+    super(`socket#${_id}: ${errorCause}`)
   }
 
   public get genericMessage() {
-    switch (this.cause) {
+    switch (this.errorCause) {
       case wsManageCause.NOT_FOUND:
         return FoundError(this._id)
     }

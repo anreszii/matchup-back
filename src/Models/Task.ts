@@ -31,15 +31,18 @@ export declare interface ITaskBehavior {
 }
 
 interface TaskModel extends Model<ITask, {}, ITaskBehavior> {
-  getSpecific(owner: string, taskName: string): Promise<HydratedDocument<ITask, ITaskBehavior>>
+  getSpecific(
+    owner: string,
+    taskName: string,
+  ): Promise<HydratedDocument<ITask, ITaskBehavior>>
 }
 
-declare type expirationTime = {
+export declare type expirationTime = {
   amount: number
   format: 'days' | 'hours' | 'minutes'
 }
 
-declare type progress = {
+export declare type progress = {
   currentPoint: number
   finalPoint: number
 }
@@ -100,7 +103,8 @@ TaskSchema.methods.addProgress = async function (amount) {
 }
 
 TaskSchema.methods.setExpirationTime = function (expires) {
-  if (this.optional.expirationTime) throw Error('Expiration time has already set')
+  if (this.optional.expirationTime)
+    throw Error('Expiration time has already set')
   let { amount, format } = expires
 
   let date = new Date().getTime()
