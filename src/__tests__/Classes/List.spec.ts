@@ -148,13 +148,27 @@ describe('List class', () => {
       }
     })
 
+    test('push undefined', () => {
+      let status = list.add('undefined', TEST_DATA[0], 'undefined', TEST_DATA[1], 'undefined')
+      expect(status).toBeFalsy()
+      let index = 0
+      for(let container of list.values()) {
+        expect(container).toBe(TEST_DATA[index])
+        index++
+      }
+      expect(index).toBe(2)
+    })
+
     test('delete value', () => {
       list.add(...TEST_DATA)
       let status = list.delete(TEST_DATA[3])
       expect(status).toBeTruthy()
 
+      status = list.delete('undefined', TEST_DATA[2], 'undefined')
+      expect(status).toBeFalsy()
+
       let copy = TEST_DATA.slice()
-      copy.splice(3,1)
+      copy.splice(2,2)
       
       let index = 0
       for(let container of list.values()) {
@@ -167,6 +181,7 @@ describe('List class', () => {
 
       status = list.delete('udefined')
       expect(status).toBeFalsy()
+
     })
 
     test('push after delete', () => {
