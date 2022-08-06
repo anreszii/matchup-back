@@ -1,4 +1,14 @@
+/**
+ *
+ * Для взаимодействия с клиентским сервером необходимо подключиться к ws://server.name:PORT/client
+ * И передавать в пакете JSON объект, содержащий поле event, а также оговоренные в конкретном хэндлере поля
+ *
+ * В случае ошибок шлет на ${event} error объект JSON с полем reason
+ * @module MatchHandlers
+ */
+
 import io from 'gamesocket.io'
+import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
 import {
   matchCause,
   MatchError,
@@ -7,7 +17,7 @@ import {
   ValidationError,
 } from '../../error'
 import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
-import { LobbyManager, Member } from '../../MatchMaking/Lobby'
+import { LobbyManager } from '../../MatchMaking/Lobby'
 import { MemberList } from '../../MatchMaking/MemberListl'
 import { validatePacket } from '../../Token'
 import { WebSocketValidatior } from '../../validation/websocket'
@@ -17,7 +27,23 @@ let wsValidator = new WebSocketValidatior(app)
 
 let clientServer = app.of('client')
 
-clientServer.on('authorize', (escort) => {
+/**
+ * Событие для авторизации сокета
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "token": string //полученный при авторизации пользователя
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * {
+ *  "complete": true
+ * }
+ * @event authorize
+ */
+function authorize(escort: IDataEscort) {
   let token = validatePacket(escort)
   let socketID = escort.get('socket_id') as string
 
@@ -26,9 +52,25 @@ clientServer.on('authorize', (escort) => {
 
   app.aliases.set(name, socketID)
   return clientServer.control(socketID).emit('authorize', { complete: true })
-})
+}
 
-clientServer.on('create match', async (escort) => {
+/**
+ * Событие для создания матча со стороны клиента.
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "member": Member //объект соответствующий {@link module!Lobby.Member}
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * {
+ *  "lobby_id": string
+ * }
+ * @event create_match
+ */
+async function createMatch(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -42,27 +84,44 @@ clientServer.on('create match', async (escort) => {
       await lobby.addMember(member)
     }
 
-    clientServer.control(socketID).emit('create match', { lobby_id: lobby.id })
+    clientServer.control(socketID).emit('create_match', { lobby_id: lobby.id })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add member error', { reason: e.genericMessage })
+          .emit('add_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add member error', { reason: e.message })
+        .emit('add_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add member', { reason: 'unknown error' })
+        .emit('add_member', { reason: 'unknown error' })
     }
   }
-})
+}
 
-clientServer.on('sync lobby', async (escort) => {
+/**
+ * Событие для ручной синхронизации пользователя с лобби
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobby_id": string //строка с id существующего лобби
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * {
+ *  status: 'searching' | 'filled' | 'started'
+ *  players: Array<{@link module!Lobby.Member}>
+ *  spectators: Array<{@link module!Lobby.Member}>
+ * }
+ */
+async function syncLobby(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -75,7 +134,7 @@ clientServer.on('sync lobby', async (escort) => {
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
-    clientServer.control(socketID).emit('sync lobby', {
+    clientServer.control(socketID).emit('sync_lobby', {
       status: lobby.status,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
@@ -86,20 +145,38 @@ clientServer.on('sync lobby', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add member error', { reason: e.genericMessage })
+          .emit('add_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add member error', { reason: e.message })
+        .emit('add_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add member', { reason: 'unknown error' })
+        .emit('add_member', { reason: 'unknown error' })
     }
   }
-})
+}
 
-clientServer.on('add member', async (escort) => {
+/**
+ * Событие для добавления пользователя в лобби
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobby_id": string //строка с id существующего лобби
+ *  "member": {@link module!Lobby.Member}
+ * }
+ * ```
+ *
+ * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
+ * {
+ *  status: 'searching' | 'filled' | 'started'
+ *  players: Array<{@link module!Lobby.Member}>
+ *  spectators: Array<{@link module!Lobby.Member}>
+ * }
+ */
+async function addMember(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -118,7 +195,7 @@ clientServer.on('add member', async (escort) => {
     let status = await lobby.addMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
 
-    clientServer.control(socketID).emit('sync lobby', {
+    clientServer.control(socketID).emit('sync_lobby', {
       status: lobby.status,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
@@ -129,20 +206,38 @@ clientServer.on('add member', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add member error', { reason: e.genericMessage })
+          .emit('add_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add member error', { reason: e.message })
+        .emit('add_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add member', { reason: 'unknown error' })
+        .emit('add_member', { reason: 'unknown error' })
     }
   }
-})
+}
 
-clientServer.on('remove member', async (escort) => {
+/**
+ * Событие для удаления пользователя из лобби
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobby_id": string //строка с id существующего лобби
+ *  "name": string //имя пользователя
+ * }
+ * ```
+ *
+ * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
+ * {
+ *  status: 'searching' | 'filled' | 'started'
+ *  players: Array<{@link module!Lobby.Member}>
+ *  spectators: Array<{@link module!Lobby.Member}>
+ * }
+ */
+async function removeMember(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -163,7 +258,7 @@ clientServer.on('remove member', async (escort) => {
     let status = await lobby.removeMember(lobby.members.getMember(name)!)
     if (!status) throw new MatchError(lobbyID, matchCause.REMOVE_MEMBER)
 
-    clientServer.control(socketID).emit('sync lobby', {
+    clientServer.control(socketID).emit('sync_lobby', {
       status: lobby.status,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
@@ -174,20 +269,21 @@ clientServer.on('remove member', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('remove member error', { reason: e.genericMessage })
+          .emit('remove_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('remove member error', { reason: e.message })
+        .emit('remove_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('remove member', { reason: 'unknown error' })
+        .emit('remove_member', { reason: 'unknown error' })
     }
   }
-})
+}
 
-clientServer.on('change command', async (escort) => {
+/** */
+async function changeCommand(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -211,7 +307,7 @@ clientServer.on('change command', async (escort) => {
     let status = lobby.members.changeCommand(name, command)
     if (!status) throw new MatchError(lobbyID, matchCause.CHANGE_COMMAND)
 
-    clientServer.control(socketID).emit('sync lobby', {
+    clientServer.control(socketID).emit('sync_lobby', {
       status: lobby.status,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
@@ -222,15 +318,26 @@ clientServer.on('change command', async (escort) => {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('change command error', { reason: e.genericMessage })
+          .emit('change_command error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('change command error', { reason: e.message })
+        .emit('change_command error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('change command erorr', { reason: 'unknown error' })
+        .emit('change_command erorr', { reason: 'unknown error' })
     }
   }
+}
+
+clientServer.on('authorize', authorize)
+clientServer.on('create_match', createMatch)
+clientServer.on('sync_lobby', syncLobby)
+clientServer.on('add_member', addMember)
+clientServer.on('remove_member', removeMember)
+clientServer.on('change_command', changeCommand)
+
+app.listen(Number(process.env.PORT), (ls) => {
+  if (ls) console.log(`listening websockets on ${process.env.PORT}`)
 })
