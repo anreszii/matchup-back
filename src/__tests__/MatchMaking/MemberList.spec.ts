@@ -1,5 +1,5 @@
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
-import { MemberList } from '../../MatchMaking/MemberListl'
+import { MemberList } from '../../MatchMaking/MemberList'
 import type { Member } from '../../MatchMaking/Lobby'
 
 describe('Member List', () => {
@@ -99,11 +99,28 @@ describe('Member List', () => {
     expect(status).toBeTruthy()
 
     status = list.changeCommand(TEAM_2[0], 'command2')
-    expect(status).toBeFalsy()
+    expect(status).toBeTruthy()
 
     list.changeCommand(TEAM_2[0], 'command1')
     status = list.changeCommand(TEAM_NEUTRAL[0], 'command2')
     expect(status).toBeTruthy()
+
+    expect(list.changeCommand('fake', 'spectator')).toBeFalsy()
+  })
+
+  test('change status', () => {
+    list.add(...TEAM_NEUTRAL)
+
+    list.changeStatus('test10', true)
+    expect(list.getMember('test10').readyFlag).toBeTruthy()
+
+    list.changeStatus(TEAM_NEUTRAL[0], false)
+    expect(list.getMember('test10').readyFlag).toBeFalsy()
+
+    expect(list.changeStatus('fake', true)).toBeFalsy()
+    
+    list.getMember(TEAM_NEUTRAL[1]).readyFlag = true
+    expect(list.getMember(TEAM_NEUTRAL[1]).readyFlag).toBeTruthy()
   })
 
   test('get member', () => {

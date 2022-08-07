@@ -64,8 +64,8 @@ export class MemberList extends List<Member> {
 
   public changeCommand(entity: string | Member, command: command) {
     let member = this.getMember(entity)
-    if (!member) return false
-    if (member.command == command) return false
+    if (member == this._undefined) return false
+    if (member.command == command) return true
 
     if (!this._hasFreeSpaceForMember(command)) return false
 
@@ -73,6 +73,14 @@ export class MemberList extends List<Member> {
     this[command]++
 
     member.command = command
+    return true
+  }
+
+  public changeStatus(entity: string | Member, readyFlag: boolean) {
+    let member = this.getMember(entity)
+    if (member == this._undefined) return false
+
+    member.readyFlag = readyFlag
     return true
   }
 

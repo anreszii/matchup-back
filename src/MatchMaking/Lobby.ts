@@ -1,5 +1,5 @@
 import { matchCause, MatchError } from '../error'
-import { MemberList } from './MemberListl'
+import { MemberList } from './MemberList'
 
 import { v4 as uuid } from 'uuid'
 import type {
@@ -22,7 +22,8 @@ export declare interface MatchLobby {
   stop(): Promise<boolean>
   addMember(member: Member): Promise<boolean>
   removeMember(member: Member): Promise<boolean>
-  changeCommand(member: Member, team: command): Promise<boolean>
+  changeCommand(member: Member | string, command: command): Promise<boolean>
+  changeStatus(member: Member | string, readyFlag: boolean): Promise<boolean>
 }
 
 export class LobbyManager {
@@ -55,8 +56,6 @@ export class LobbyManager {
 
 class Lobby implements MatchLobby {
   public members = new MemberList()
-  _command1: number = 0
-  _command2: number = 0
 
   constructor(
     private _matchController: MatchController,
@@ -84,13 +83,6 @@ class Lobby implements MatchLobby {
     return this._matchController.start()
   }
 
-  public async changeCommand(
-    member: Member,
-    command: command,
-  ): Promise<boolean> {
-    return await this._matchController.changeCommand(member.name, command)
-  }
-
   public async stop() {
     return this._matchController.stop()
   }
@@ -107,5 +99,24 @@ class Lobby implements MatchLobby {
     if (!status) return false
 
     return this.members.delete(member)
+  }
+
+  public async changeCommand(
+    member: string | Member,
+    command: command,
+  ): Promise<boolean> {
+    if (!(await this._matchController.changeCommand(member, command)))
+      return false
+
+    return this.members.changeCommand(member, command)
+  }
+
+  public async changeStatus(
+    member: string | Member,
+    readyFlag: boolean,
+  ): Promise<boolean> {
+    if (!(await this._matchController.changeStatus(member, readyFlag)))
+      return false
+    return this.members.changeStatus(member, readyFlag)
   }
 }
