@@ -151,4 +151,16 @@ describe('Member List', () => {
     expect(MemberList.isMember(TEAM_1)).toBeFalsy()
     expect(MemberList.isMember(TEAM_1[0])).toBeTruthy()
   })
+
+  test('command check', () => {
+    expect(MemberList.isCommand(null)).toBeFalsy()
+    expect(MemberList.isCommand(1)).toBeFalsy()
+    expect(MemberList.isCommand({})).toBeFalsy()
+    expect(MemberList.isCommand({name: 'test'})).toBeFalsy()
+    expect(MemberList.isCommand('team1')).toBeFalsy()
+    expect(MemberList.isCommand('spectator')).toBeTruthy()
+    expect(MemberList.isCommand('command1')).toBeTruthy()
+    expect(MemberList.isCommand('command2')).toBeTruthy()
+    expect(MemberList.isCommand('neutral')).toBeTruthy()
+  })
 })

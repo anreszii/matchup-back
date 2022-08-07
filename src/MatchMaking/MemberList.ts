@@ -84,11 +84,15 @@ export class MemberList extends List<Member> {
     return true
   }
 
-  public getMember(entity: string | Member) {
-    let name = typeof entity == 'string' ? entity : entity.name
-    let member = this._elements.find((_member) => _member?.name == name)
-    if (!member) return UNDEFINED_MEMBER
-    return member
+  public getMember(entity: string | Member): Member {
+    if (typeof entity == 'string') {
+      let member = this._elements.find((_member) => _member?.name == entity)
+      if (!member) return UNDEFINED_MEMBER
+      return member
+    }
+    let index = this._getElement(entity)
+    if (!~index) return UNDEFINED_MEMBER
+    return this._elements[index] as Member
   }
 
   public hasMember(entity: string | Member): boolean {

@@ -80,6 +80,9 @@ export class List<T extends Object> {
    * @returns индекс найденного объекта или -1
    */
   protected _getElement(element: T) {
-    return this._elements.indexOf(element)
+    for (let i = 0; i < this._elements.length; i++) {
+      if (this._elements[i] == element) return i
+    }
+    return -1
   }
 }
