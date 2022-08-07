@@ -19,7 +19,7 @@ import {
 } from '../../error'
 import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
 import { LobbyManager } from '../../MatchMaking/Lobby'
-import { MemberList } from '../../MatchMaking/MemberListl'
+import { MemberList } from '../../MatchMaking/MemberList'
 import { validatePacket } from '../../Token'
 import { WebSocketValidatior } from '../../validation/websocket'
 
@@ -300,8 +300,31 @@ export async function removeMember(escort: IDataEscort) {
   }
 }
 
-/** */
-export async function changeCommand(escort: IDataEscort) {
+/**
+ * Событие для обновления статуса пользователя со стороны клиента.</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobby_id": string, //строка с id существующего лобби
+ *  "name": string //имя пользователя
+ *  "readyFlag": boolean | undefined
+ *  "command": 'spectator' | 'neutral' | 'command1' | 'command2'
+ * }
+ * ```
+ *
+ * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
+ *
+ * ```json
+ * {
+ *  status: 'searching' | 'filled' | 'started',
+ *  players: Array<Member>,
+ *  spectators: Array<Member>
+ * }
+ * ```
+ * @event update_member
+ */
+export async function updateMember(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -312,39 +335,21 @@ export async function changeCommand(escort: IDataEscort) {
 
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
-
-    let name = escort.get('name')
-    if (typeof name != 'string')
-      throw new ValidationError('name', validationCause.REQUIRED)
-    if (!lobby.members.hasMember(name))
-      throw new ValidationError('name', validationCause.INVALID)
-
-    let command = escort.get('command')
-    if (!MemberList.isCommand(command))
-      throw new ValidationError('command', validationCause.INVALID_FORMAT)
-    let status = lobby.members.changeCommand(name, command)
-    if (!status) throw new MatchError(lobbyID, matchCause.CHANGE_COMMAND)
-
-    clientServer.control(socketID).emit('sync_lobby', {
-      status: lobby.status,
-      players: JSON.stringify(lobby.members.players),
-      spectators: JSON.stringify(lobby.members.spectators),
-    })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('change_command error', { reason: e.genericMessage })
+          .emit('remove_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('change_command error', { reason: e.message })
+        .emit('remove_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('change_command erorr', { reason: 'unknown error' })
+        .emit('remove_member', { reason: 'unknown error' })
     }
   }
 }
@@ -354,7 +359,6 @@ clientServer.on('create_match', createMatch)
 clientServer.on('sync_lobby', syncLobby)
 clientServer.on('add_member', addMember)
 clientServer.on('remove_member', removeMember)
-clientServer.on('change_command', changeCommand)
 
 app.listen(Number(process.env.PORT), (ls) => {
   if (ls) console.log(`listening websockets on ${process.env.PORT}`)
