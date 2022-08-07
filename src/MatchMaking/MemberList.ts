@@ -11,6 +11,10 @@ export class MemberList extends List<Member> {
     super(size, UNDEFINED_MEMBER)
   }
 
+  public get currentUndefined() {
+    return this._undefined
+  }
+
   public get quantityOfSpectators() {
     return this._spectator
   }
