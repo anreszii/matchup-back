@@ -1,3 +1,3 @@
 export * from './Controllers'
-export * from './MemberListl'
+export * from './MemberList'
 export * from './Lobby'
