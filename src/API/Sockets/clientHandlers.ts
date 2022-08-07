@@ -195,16 +195,17 @@ export async function addMember(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
+    let member = escort.get('member')
+    if (!member) throw new ValidationError('member', validationCause.REQUIRED)
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+
     let lobbyID = escort.get('lobby_id') as string
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
-
-    let member = escort.get('member')
-    if (!MemberList.isMember(member))
-      throw new ValidationError('member', validationCause.INVALID_FORMAT)
 
     let status = await lobby.addMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
@@ -264,12 +265,12 @@ export async function removeMember(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = LobbyManager.get(lobbyID)
-    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
-
     let name = escort.get('name')
     if (typeof name != 'string')
       throw new ValidationError('name', validationCause.REQUIRED)
+
+    let lobby = LobbyManager.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
     if (!lobby.members.hasMember(name))
       throw new ValidationError('name', validationCause.INVALID)
 
@@ -307,9 +308,12 @@ export async function removeMember(escort: IDataEscort) {
  * ```json
  * {
  *  "lobby_id": string, //строка с id существующего лобби
- *  "name": string //имя пользователя
- *  "readyFlag": boolean | undefined
- *  "command": 'spectator' | 'neutral' | 'command1' | 'command2'
+ *  "member":
+ *  {
+ *    "name": string //имя пользователя
+ *    "command": 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
+ *    "readyFlag": boolean | undefined
+ *  }
  * }
  * ```
  *
@@ -329,12 +333,34 @@ export async function updateMember(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
+    let member = escort.get('member')
+    if (!member || typeof member != 'object')
+      throw new ValidationError('member', validationCause.REQUIRED)
+    if (typeof member.name != 'string')
+      throw new ValidationError('member.name', validationCause.REQUIRED)
+
     let lobbyID = escort.get('lobby_id') as string
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
     let lobby = LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+
+    if (!lobby.members.hasMember(member.name))
+      throw new ValidationError('member', validationCause.NOT_EXIST)
+
+    let status = await lobby.updateMember({
+      name: member.name,
+      command: member.command,
+      readyFlag: member.readyFlag,
+    })
+    if (!status) throw new MatchError(lobbyID, matchCause.UPDATE_MEMBER)
+
+    clientServer.control(socketID).emit('sync_lobby', {
+      status: lobby.status,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
+    })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {

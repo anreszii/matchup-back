@@ -22,6 +22,9 @@ export declare interface MatchLobby {
   stop(): Promise<boolean>
   addMember(member: Member): Promise<boolean>
   removeMember(member: Member): Promise<boolean>
+  updateMember(
+    member: Required<Pick<Member, 'name'>> & Partial<Omit<Member, 'name'>>,
+  ): Promise<boolean>
   changeCommand(member: Member | string, command: command): Promise<boolean>
   changeStatus(member: Member | string, readyFlag: boolean): Promise<boolean>
 }
@@ -99,6 +102,44 @@ class Lobby implements MatchLobby {
     if (!status) return false
 
     return this.members.delete(member)
+  }
+
+  /**
+   *
+   * @param объект, в котором обязательно должно быть поле name, а также опциональные поля readyFlag, command
+   * @returns
+   */
+  public async updateMember(member: {
+    name: string
+    command?: unknown
+    readyFlag?: unknown
+  }) {
+    if (!member.name) return false
+    if (!MemberList.isMember(member)) {
+      if (MemberList.isCommand(member.command)) {
+        if (!this._matchController.changeCommand(member.name, member.command))
+          return false
+        if (!this.members.changeCommand(member.name, member.command))
+          return false
+      }
+
+      if (member.readyFlag && typeof member.readyFlag == 'boolean') {
+        if (!this._matchController.changeStatus(member.name, member.readyFlag))
+          return false
+        if (!this.members.changeStatus(member.name, member.readyFlag))
+          return false
+      }
+      return true
+    }
+
+    if (!this._matchController.updateMember(member)) return false
+    let tmp = this.members.getMember(member)
+    if (tmp == this.members.currentUndefined) return false
+
+    tmp.command = member.command
+    tmp.readyFlag = member.readyFlag
+
+    return true
   }
 
   public async changeCommand(

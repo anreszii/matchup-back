@@ -10,6 +10,7 @@ export declare interface MatchController {
 
   addMembers(...members: Array<Member>): Promise<boolean>
   removeMembers(...members: Array<Member>): Promise<boolean>
+  updateMember(member: Member): Promise<boolean>
   changeCommand(member: string | Member, command: command): Promise<boolean>
   changeStatus(member: string | Member, readyFlag: boolean): Promise<boolean>
 }

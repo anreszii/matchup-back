@@ -9,7 +9,7 @@ export const enum matchCause {
   CREATE = 'create',
   ADD_MEMBER = 'add member',
   REMOVE_MEMBER = 'remove member',
-  CHANGE_COMMAND = 'change command',
+  UPDATE_MEMBER = 'update member',
 }
 
 export const enum wsManageCause {
@@ -58,8 +58,8 @@ export class MatchError extends MatchUpError {
         return AddMemberError(this._lobbyID)
       case matchCause.REMOVE_MEMBER:
         return RemoveMemberError(this._lobbyID)
-      case matchCause.CHANGE_COMMAND:
-        return changeCommandError(this._lobbyID)
+      case matchCause.UPDATE_MEMBER:
+        return UpdateMember(this._lobbyID)
     }
   }
 }
@@ -105,8 +105,8 @@ function RemoveMemberError(lobbyID: string) {
   return `Lobby#${lobbyID}: failed to remove member`
 }
 
-function changeCommandError(lobbyID: string) {
-  return `Lobby#${lobbyID}: failed to change member command`
+function UpdateMember(lobbyID: string) {
+  return `Lobby#${lobbyID}: failed to update member`
 }
 
 function FoundError(socketID: string) {
