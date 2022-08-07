@@ -19,6 +19,18 @@ export class MemberList extends List<Member> {
     return this._command1 + this._command2 + this._neutral
   }
 
+  public get quantityOfFirstCommandMembers() {
+    return this._command1
+  }
+
+  public get quantityOfSecondCommandMembers() {
+    return this._command2
+  }
+
+  public get quantityOfNeutralMembers() {
+    return this._neutral
+  }
+
   public get players() {
     let players: Array<Member> = Array()
     for (let member of this._elements)
@@ -31,22 +43,6 @@ export class MemberList extends List<Member> {
     for (let member of this._elements)
       if (member!.command == 'spectator') players.push(member!)
     return players
-  }
-
-  public get command1() {
-    return this._command1
-  }
-
-  public get command2() {
-    return this._command2
-  }
-
-  public get neutral() {
-    return this._neutral
-  }
-
-  public get spectator() {
-    return this._spectator
   }
 
   public add(...members: Member[]): boolean {
@@ -77,7 +73,6 @@ export class MemberList extends List<Member> {
     this[command]++
 
     member.command = command
-    console.log(this._command1, this._command2, this._neutral, this._spectator)
     return true
   }
 
@@ -109,6 +104,22 @@ export class MemberList extends List<Member> {
     return false
   }
 
+  private get command1() {
+    return this._command1
+  }
+
+  private get command2() {
+    return this._command2
+  }
+
+  private get neutral() {
+    return this._neutral
+  }
+
+  private get spectator() {
+    return this._spectator
+  }
+
   private set command1(value) {
     this._command1 = value
   }
@@ -121,7 +132,7 @@ export class MemberList extends List<Member> {
     this._neutral = value
   }
 
-  private set spectator(value: number) {
+  private set spectator(value) {
     this._spectator = value
   }
 
@@ -136,7 +147,7 @@ export class MemberList extends List<Member> {
   }
 
   private _increaseSpectatorCounter() {
-    this._spectator++
+    this.spectator++
   }
 
   private _decreaseMemberCounter(member: Member) {
@@ -150,7 +161,7 @@ export class MemberList extends List<Member> {
   }
 
   private _decreaseSpectatorCounter() {
-    this._spectator--
+    this.spectator--
   }
 
   private _hasFreeSpaceForMember(entity: Member | command) {
