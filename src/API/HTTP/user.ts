@@ -71,6 +71,7 @@ router.post('/login', async (req, res, next) => {
       nickname: user.profile.nickname,
       region: user.credentials.region,
       email: user.credentials.email,
+      role: user.role,
     })
 
     res.status(201).json({ token: token })
@@ -88,7 +89,7 @@ router.post('/registration', async (req, res, next) => {
     user.validatePasswordFormat(password)
     user.setPassword(password)
 
-    let { id, nickname, email, region, device } = req.body.user
+    let { id, nickname, email, region } = req.body.user
 
     user.id = id
     user.profile.username = username
@@ -99,9 +100,8 @@ router.post('/registration', async (req, res, next) => {
     await user.validate()
     await user.save()
 
-    let token = generateToken(
-      ({ username, nickname, region, email } = req.body.user),
-    )
+    let payload = { username, nickname, email, region, role: 'default' }
+    let token = generateToken(payload)
     res.status(201).json({ token: token })
   } catch (e) {
     next(e)

@@ -1,14 +1,4 @@
-/**
- *
- * Для взаимодействия с клиентским сервером необходимо подключиться к ws://server.name:PORT/client
- * И передавать в пакете JSON объект, содержащий поле event, а также оговоренные в конкретном хэндлере поля
- *
- * В случае ошибок шлет на ${event} error объект JSON с полем reason
- * @module LobbyHandlers
- * @packageDocumentation
- */
-
-import io from 'gamesocket.io'
+import { app } from './clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
 import {
   matchCause,
@@ -17,46 +7,16 @@ import {
   validationCause,
   ValidationError,
 } from '../../error'
+
 import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
 import { LobbyManager } from '../../MatchMaking/Lobby'
 import { MemberList } from '../../MatchMaking/MemberList'
-import { validatePacket } from '../../Token'
 import { WebSocketValidatior } from '../../validation/websocket'
 
-let app = io()
+let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
 
-let clientServer = app.of('client')
-
-/**
- * Событие для авторизации сокета. </br>
- * Используемый пакет:
- *
- * ```json
- * {
- *  "token": string //полученный при авторизации пользователя
- * }
- * ```
- *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- *
- * ```json
- * {
- *  "complete": true
- * }
- * ```
- * @event authorize
- */
-export function authorize(escort: IDataEscort) {
-  let token = validatePacket(escort)
-  let socketID = escort.get('socket_id') as string
-
-  wsValidator.authorizeSocket(socketID)
-  let name = token.username as string
-
-  app.aliases.set(name, socketID)
-  return clientServer.control(socketID).emit('authorize', { complete: true })
-}
+let StandOffLobbies = new LobbyManager(new StandOffController())
 
 /**
  * Событие для создания матча со стороны клиента.</br>
@@ -81,14 +41,14 @@ export async function createMatch(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let lobby = await LobbyManager.spawn(new StandOffController())
+    let lobby = StandOffLobbies.spawn()
 
     let member = escort.get('member')
-    if (member) {
-      if (!MemberList.isMember(member))
-        throw new ValidationError('member', validationCause.INVALID_FORMAT)
-      await lobby.addMember(member)
-    }
+    if (!member) throw new ValidationError('member', validationCause.REQUIRED)
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+
+    await lobby.addMember(member)
 
     clientServer.control(socketID).emit('create_match', { lobby_id: lobby.id })
   } catch (e) {
@@ -105,7 +65,58 @@ export async function createMatch(escort: IDataEscort) {
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add_member', { reason: 'unknown error' })
+        .emit('add_member error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для поиска матча со стороны клиента.</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "member": Member
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```json
+ * {
+ *  "lobby_id": string
+ * }
+ * ```
+ * @event find_match
+ */
+export async function findMatch(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobby = StandOffLobbies.getFreeLobby()
+
+    let member = escort.get('member')
+    if (!member) throw new ValidationError('member', validationCause.REQUIRED)
+    if (!MemberList.isMember(member))
+      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+
+    await lobby.addMember(member)
+    clientServer.control(socketID).emit('find_match', { lobby_id: lobby.id })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('find_match error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('find_match error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('find_match error', { reason: 'unknown error' })
     }
   }
 }
@@ -155,15 +166,15 @@ export async function syncLobby(escort: IDataEscort) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add_member error', { reason: e.genericMessage })
+          .emit('sync_lobby error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add_member error', { reason: e.message })
+        .emit('sync_lobby error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add_member', { reason: 'unknown error' })
+        .emit('sync_lobby error', { reason: 'unknown error' })
     }
   }
 }
@@ -229,7 +240,7 @@ export async function addMember(escort: IDataEscort) {
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add_member', { reason: 'unknown error' })
+        .emit('add_member error', { reason: 'unknown error' })
     }
   }
 }
@@ -296,7 +307,7 @@ export async function removeMember(escort: IDataEscort) {
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('remove_member', { reason: 'unknown error' })
+        .emit('remove_member error', { reason: 'unknown error' })
     }
   }
 }
@@ -367,25 +378,15 @@ export async function updateMember(escort: IDataEscort) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('remove_member error', { reason: e.genericMessage })
+          .emit('update_member error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('remove_member error', { reason: e.message })
+        .emit('update_member error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('remove_member', { reason: 'unknown error' })
+        .emit('update_member error', { reason: 'unknown error' })
     }
   }
 }
-
-clientServer.on('authorize', authorize)
-clientServer.on('create_match', createMatch)
-clientServer.on('sync_lobby', syncLobby)
-clientServer.on('add_member', addMember)
-clientServer.on('remove_member', removeMember)
-
-app.listen(Number(process.env.PORT), (ls) => {
-  if (ls) console.log(`listening websockets on ${process.env.PORT}`)
-})
