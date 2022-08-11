@@ -6,6 +6,7 @@ import type {
   MatchController,
   matchStatus,
 } from './Controllers/MatchController'
+import { resolve } from 'node:path'
 
 export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
 
@@ -26,30 +27,58 @@ export declare interface MatchLobby {
     member: Required<Pick<Member, 'name'>> & Partial<Omit<Member, 'name'>>,
   ): Promise<boolean>
   changeCommand(member: Member | string, command: command): Promise<boolean>
-  changeStatus(member: Member | string, readyFlag: boolean): Promise<boolean>
+  changeMemberStatus(
+    member: Member | string,
+    readyFlag: boolean,
+  ): Promise<boolean>
 }
 
 export class LobbyManager {
   private static _lobbyList: Map<string, Lobby> = new Map()
+  private _controller: MatchController
+  constructor(controller: MatchController) {
+    this._controller = controller
+  }
 
-  public static async spawn(controller: MatchController): Promise<Lobby> {
-    const ID = this.createID()
-    if (!(await controller.create()))
-      throw new MatchError('uncreated', matchCause.CREATE)
+  public spawn(): Lobby {
+    const ID = LobbyManager.createID()
+    this._controller.create().then((status) => {
+      if (!status) throw new MatchError('lobby', matchCause.CREATE)
+    })
 
-    let lobby = new Lobby(controller, ID)
-    this._lobbyList.set(ID, lobby)
+    let lobby = new Lobby(this._controller, ID)
+    LobbyManager._lobbyList.set(ID, lobby)
 
     return lobby
   }
 
-  public static get(id: string): Lobby | undefined {
-    return this._lobbyList.get(id)
+  public getFreeLobby(lobbyID?: string): Lobby {
+    if (lobbyID && LobbyManager._lobbyList.has(lobbyID))
+      return LobbyManager._lobbyList.get(lobbyID)!
+
+    let notFilledLobby = this._findFreeLobby()
+
+    if (notFilledLobby) return notFilledLobby
+    return this.spawn()
+  }
+
+  public static get(lobbyID: string) {
+    return this._lobbyList.get(lobbyID)
   }
 
   public static drop(entity: string | Lobby): boolean {
     if (typeof entity == 'string') return this._lobbyList.delete(entity)
     return this._lobbyList.delete(entity.id)
+  }
+
+  private _findFreeLobby() {
+    for (let lobby of LobbyManager._lobbyList.values()) {
+      if (
+        lobby.status == 'searching' &&
+        lobby.game == this._controller.gameName
+      )
+        return lobby
+    }
   }
 
   private static createID() {
@@ -59,6 +88,7 @@ export class LobbyManager {
 
 class Lobby implements MatchLobby {
   public members = new MemberList()
+  private _game: string
 
   constructor(
     private _matchController: MatchController,
@@ -71,6 +101,11 @@ class Lobby implements MatchLobby {
         this.members.add(...members)
       })
     }
+    this._game = _matchController.gameName
+  }
+
+  public get game() {
+    return this._game
   }
 
   public get id() {
@@ -101,7 +136,11 @@ class Lobby implements MatchLobby {
     let status = await this._matchController.removeMembers(member)
     if (!status) return false
 
-    return this.members.delete(member)
+    status = !this.members.delete(member)
+
+    if (this.members.quantityOfSpectators + this.members.quantityOfPlayers == 0)
+      LobbyManager.drop(this)
+    return status
   }
 
   /**
@@ -152,7 +191,7 @@ class Lobby implements MatchLobby {
     return this.members.changeCommand(member, command)
   }
 
-  public async changeStatus(
+  public async changeMemberStatus(
     member: string | Member,
     readyFlag: boolean,
   ): Promise<boolean> {
