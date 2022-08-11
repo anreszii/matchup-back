@@ -7,12 +7,14 @@ import { BattlePassLevelSchema, IBattlePassLevel } from './BattlePassLevel'
 import { IRelations, Relations } from './Relations'
 
 import { generateHash } from '../Utils/hashGenerator'
-import { validationCause as cause, ValidationError } from '../error'
+import { validationCause, ValidationError } from '../error'
 
 interface Level {
   currentEXP: number
   nextBPLevel: IBattlePassLevel
 }
+
+export declare type userRole = 'default' | 'privileged' | 'admin'
 
 export declare interface IUser {
   id: number
@@ -31,8 +33,8 @@ export declare interface IUser {
   }
 
   level: Level
-
   balance: number
+  role: userRole
 }
 
 export declare interface IUserBehavior {
@@ -151,6 +153,8 @@ const UserSchema = new Schema<IUser, UserModel, IUserBehavior>({
     type: Number,
     default: 0,
   },
+
+  role: String,
 })
 
 UserSchema.statics.getByName = function (name: string) {
@@ -160,7 +164,7 @@ UserSchema.statics.getByName = function (name: string) {
 /* PASSWORD */
 
 UserSchema.methods.validatePasswordFormat = function (password) {
-  if (!password) throw new ValidationError('password', cause.REQUIRED)
+  if (!password) throw new ValidationError('password', validationCause.REQUIRED)
   if (
     !validator.isStrongPassword(password, {
       minLength: 8,
@@ -170,17 +174,17 @@ UserSchema.methods.validatePasswordFormat = function (password) {
       minSymbols: 0,
     })
   )
-    throw new ValidationError('password', cause.INVALID_FORMAT)
+    throw new ValidationError('password', validationCause.INVALID_FORMAT)
 }
 
 UserSchema.methods.validatePassword = function (password) {
-  if (!password) throw new ValidationError('password', cause.REQUIRED)
+  if (!password) throw new ValidationError('password', validationCause.REQUIRED)
 
   if (
     this.credentials.password !==
     generateHash(password, this.credentials.salt).hash
   )
-    throw new ValidationError('password', cause.INVALID)
+    throw new ValidationError('password', validationCause.INVALID)
 }
 
 UserSchema.methods.setPassword = function (password) {
@@ -260,11 +264,11 @@ UserSchema.methods.deleteFriend = async function (name: string) {
 /* RELATION ACTIONS */
 
 UserSchema.methods.addRelation = async function (name: string) {
-  if (!name) throw Error('name required')
+  if (!name) throw new ValidationError('name', validationCause.REQUIRED)
   if (this.hasFriend(name)) return
 
   let user = await User.getByName(name)
-  if (!user) throw Error(`user doesn't exist`)
+  if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
   if (!this.hasSubscriber(name)) {
     return user.addSubscriber(this.profile.username)
@@ -277,7 +281,7 @@ UserSchema.methods.addRelation = async function (name: string) {
 }
 
 UserSchema.methods.brokeRelation = async function (name: string) {
-  if (!name) throw Error('name required')
+  if (!name) throw new ValidationError('name', validationCause.REQUIRED)
   if (!this.hasFriend(name)) return
 
   let user = await User.getByName(name)
