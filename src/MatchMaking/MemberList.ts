@@ -15,26 +15,44 @@ export class MemberList extends List<Member> {
     return this._undefined
   }
 
+  /**
+   * Число наблюдателей
+   */
   public get quantityOfSpectators() {
     return this._spectator
   }
 
+  /**
+   * Сумма всех игроков, включая неопределившихся
+   */
   public get quantityOfPlayers() {
     return this._command1 + this._command2 + this._neutral
   }
 
+  /**
+   * Число игроков первой команды
+   */
   public get quantityOfFirstCommandMembers() {
     return this._command1
   }
 
+  /**
+   * Число игроков второй команды
+   */
   public get quantityOfSecondCommandMembers() {
     return this._command2
   }
 
-  public get quantityOfNeutralMembers() {
+  /**
+   * Число неопределившихся игроков
+   */
+  public get quantityOfNeutralPlayers() {
     return this._neutral
   }
 
+  /**
+   * Массив всех игроков, включая неопределившихся
+   */
   public get players() {
     let players: Array<Member> = Array()
     for (let member of this._elements)
@@ -42,6 +60,9 @@ export class MemberList extends List<Member> {
     return players
   }
 
+  /**
+   * Массив наблюдателей
+   */
   public get spectators() {
     let players: Array<Member> = Array()
     for (let member of this._elements)
