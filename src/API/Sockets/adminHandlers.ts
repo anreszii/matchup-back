@@ -12,6 +12,7 @@ import { WebSocketValidatior } from '../../validation/websocket'
 import { validatePacket } from '../../Token'
 import { IUser, User, userRole } from '../../Models'
 import { MatchListModel } from '../../Models/MatchMaking/MatchList'
+import { ReportListModel } from '../../Models/MatchMaking/Reports'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -28,12 +29,7 @@ let wsValidator = new WebSocketValidatior(app)
  * }
  * ```
  *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- *
- * ```json
- * {
- *  "complete": true
- * }
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
  * ```
  * @event get_users
  */
@@ -80,10 +76,62 @@ export async function getUserList(escort: IDataEscort) {
 
 export function getStatistic(escort: IDataEscort) {}
 
-export function getReports(escort: IDataEscort) {}
+/**
+ * Событие для получения репортов. </br>
+ * По-умолчанию возвращает все матчи</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "token": string //полученный при авторизации пользователя
+ *  "reportID"?: number //ID матча, который нужно посмотреть
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
+ * @event get_reports
+ */
+export async function getReports(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let role = app.sockets.get(socketID)!.role as userRole
+    if (role != 'admin')
+      throw new ValidationError('user role', validationCause.INVALID)
+    let reportID = escort.get('reportID')
+    if (!reportID)
+      return clientServer
+        .control(socketID)
+        .emit('get_report', JSON.stringify(await ReportListModel.getAll()))
+    if (typeof reportID != 'number')
+      throw new ValidationError('reportID', validationCause.INVALID_FORMAT)
+
+    let report = await ReportListModel.getByID(reportID)
+    if (!report) throw new ValidationError('reportID', validationCause.INVALID)
+
+    return clientServer.control(socketID).emit('get_report', report.toJSON())
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('get_report error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('get_report error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('get_report error', { reason: 'unknown error' })
+    }
+  }
+}
 
 /**
- * Событие для получения матчей. </br>
+ * Событие для получения результатов матчей. </br>
  * По-умолчанию возвращает все матчи</br>
  * Используемый пакет:
  *
@@ -94,13 +142,7 @@ export function getReports(escort: IDataEscort) {}
  * }
  * ```
  *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- *
- * ```json
- * {
- *  "complete": true
- * }
- * ```
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
  * @event get_match
  */
 export async function getMatch(escort: IDataEscort) {
