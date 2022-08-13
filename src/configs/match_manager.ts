@@ -1,4 +1,4 @@
-import type { Member } from '../MatchMaking/Lobby'
+import type { IMember } from '../MatchMaking/Lobby'
 
 export const enum lobbyStatus {
   STARTED = 'started',
@@ -6,10 +6,15 @@ export const enum lobbyStatus {
   FULL = 'fullfilled',
 }
 
-export const UNDEFINED_MEMBER: Member = {
+export const UNDEFINED_MEMBER: IMember = {
   name: 'undefined',
   command: 'neutral',
   readyFlag: false,
+  statistic: {
+    kills: 0,
+    deaths: 0,
+    assists: 0,
+  },
 }
 
 export const MAX_TEAM_MEMBER = 5

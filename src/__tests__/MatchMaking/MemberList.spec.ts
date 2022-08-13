@@ -1,40 +1,40 @@
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import { MemberList } from '../../MatchMaking/MemberList'
-import type { Member } from '../../MatchMaking/Lobby'
+import type { IMember } from '../../MatchMaking/Lobby'
 
 describe('Member List', () => {
   let list: MemberList
-  const TEAM_1: Array<Member> = [
-    {name: 'test', command: 'command1', readyFlag: false},
-    {name: 'test1', command: 'command1', readyFlag: false},
-    {name: 'test2', command: 'command1', readyFlag: false},
-    {name: 'test3', command: 'command1', readyFlag: false},
-    {name: 'test4', command: 'command1', readyFlag: false},
+  const TEAM_1: Array<IMember> = [
+    {name: 'test', command: 'command1', readyFlag: false, statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test1', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test2', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test3', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test4', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
-  const TEAM_2: Array<Member> = [
-    {name: 'test5', command: 'command2', readyFlag: false},
-    {name: 'test6', command: 'command2', readyFlag: false},
-    {name: 'test7', command: 'command2', readyFlag: false},
-    {name: 'test8', command: 'command2', readyFlag: false},
-    {name: 'test9', command: 'command2', readyFlag: false},
+  const TEAM_2: Array<IMember> = [
+    {name: 'test5', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test6', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test7', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test8', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test9', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
-  const TEAM_NEUTRAL: Array<Member> = [
-    {name: 'test10', command: 'neutral', readyFlag: false},
-    {name: 'test11', command: 'neutral', readyFlag: false},
-    {name: 'test12', command: 'neutral', readyFlag: false},
-    {name: 'test13', command: 'neutral', readyFlag: false},
-    {name: 'test14', command: 'neutral', readyFlag: false},
+  const TEAM_NEUTRAL: Array<IMember> = [
+    {name: 'test10', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test11', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test12', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test13', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test14', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
 
-  const SPECTATORS: Array<Member> = [
-    {name: 'test15', command: 'spectator', readyFlag: false},
-    {name: 'test16', command: 'spectator', readyFlag: false},
-    {name: 'test17', command: 'spectator', readyFlag: false},
-    {name: 'test18', command: 'spectator', readyFlag: false},
-    {name: 'test19', command: 'spectator', readyFlag: false},
+  const SPECTATORS: Array<IMember> = [
+    {name: 'test15', command: 'spectator', readyFlag: false, statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test16', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test17', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test18', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
+    {name: 'test19', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('Member List', () => {
     status = list.add(TEAM_1[0])
     expect(status).toBeFalsy()
 
-    status = list.add({name:'fake1', command:'command1', readyFlag:false})
+    status = list.add({name:'fake1', command:'command1', readyFlag:false, statistic: {kills:0, deaths: 0, assists: 0}})
     expect(status).toBeFalsy()
 
     status = list.add(...TEAM_2)
@@ -75,7 +75,7 @@ describe('Member List', () => {
     status = list.delete(UNDEFINED_MEMBER)
     expect(status).toBeFalsy()
 
-    status = list.delete({name: 'test511', command: 'neutral', readyFlag: false})
+    status = list.delete({name: 'test511', command: 'neutral', readyFlag: false, statistic: {kills: 0, deaths: 0, assists: 0}})
     expect(status).toBeFalsy()
 
     status = list.delete(TEAM_1[0], TEAM_1[1], SPECTATORS[0])

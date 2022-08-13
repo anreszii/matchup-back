@@ -1,8 +1,8 @@
 import { List } from '../Classes/List'
 import { UNDEFINED_MEMBER } from '../configs/match_manager'
-import type { command, Member } from './Lobby'
+import type { command, IMember } from './Lobby'
 
-export class MemberList extends List<Member> {
+export class MemberList extends List<IMember> {
   private _spectator = 0
   private _command1 = 0
   private _command2 = 0
@@ -54,7 +54,7 @@ export class MemberList extends List<Member> {
    * Массив всех игроков, включая неопределившихся
    */
   public get players() {
-    let players: Array<Member> = Array()
+    let players: Array<IMember> = Array()
     for (let member of this._elements)
       if (member!.command != 'spectator') players.push(member!)
     return players
@@ -64,13 +64,13 @@ export class MemberList extends List<Member> {
    * Массив наблюдателей
    */
   public get spectators() {
-    let players: Array<Member> = Array()
+    let players: Array<IMember> = Array()
     for (let member of this._elements)
       if (member!.command == 'spectator') players.push(member!)
     return players
   }
 
-  public add(...members: Member[]): boolean {
+  public add(...members: IMember[]): boolean {
     for (let member of members.values()) {
       if (!this._hasFreeSpaceForMember(member) || this.hasMember(member))
         return false
@@ -81,13 +81,13 @@ export class MemberList extends List<Member> {
     return true
   }
 
-  public delete(...members: Member[]): boolean {
+  public delete(...members: IMember[]): boolean {
     if (!super.delete(...members)) return false
     for (let member of members.values()) this._decreaseMemberCounter(member)
     return true
   }
 
-  public changeCommand(entity: string | Member, command: command) {
+  public changeCommand(entity: string | IMember, command: command) {
     let member = this.getMember(entity)
     if (member == this._undefined) return false
     if (member.command == command) return true
@@ -101,7 +101,7 @@ export class MemberList extends List<Member> {
     return true
   }
 
-  public changeStatus(entity: string | Member, readyFlag: boolean) {
+  public changeStatus(entity: string | IMember, readyFlag: boolean) {
     let member = this.getMember(entity)
     if (member == this._undefined) return false
 
@@ -109,7 +109,7 @@ export class MemberList extends List<Member> {
     return true
   }
 
-  public getMember(entity: string | Member): Member {
+  public getMember(entity: string | IMember): IMember {
     if (typeof entity == 'string') {
       let member = this._elements.find((_member) => _member?.name == entity)
       if (!member) return UNDEFINED_MEMBER
@@ -117,17 +117,17 @@ export class MemberList extends List<Member> {
     }
     let index = this._getElement(entity)
     if (!~index) return UNDEFINED_MEMBER
-    return this._elements[index] as Member
+    return this._elements[index] as IMember
   }
 
-  public hasMember(entity: string | Member): boolean {
+  public hasMember(entity: string | IMember): boolean {
     let name = typeof entity == 'string' ? entity : entity.name
     for (var i = 0; i < this._elements.length; i++)
       if (this._elements[i]?.name == name) return true
     return false
   }
 
-  public static isMember(member: unknown): member is Member {
+  public static isMember(member: unknown): member is IMember {
     if (!member || typeof member != 'object') return false
     return 'name' in member && 'command' in member && 'readyFlag' in member
   }
@@ -173,7 +173,7 @@ export class MemberList extends List<Member> {
     this._spectator = value
   }
 
-  private _increaseMemberCounter(member: Member) {
+  private _increaseMemberCounter(member: IMember) {
     return member.command == 'spectator'
       ? this._increaseSpectatorCounter()
       : this._increasePlayerCounter(member.command)
@@ -187,7 +187,7 @@ export class MemberList extends List<Member> {
     this.spectator++
   }
 
-  private _decreaseMemberCounter(member: Member) {
+  private _decreaseMemberCounter(member: IMember) {
     return member.command == 'spectator'
       ? this._decreaseSpectatorCounter()
       : this._decreasePlayerCounter(member.command)
@@ -201,7 +201,7 @@ export class MemberList extends List<Member> {
     this.spectator--
   }
 
-  private _hasFreeSpaceForMember(entity: Member | command) {
+  private _hasFreeSpaceForMember(entity: IMember | command) {
     let command = typeof entity == 'string' ? entity : entity.command
     return command == 'spectator'
       ? this._hasFreeSpaceForSpectaror()

@@ -10,7 +10,7 @@ import { SUPPORTED_GAMES } from '..'
 
 export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
 
-export type Member = {
+export type IMember = {
   name: string
   command: command
   readyFlag: boolean
@@ -26,14 +26,14 @@ export declare interface MatchLobby {
   get status(): matchStatus
   start(): Promise<boolean>
   stop(): Promise<boolean>
-  addMember(member: Member): Promise<boolean>
-  removeMember(member: Member): Promise<boolean>
+  addMember(member: IMember): Promise<boolean>
+  removeMember(member: IMember): Promise<boolean>
   updateMember(
-    member: Required<Pick<Member, 'name'>> & Partial<Omit<Member, 'name'>>,
+    member: Required<Pick<IMember, 'name'>> & Partial<Omit<IMember, 'name'>>,
   ): Promise<boolean>
-  changeCommand(member: Member | string, command: command): Promise<boolean>
+  changeCommand(member: IMember | string, command: command): Promise<boolean>
   changeMemberStatus(
-    member: Member | string,
+    member: IMember | string,
     readyFlag: boolean,
   ): Promise<boolean>
 }
@@ -98,7 +98,7 @@ class Lobby implements MatchLobby {
   constructor(
     private _matchController: MatchController,
     private _id: string,
-    ...members: Array<Member>
+    ...members: Array<IMember>
   ) {
     if (members) {
       _matchController.addMembers(...members).then((status) => {
@@ -130,14 +130,14 @@ class Lobby implements MatchLobby {
     return this._matchController.stop()
   }
 
-  public async addMember(member: Member) {
+  public async addMember(member: IMember) {
     let status = await this._matchController.addMembers(member)
     if (!status) return false
 
     return this.members.add(member)
   }
 
-  public async removeMember(member: Member) {
+  public async removeMember(member: IMember) {
     let status = await this._matchController.removeMembers(member)
     if (!status) return false
 
@@ -187,7 +187,7 @@ class Lobby implements MatchLobby {
   }
 
   public async changeCommand(
-    member: string | Member,
+    member: string | IMember,
     command: command,
   ): Promise<boolean> {
     if (!(await this._matchController.changeCommand(member, command)))
@@ -197,7 +197,7 @@ class Lobby implements MatchLobby {
   }
 
   public async changeMemberStatus(
-    member: string | Member,
+    member: string | IMember,
     readyFlag: boolean,
   ): Promise<boolean> {
     if (!(await this._matchController.changeStatus(member, readyFlag)))

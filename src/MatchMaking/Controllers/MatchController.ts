@@ -1,5 +1,5 @@
 import { SUPPORTED_GAMES } from '../..'
-import type { command, Member } from '../Lobby'
+import type { command, IMember } from '../Lobby'
 export declare type matchStatus = 'searching' | 'filled' | 'started'
 
 export declare interface MatchController {
@@ -9,11 +9,11 @@ export declare interface MatchController {
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
-  addMembers(...members: Array<Member>): Promise<boolean>
-  removeMembers(...members: Array<Member>): Promise<boolean>
-  updateMember(member: Member): Promise<boolean>
-  changeCommand(member: string | Member, command: command): Promise<boolean>
-  changeStatus(member: string | Member, readyFlag: boolean): Promise<boolean>
+  addMembers(...members: Array<IMember>): Promise<boolean>
+  removeMembers(...members: Array<IMember>): Promise<boolean>
+  updateMember(member: IMember): Promise<boolean>
+  changeCommand(member: string | IMember, command: command): Promise<boolean>
+  changeStatus(member: string | IMember, readyFlag: boolean): Promise<boolean>
 
   get gameName(): SUPPORTED_GAMES
 }

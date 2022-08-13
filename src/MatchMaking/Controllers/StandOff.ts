@@ -1,4 +1,4 @@
-import { command, Member } from '../Lobby'
+import { command, IMember } from '../Lobby'
 import { MatchController, matchStatus } from './MatchController'
 
 export class StandOffController implements MatchController {
