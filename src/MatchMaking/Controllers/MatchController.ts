@@ -1,3 +1,4 @@
+import { SUPPORTED_GAMES } from '../..'
 import type { command, Member } from '../Lobby'
 export declare type matchStatus = 'searching' | 'filled' | 'started'
 
@@ -14,5 +15,5 @@ export declare interface MatchController {
   changeCommand(member: string | Member, command: command): Promise<boolean>
   changeStatus(member: string | Member, readyFlag: boolean): Promise<boolean>
 
-  get gameName(): string
+  get gameName(): SUPPORTED_GAMES
 }

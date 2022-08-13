@@ -6,7 +6,7 @@ import type {
   MatchController,
   matchStatus,
 } from './Controllers/MatchController'
-import { resolve } from 'node:path'
+import { SUPPORTED_GAMES } from '..'
 
 export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
 
@@ -14,6 +14,11 @@ export type Member = {
   name: string
   command: command
   readyFlag: boolean
+  statistic: {
+    kills: number
+    deaths: number
+    assists: number
+  }
 }
 
 export declare interface MatchLobby {
@@ -88,7 +93,7 @@ export class LobbyManager {
 
 class Lobby implements MatchLobby {
   public members = new MemberList()
-  private _game: string
+  private _game: SUPPORTED_GAMES
 
   constructor(
     private _matchController: MatchController,

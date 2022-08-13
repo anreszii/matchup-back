@@ -10,3 +10,5 @@ declare global {
     }
   }
 }
+
+export declare type SUPPORTED_GAMES = 'StandOff2'
