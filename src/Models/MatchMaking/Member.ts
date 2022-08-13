@@ -1,6 +1,6 @@
 import { prop, Ref } from '@typegoose/typegoose'
 import * as mongoose from 'mongoose'
-import { command, IMember } from '../MatchMaking'
+import { command, IMember } from '../../MatchMaking'
 import { Statistic } from './Statistic'
 
 export class Member {

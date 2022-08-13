@@ -11,7 +11,7 @@ import {
 import { WebSocketValidatior } from '../../validation/websocket'
 import { validatePacket } from '../../Token'
 import { IUser, User, userRole } from '../../Models'
-import { MatchListModel } from '../../Models/MatchList'
+import { MatchListModel } from '../../Models/MatchMaking/MatchList'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
