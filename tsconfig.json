@@ -3,6 +3,7 @@
     "target": "ES2022",
 
     /* Modules */
+    "experimentalDecorators": true,
     "module": "CommonJS" /* Specify what module code is generated. */,
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,

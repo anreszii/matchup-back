@@ -1,45 +1,31 @@
-import { model, Schema, Types, Model, HydratedDocument } from 'mongoose'
+import {
+  prop,
+  getModelForClass,
+  Ref,
+  ReturnModelType,
+} from '@typegoose/typegoose'
+import * as mongoose from 'mongoose'
 import { SUPPORTED_GAMES } from '..'
-import type { Member } from '../MatchMaking'
+import { Member } from './Member'
 
-export declare interface IMatchList {
-  id: string
-  game: SUPPORTED_GAMES
-  members: Types.Array<Member>
+class MatchList {
+  @prop({ required: true, unique: true })
+  public id!: string
+  @prop({ required: true })
+  public game!: SUPPORTED_GAMES
+  @prop({ required: true, ref: Member })
+  public members: Ref<Member>
+
+  public static async findByID(
+    this: ReturnModelType<typeof MatchList>,
+    id: string,
+  ) {
+    return this.findOne({ id })
+  }
+
+  public static async getAll(this: ReturnModelType<typeof MatchList>) {
+    return this.find()
+  }
 }
 
-export const MemberSchema = new Schema<Member>({
-  name: { type: String, required: true },
-  command: { type: String, required: true },
-  statistic: { type: Array, required: true },
-})
-
-export declare interface MatchListBehavior {}
-
-export interface MatchListModel extends Model<IMatchList, {}, IMatchList> {
-  getByID(id: string): Promise<HydratedDocument<MatchListModel>>
-  getAll(): Promise<Array<HydratedDocument<MatchListModel>>>
-}
-
-export const MatchListSchema = new Schema<
-  IMatchList,
-  MatchListModel,
-  MatchListBehavior
->({
-  id: { type: String, required: true, unique: true },
-  game: { type: String, required: true },
-  members: { type: Array(), required: true },
-})
-
-MatchListSchema.statics.getByID = function (id: string) {
-  return this.findOne({ id })
-}
-
-MatchListSchema.statics.getAll = function () {
-  return this.find({})
-}
-
-export const User = model<IMatchList, MatchListModel>(
-  'MatchList',
-  MatchListSchema,
-)
+export const MatchListModel = getModelForClass(MatchList)

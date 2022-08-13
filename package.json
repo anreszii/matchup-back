@@ -4,6 +4,7 @@
     "build": "tsc ; npx prettier --config ./.prettierrc.json -w ./"
   },
   "dependencies": {
+    "@typegoose/typegoose": "^9.11.0",
     "@types/nodemailer": "^6.4.4",
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",

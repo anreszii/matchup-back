@@ -1,5 +1,13 @@
-import { Schema } from 'mongoose'
-import type { rewardType } from '../app'
-import { Member } from '../MatchMaking'
+import { prop, Ref } from '@typegoose/typegoose'
+import * as mongoose from 'mongoose'
+import { command, IMember } from '../MatchMaking'
+import { Statistic } from './Statistic'
 
-export const MemberSchema = new Schema<Member>({})
+export class Member {
+  @prop({ required: true })
+  public name!: string
+  @prop({ required: true })
+  public command!: command
+  @prop({ required: true, ref: Statistic, _id: false })
+  public statistic!: Ref<Statistic>
+}
