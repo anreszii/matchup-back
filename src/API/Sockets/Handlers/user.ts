@@ -19,10 +19,10 @@ let wsValidator = new WebSocketValidatior(app)
  *   newUser: number
  * }
  * ```
- *
- * @event get_statistic
+ * @category User
+ * @event
  */
-export async function getStatistic(escort: IDataEscort) {
+export async function get_statistic(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)

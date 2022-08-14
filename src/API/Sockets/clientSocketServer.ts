@@ -17,22 +17,22 @@ let clientServer = app.of('client')
 
 /* Basic handlers for user authorization */
 clientServer.on('authorize', Handlers.authorize)
-clientServer.on('change_role', Handlers.changeRole)
+clientServer.on('change_role', Handlers.change_role)
 
 /* Handlers for admins only */
-clientServer.on('get_users', Handlers.getUserList)
-clientServer.on('get_reports', Handlers.getReports)
-clientServer.on('get_match', Handlers.getMatchs)
+clientServer.on('get_users', Handlers.get_users)
+clientServer.on('get_reports', Handlers.get_reports)
+clientServer.on('get_matchs', Handlers.get_matchs)
 
 /* Handlers for all users */
-clientServer.on('get_statistic', Handlers.getStatistic)
+clientServer.on('get_statistic', Handlers.get_statistic)
 
 /* Match hanlers */
-clientServer.on('create_match', Handlers.createMatch)
-clientServer.on('find_match', Handlers.findMatch)
-clientServer.on('sync_lobby', Handlers.syncLobby)
-clientServer.on('add_member', Handlers.addMember)
-clientServer.on('remove_member', Handlers.removeMember)
+clientServer.on('create_match', Handlers.create_match)
+clientServer.on('find_match', Handlers.find_match)
+clientServer.on('sync_lobby', Handlers.sync_lobby)
+clientServer.on('add_member', Handlers.add_member)
+clientServer.on('remove_member', Handlers.remove_member)
 
 app.listen(Number(process.env.PORT), (ls) => {
   if (ls) console.log(`listening websockets on ${process.env.PORT}`)

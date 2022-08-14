@@ -35,9 +35,11 @@ let StandOffLobbies = new MatchMaking.LobbyManager(
  *  lobby_id: string
  * }
  * ```
- * @event create_match
+ *
+ * @category MatchMaking
+ * @event
  */
-export async function createMatch(escort: IDataEscort) {
+export async function create_match(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -87,9 +89,10 @@ export async function createMatch(escort: IDataEscort) {
  *  lobby_id: string
  * }
  * ```
- * @event find_match
+ * @category MatchMaking
+ * @event
  */
-export async function findMatch(escort: IDataEscort) {
+export async function find_match(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -141,9 +144,10 @@ export async function findMatch(escort: IDataEscort) {
  *  spectators: Array<Member>
  * }
  * ```
- * @event sync_lobby
+ * @category MatchMaking
+ * @event
  */
-export async function syncLobby(escort: IDataEscort) {
+export async function sync_lobby(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -200,9 +204,10 @@ export async function syncLobby(escort: IDataEscort) {
  *  spectators: Array<Member>
  * }
  * ```
- * @event add_member
+ * @category MatchMaking
+ * @event
  */
-export async function addMember(escort: IDataEscort) {
+export async function add_member(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -266,9 +271,10 @@ export async function addMember(escort: IDataEscort) {
  *  spectators: Array<Member>
  * }
  * ```
- * @event remove_member
+ * @category MatchMaking
+ * @event
  */
-export async function removeMember(escort: IDataEscort) {
+export async function remove_member(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -338,9 +344,10 @@ export async function removeMember(escort: IDataEscort) {
  *  spectators: Array<Member>
  * }
  * ```
- * @event update_member
+ * @category MatchMaking
+ * @event
  */
-export async function updateMember(escort: IDataEscort) {
+export async function update_member(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)

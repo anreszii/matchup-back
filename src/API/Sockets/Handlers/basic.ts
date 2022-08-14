@@ -25,7 +25,8 @@ let wsValidator = new WebSocketValidatior(app)
  *  complete: true
  * }
  * ```
- * @event authorize
+ * @category Authorization
+ * @event
  */
 export function authorize(escort: IDataEscort) {
   try {
@@ -77,9 +78,10 @@ export function authorize(escort: IDataEscort) {
  * ```
  *
  * В случае, если новая роль не была указана - возвращает в ответном событии текущую
- * @event change_role
+ * @category Authorization
+ * @event
  */
-export function changeRole(escort: IDataEscort) {
+export function change_role(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)

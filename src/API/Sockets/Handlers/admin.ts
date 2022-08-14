@@ -1,12 +1,6 @@
 import { app } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
-import {
-  matchCause,
-  MatchError,
-  MatchUpError,
-  validationCause,
-  ValidationError,
-} from '../../../error'
+import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
 import { WebSocketValidatior } from '../../../validation/websocket'
 import { User, userRole } from '../../../Models'
@@ -29,10 +23,10 @@ let wsValidator = new WebSocketValidatior(app)
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
- *
- * @event get_users
+ * @category Admin
+ * @event
  */
-export async function getUserList(escort: IDataEscort) {
+export async function get_users(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -86,9 +80,10 @@ export async function getUserList(escort: IDataEscort) {
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
- * @event get_reports
+ * @category Admin
+ * @event
  */
-export async function getReports(escort: IDataEscort) {
+export async function get_reports(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -140,9 +135,10 @@ export async function getReports(escort: IDataEscort) {
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
- * @event get_match
+ * @category Admin
+ * @event
  */
-export async function getMatchs(escort: IDataEscort) {
+export async function get_matchs(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
