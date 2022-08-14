@@ -1,4 +1,4 @@
-import { SUPPORTED_GAMES } from '../..'
+import { SUPPORTED_GAMES } from '../../../'
 import type { command, IMember } from '../Lobby'
 export declare type matchStatus = 'searching' | 'filled' | 'started'
 

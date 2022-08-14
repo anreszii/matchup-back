@@ -1,5 +1,4 @@
 export * from './Classes'
-export * from './MatchMaking'
 export * from './Utils'
 export * from './validation'
 

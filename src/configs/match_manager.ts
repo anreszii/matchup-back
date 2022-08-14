@@ -1,4 +1,4 @@
-import type { IMember } from '../MatchMaking/Lobby'
+import type { IMember } from '../Classes/MatchMaking/Lobby'
 
 export const enum lobbyStatus {
   STARTED = 'started',

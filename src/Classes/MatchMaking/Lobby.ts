@@ -1,4 +1,4 @@
-import { matchCause, MatchError } from '../error'
+import { matchCause, MatchError } from '../../error'
 import { MemberList } from './MemberList'
 
 import { v4 as uuid } from 'uuid'
@@ -6,7 +6,7 @@ import type {
   MatchController,
   matchStatus,
 } from './Controllers/MatchController'
-import { SUPPORTED_GAMES } from '..'
+import { SUPPORTED_GAMES } from '../../'
 
 export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
 

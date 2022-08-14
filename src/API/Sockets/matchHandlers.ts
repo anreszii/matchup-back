@@ -7,18 +7,16 @@ import {
   validationCause,
   ValidationError,
 } from '../../error'
+import { WebSocketValidatior } from '../../validation'
 
-import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
-import { LobbyManager } from '../../MatchMaking/Lobby'
-import { MemberList } from '../../MatchMaking/MemberList'
-import { WebSocketValidatior } from '../../validation/websocket'
-import { MatchController } from '../../MatchMaking'
+import * as MatchMaking from '../../Classes/MatchMaking'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
+let MemberList = MatchMaking.MemberList
 
-let StandOffLobbies = new LobbyManager(
-  new StandOffController() as unknown as MatchController,
+let StandOffLobbies = new MatchMaking.LobbyManager(
+  new MatchMaking.StandOffController(),
 )
 
 /**
@@ -155,7 +153,7 @@ export async function syncLobby(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = LobbyManager.get(lobbyID)
+    let lobby = MatchMaking.LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     clientServer.control(socketID).emit('sync_lobby', {
@@ -218,7 +216,7 @@ export async function addMember(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = LobbyManager.get(lobbyID)
+    let lobby = MatchMaking.LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     let status = await lobby.addMember(member)
@@ -283,7 +281,7 @@ export async function removeMember(escort: IDataEscort) {
     if (typeof name != 'string')
       throw new ValidationError('name', validationCause.REQUIRED)
 
-    let lobby = LobbyManager.get(lobbyID)
+    let lobby = MatchMaking.LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
     if (!lobby.members.hasMember(name))
       throw new ValidationError('name', validationCause.INVALID)
@@ -357,7 +355,7 @@ export async function updateMember(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = LobbyManager.get(lobbyID)
+    let lobby = MatchMaking.LobbyManager.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     if (!lobby.members.hasMember(member.name))

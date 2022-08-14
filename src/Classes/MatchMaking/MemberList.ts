@@ -1,5 +1,5 @@
-import { List } from '../Classes/List'
-import { UNDEFINED_MEMBER } from '../configs/match_manager'
+import { List } from '../List'
+import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import type { command, IMember } from './Lobby'
 
 export class MemberList extends List<IMember> {
