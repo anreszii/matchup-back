@@ -12,11 +12,14 @@ import { StandOffController } from '../../MatchMaking/Controllers/StandOff'
 import { LobbyManager } from '../../MatchMaking/Lobby'
 import { MemberList } from '../../MatchMaking/MemberList'
 import { WebSocketValidatior } from '../../validation/websocket'
+import { MatchController } from '../../MatchMaking'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
 
-let StandOffLobbies = new LobbyManager(new StandOffController())
+let StandOffLobbies = new LobbyManager(
+  new StandOffController() as unknown as MatchController,
+)
 
 /**
  * Событие для создания матча со стороны клиента.</br>
