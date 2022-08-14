@@ -2,6 +2,7 @@ export const enum validationCause {
   INVALID_FORMAT = 'invalid format',
   REQUIRED = 'required',
   NOT_EXIST = `doesn't exist`,
+  ALREADY_EXIST = 'already exist',
   INVALID = `invalid`,
 }
 
@@ -37,9 +38,11 @@ export class ValidationError extends MatchUpError {
       case validationCause.REQUIRED:
         return RequiredError(this._key)
       case validationCause.NOT_EXIST:
-        return ExistError(this._key)
+        return NotExistError(this._key)
       case validationCause.INVALID:
         return InvalidError(this._key)
+      case validationCause.ALREADY_EXIST:
+        return ExistError(this._key)
     }
   }
 }
@@ -81,8 +84,12 @@ function FormatError(name: string) {
   return `invalid ${name} format`
 }
 
-function ExistError(name: string) {
+function NotExistError(name: string) {
   return `${name} doesn't exist`
+}
+
+function ExistError(name: string) {
+  return `${name} already exist`
 }
 
 function RequiredError(name: string) {
