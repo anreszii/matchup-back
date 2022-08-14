@@ -9,8 +9,7 @@ import {
 } from '../../error'
 
 import { WebSocketValidatior } from '../../validation/websocket'
-import { validatePacket } from '../../Token'
-import { IUser, User, userRole } from '../../Models'
+import { User, userRole } from '../../Models'
 import { MatchListModel } from '../../Models/MatchMaking/MatchList'
 import { ReportListModel } from '../../Models/MatchMaking/Reports'
 
@@ -73,8 +72,6 @@ export async function getUserList(escort: IDataEscort) {
     }
   }
 }
-
-export function getStatistic(escort: IDataEscort) {}
 
 /**
  * Событие для получения репортов. </br>
