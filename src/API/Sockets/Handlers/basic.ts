@@ -1,9 +1,9 @@
-import { app } from './clientSocketServer'
+import { app } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
 
-import { WebSocketValidatior } from '../../validation/websocket'
-import { validatePacket } from '../../Token'
-import { MatchUpError, validationCause, ValidationError } from '../../error'
+import { WebSocketValidatior } from '../../../validation/websocket'
+import { validatePacket } from '../../../Token'
+import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -12,17 +12,17 @@ let wsValidator = new WebSocketValidatior(app)
  * Событие для авторизации сокета. </br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "token": string //полученный при авторизации пользователя
+ *  token: string //полученный при авторизации пользователя
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
- *  "complete": true
+ *  complete: true
  * }
  * ```
  * @event authorize
@@ -62,19 +62,21 @@ export function authorize(escort: IDataEscort) {
  * Событие для смены роли сокета пользователя. </br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "newRole": string //"default" | "privileged" | "admin"
+ *  newRole: string //"default" | "privileged" | "admin" //новая роль пользователя
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
- *  "role": string //"default" | "privileged" | "admin". текущая роль пользователя
+ *  role: string //"default" | "privileged" | "admin". текущая роль пользователя
  * }
  * ```
+ *
+ * В случае, если новая роль не была указана - возвращает в ответном событии текущую
  * @event change_role
  */
 export function changeRole(escort: IDataEscort) {
@@ -87,7 +89,7 @@ export function changeRole(escort: IDataEscort) {
     if (!role)
       return clientServer
         .control(socketID)
-        .emit('changeRole', { role: socket.role })
+        .emit('change_role', { role: socket.role })
     if (
       typeof role != 'string' ||
       (role != 'default' && role != 'privileged' && role != 'admin')
@@ -95,7 +97,7 @@ export function changeRole(escort: IDataEscort) {
       throw new ValidationError('newRole', validationCause.INVALID)
 
     socket.role = role
-    return clientServer.control(socketID).emit('authorize', { role })
+    return clientServer.control(socketID).emit('change_role', { role })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {

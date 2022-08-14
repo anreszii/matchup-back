@@ -1,4 +1,4 @@
-import { app } from './clientSocketServer'
+import { app } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
 import {
   matchCause,
@@ -6,12 +6,12 @@ import {
   MatchUpError,
   validationCause,
   ValidationError,
-} from '../../error'
+} from '../../../error'
 
-import { WebSocketValidatior } from '../../validation/websocket'
-import { User, userRole } from '../../Models'
-import { MatchListModel } from '../../Models/MatchMaking/MatchList'
-import { ReportListModel } from '../../Models/MatchMaking/Reports'
+import { WebSocketValidatior } from '../../../validation/websocket'
+import { User, userRole } from '../../../Models'
+import { MatchListModel } from '../../../Models/MatchMaking/MatchList'
+import { ReportListModel } from '../../../Models/MatchMaking/Reports'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -21,15 +21,15 @@ let wsValidator = new WebSocketValidatior(app)
  * По-умолчанию возвращает всех пользователей. </br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "token": string //полученный при авторизации пользователя
- *  "username"?: string //поиск по имени внутри приложения
+ *  token: string //полученный при авторизации пользователя
+ *  username?: string //поиск по имени внутри приложения
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
- * ```
+ *
  * @event get_users
  */
 export async function getUserList(escort: IDataEscort) {
@@ -75,13 +75,13 @@ export async function getUserList(escort: IDataEscort) {
 
 /**
  * Событие для получения репортов. </br>
- * По-умолчанию возвращает все матчи</br>
+ * По-умолчанию возвращает все репорты. </br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "token": string //полученный при авторизации пользователя
- *  "reportID"?: number //ID матча, который нужно посмотреть
+ *  token: string //полученный при авторизации пользователя
+ *  reportID?: number //ID репорта, который нужно посмотреть
  * }
  * ```
  *
@@ -129,20 +129,20 @@ export async function getReports(escort: IDataEscort) {
 
 /**
  * Событие для получения результатов матчей. </br>
- * По-умолчанию возвращает все матчи</br>
+ * По-умолчанию возвращает все матчи. </br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "token": string //полученный при авторизации пользователя
- *  "matchID"?: string //ID матча, который нужно посмотреть
+ *  token: string //полученный при авторизации пользователя
+ *  matchID?: string //ID матча, который нужно посмотреть
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект с результатами поиска
  * @event get_match
  */
-export async function getMatch(escort: IDataEscort) {
+export async function getMatchs(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)

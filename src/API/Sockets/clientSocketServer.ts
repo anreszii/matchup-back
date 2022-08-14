@@ -9,25 +9,30 @@
  */
 
 import io from 'gamesocket.io'
-import {
-  addMember,
-  createMatch,
-  findMatch,
-  removeMember,
-  syncLobby,
-} from './matchHandlers'
-import { authorize } from './basicHandlers'
+import * as Handlers from './Handlers'
 
 export let app = io()
 
 let clientServer = app.of('client')
 
-clientServer.on('authorize', authorize)
-clientServer.on('create_match', createMatch)
-clientServer.on('find_match', findMatch)
-clientServer.on('sync_lobby', syncLobby)
-clientServer.on('add_member', addMember)
-clientServer.on('remove_member', removeMember)
+/* Basic handlers for user authorization */
+clientServer.on('authorize', Handlers.authorize)
+clientServer.on('change_role', Handlers.changeRole)
+
+/* Handlers for admins only */
+clientServer.on('get_users', Handlers.getUserList)
+clientServer.on('get_reports', Handlers.getReports)
+clientServer.on('get_match', Handlers.getMatchs)
+
+/* Handlers for all users */
+clientServer.on('get_statistic', Handlers.getStatistic)
+
+/* Match hanlers */
+clientServer.on('create_match', Handlers.createMatch)
+clientServer.on('find_match', Handlers.findMatch)
+clientServer.on('sync_lobby', Handlers.syncLobby)
+clientServer.on('add_member', Handlers.addMember)
+clientServer.on('remove_member', Handlers.removeMember)
 
 app.listen(Number(process.env.PORT), (ls) => {
   if (ls) console.log(`listening websockets on ${process.env.PORT}`)

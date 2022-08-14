@@ -1,22 +1,22 @@
-import { app } from './clientSocketServer'
+import { app } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
-import { MatchUpError, validationCause, ValidationError } from '../../error'
+import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
-import { WebSocketValidatior } from '../../validation/websocket'
-import { userRole } from '../../Models'
-import { GlobalStatistic } from '../../Models/GlobalStatistic'
+import { WebSocketValidatior } from '../../../validation/websocket'
+import { userRole } from '../../../Models'
+import { GlobalStatistic } from '../../../Models/GlobalStatistic'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
 
 /**
- * Событие для получения репортов. </br>
- * По-умолчанию возвращает все матчи</br>
+ * Событие для получения глоьальной статистики. </br>
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```json
+ * ```ts
  * {
- *
+ *   newPrivileged: number,
+ *   newUser: number
  * }
  * ```
  *

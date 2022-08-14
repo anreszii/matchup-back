@@ -1,4 +1,4 @@
-import { app } from './clientSocketServer'
+import { app } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
 import {
   matchCause,
@@ -6,10 +6,10 @@ import {
   MatchUpError,
   validationCause,
   ValidationError,
-} from '../../error'
-import { WebSocketValidatior } from '../../validation'
+} from '../../../error'
+import { WebSocketValidatior } from '../../../validation'
 
-import * as MatchMaking from '../../Classes/MatchMaking'
+import * as MatchMaking from '../../../Classes/MatchMaking'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -23,16 +23,16 @@ let StandOffLobbies = new MatchMaking.LobbyManager(
  * Событие для создания матча со стороны клиента.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "member": Member
+ *  member: Member
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string
+ *  lobby_id: string
  * }
  * ```
  * @event create_match
@@ -75,16 +75,16 @@ export async function createMatch(escort: IDataEscort) {
  * Событие для поиска матча со стороны клиента.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "member": Member
+ *  member: Member
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string
+ *  lobby_id: string
  * }
  * ```
  * @event find_match
@@ -126,15 +126,15 @@ export async function findMatch(escort: IDataEscort) {
  * Событие для ручной синхронизации пользователя с лобби.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string //строка с id существующего лобби
+ *  lobby_id: string //строка с id существующего лобби
  * }
  * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
  *  status: 'searching' | 'filled' | 'started',
  *  players: Array<Member>,
@@ -184,16 +184,16 @@ export async function syncLobby(escort: IDataEscort) {
  * Событие для добавления пользователя в лобби.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string, //строка с id существующего лобби
- *  "member": Member
+ *  lobby_id: string, //строка с id существующего лобби
+ *  member: Member
  * }
  * ```
  *
  * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
  *  status: 'searching' | 'filled' | 'started',
  *  players: Array<Member>,
@@ -250,16 +250,16 @@ export async function addMember(escort: IDataEscort) {
  * Событие для удаления пользователя из лобби.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string, //строка с id существующего лобби
- *  "name": string //имя пользователя
+ *  lobby_id: string, //строка с id существующего лобби
+ *  name: string //имя пользователя
  * }
  * ```
  *
  * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
  *  status: 'searching' | 'filled' | 'started',
  *  players: Array<Member>,
@@ -317,21 +317,21 @@ export async function removeMember(escort: IDataEscort) {
  * Событие для обновления статуса пользователя со стороны клиента.</br>
  * Используемый пакет:
  *
- * ```json
+ * ```ts
  * {
- *  "lobby_id": string, //строка с id существующего лобби
- *  "member":
+ *  lobby_id: string, //строка с id существующего лобби
+ *  member:
  *  {
- *    "name": string //имя пользователя
- *    "command": 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
- *    "readyFlag": boolean | undefined
+ *    name: string //имя пользователя
+ *    command: 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
+ *    readyFlag: boolean | undefined
  *  }
  * }
  * ```
  *
  * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
  *
- * ```json
+ * ```ts
  * {
  *  status: 'searching' | 'filled' | 'started',
  *  players: Array<Member>,
