@@ -50,14 +50,30 @@ describe('List class', () => {
 
     test('push after delete', () => {
       list.add(...TEST_DATA)
-      let status = list.delete(TEST_DATA[3])
+      list.delete(TEST_DATA[3])
       list.add(TEST_DATA[3])
       let index = 0
       for(let container of list.values()) {
         expect(container).toBe(TEST_DATA[index])
         index++
     }
-    }) 
+    })
+    
+    test('get index', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.indexOf(TEST_DATA[knownIndex])).toBe(knownIndex)
+      expect(list.indexOf(TEST_DATA[1000])).toBe(-1)
+    })
+
+    test('get value', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.valueOf(knownIndex)).toBe(TEST_DATA[knownIndex])
+      expect(list.valueOf(TEST_DATA.length + 1)).toBeUndefined()
+    })
   })
 
   describe('fixed size', () => {
@@ -116,7 +132,23 @@ describe('List class', () => {
         expect(container).toBe(TEST_DATA[index])
         index++
     }
-    }) 
+    })
+    
+    test('get index', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.indexOf(TEST_DATA[knownIndex])).toBe(knownIndex)
+      expect(list.indexOf(TEST_DATA[1000])).toBe(-1)
+    })
+
+    test('get value', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.valueOf(knownIndex)).toBe(TEST_DATA[knownIndex])
+      expect(list.valueOf(TEST_DATA.length + 1)).toBeUndefined()
+    })
   })
 
   describe('custom undefined', () => {
@@ -179,7 +211,7 @@ describe('List class', () => {
       status = list.delete('unknown')
       expect(status).toBeFalsy()
 
-      status = list.delete('udefined')
+      status = list.delete('undefined')
       expect(status).toBeFalsy()
 
     })
@@ -193,6 +225,22 @@ describe('List class', () => {
         expect(container).toBe(TEST_DATA[index])
         index++
     }
+    })
+
+    test('get index', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.indexOf(TEST_DATA[knownIndex])).toBe(knownIndex)
+      expect(list.indexOf(TEST_DATA[1000])).toBe(-1)
+    })
+
+    test('get value', () => {
+      list.add(...TEST_DATA)
+      let knownIndex = Math.floor(Math.random() * (TEST_DATA.length))
+      
+      expect(list.valueOf(knownIndex)).toBe(TEST_DATA[knownIndex])
+      expect(list.valueOf(TEST_DATA.length + 1)).toBe('undefined')
     }) 
   })
 })
