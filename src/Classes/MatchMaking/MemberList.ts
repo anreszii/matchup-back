@@ -1,6 +1,6 @@
 import { List } from '../List'
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
-import type { command, IMember } from './Lobby'
+import type { COMMAND, IMember } from '../../Interfaces'
 
 export class MemberList extends List<IMember> {
   private _spectator = 0
@@ -13,6 +13,13 @@ export class MemberList extends List<IMember> {
 
   public get currentUndefined() {
     return this._undefined
+  }
+
+  /**
+   * Число всех участников лобби
+   */
+  public get quantityOfMembers() {
+    return this.quantityOfPlayers + this.quantityOfSpectators
   }
 
   /**
@@ -87,7 +94,7 @@ export class MemberList extends List<IMember> {
     return true
   }
 
-  public changeCommand(entity: string | IMember, command: command) {
+  public changeCommand(entity: string | IMember, command: COMMAND) {
     let member = this.getMember(entity)
     if (member == this._undefined) return false
     if (member.command == command) return true
@@ -132,7 +139,7 @@ export class MemberList extends List<IMember> {
     return 'name' in member && 'command' in member && 'readyFlag' in member
   }
 
-  public static isCommand(entity: unknown): entity is command {
+  public static isCommand(entity: unknown): entity is COMMAND {
     if (typeof entity != 'string' || !entity) return false
     if (entity == 'spectator') return true
     if (entity == 'neutral') return true
@@ -179,7 +186,7 @@ export class MemberList extends List<IMember> {
       : this._increasePlayerCounter(member.command)
   }
 
-  private _increasePlayerCounter(command: Exclude<command, 'spectator'>) {
+  private _increasePlayerCounter(command: Exclude<COMMAND, 'spectator'>) {
     this[command]++
   }
 
@@ -193,7 +200,7 @@ export class MemberList extends List<IMember> {
       : this._decreasePlayerCounter(member.command)
   }
 
-  private _decreasePlayerCounter(command: Exclude<command, 'spectator'>) {
+  private _decreasePlayerCounter(command: Exclude<COMMAND, 'spectator'>) {
     this[command]--
   }
 
@@ -201,20 +208,20 @@ export class MemberList extends List<IMember> {
     this.spectator--
   }
 
-  private _hasFreeSpaceForMember(entity: IMember | command) {
+  private _hasFreeSpaceForMember(entity: IMember | COMMAND) {
     let command = typeof entity == 'string' ? entity : entity.command
     return command == 'spectator'
       ? this._hasFreeSpaceForSpectaror()
       : this._hasFreeSpaceForPlayer(command)
   }
 
-  private _hasFreeSpaceForPlayer(command: Exclude<command, 'spectator'>) {
+  private _hasFreeSpaceForPlayer(command: Exclude<COMMAND, 'spectator'>) {
     if (command == 'neutral') return this.quantityOfPlayers < 10
     return this._hasFreeSpaceInCommand(command)
   }
 
   private _hasFreeSpaceInCommand(
-    command: Exclude<command, 'neutral' | 'spectator'>,
+    command: Exclude<COMMAND, 'neutral' | 'spectator'>,
   ) {
     return this[command] < 5
   }

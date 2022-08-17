@@ -3,63 +3,36 @@ import { MemberList } from './MemberList'
 
 import { v4 as uuid } from 'uuid'
 import type {
+  IManager,
   MatchController,
-  matchStatus,
-} from './Controllers/MatchController'
-import { SUPPORTED_GAMES } from '../../'
+  ILobby,
+  SUPPORTED_GAMES,
+  IMember,
+  COMMAND,
+} from '../../Interfaces'
 
-export type command = 'spectator' | 'neutral' | 'command1' | 'command2'
-
-export type IMember = {
-  name: string
-  command: command
-  readyFlag: boolean
-  statistic: {
-    kills: number
-    deaths: number
-    assists: number
-  }
-}
-
-export declare interface MatchLobby {
-  get id(): string
-  get status(): matchStatus
-  start(): Promise<boolean>
-  stop(): Promise<boolean>
-  addMember(member: IMember): Promise<boolean>
-  removeMember(member: IMember): Promise<boolean>
-  updateMember(
-    member: Required<Pick<IMember, 'name'>> & Partial<Omit<IMember, 'name'>>,
-  ): Promise<boolean>
-  changeCommand(member: IMember | string, command: command): Promise<boolean>
-  changeMemberStatus(
-    member: IMember | string,
-    readyFlag: boolean,
-  ): Promise<boolean>
-}
-
-export class LobbyManager {
-  private static _lobbyList: Map<string, Lobby> = new Map()
+export class LobbyManager implements IManager<ILobby, string> {
+  private _lobbyMap: Map<string, Lobby> = new Map()
   private _controller: MatchController
   constructor(controller: MatchController) {
     this._controller = controller
   }
 
   public spawn(): Lobby {
-    const ID = LobbyManager.createID()
+    const ID = LobbyManager._createID()
     this._controller.create().then((status) => {
       if (!status) throw new MatchError('lobby', matchCause.CREATE)
     })
 
     let lobby = new Lobby(this._controller, ID)
-    LobbyManager._lobbyList.set(ID, lobby)
+    this._lobbyMap.set(ID, lobby)
 
     return lobby
   }
 
   public getFreeLobby(lobbyID?: string): Lobby {
-    if (lobbyID && LobbyManager._lobbyList.has(lobbyID))
-      return LobbyManager._lobbyList.get(lobbyID)!
+    if (lobbyID && this._lobbyMap.has(lobbyID))
+      return this._lobbyMap.get(lobbyID)!
 
     let notFilledLobby = this._findFreeLobby()
 
@@ -67,31 +40,36 @@ export class LobbyManager {
     return this.spawn()
   }
 
-  public static get(lobbyID: string) {
-    return this._lobbyList.get(lobbyID)
+  public get(lobbyID: string) {
+    return this._lobbyMap.get(lobbyID)
   }
 
-  public static drop(entity: string | Lobby): boolean {
-    if (typeof entity == 'string') return this._lobbyList.delete(entity)
-    return this._lobbyList.delete(entity.id)
+  public has(lobbyID: string) {
+    return this._lobbyMap.has(lobbyID)
+  }
+
+  public drop(lobbyID: string | Lobby): boolean {
+    if (typeof lobbyID == 'string') return this._lobbyMap.delete(lobbyID)
+    return this._lobbyMap.delete(lobbyID.id)
   }
 
   private _findFreeLobby() {
-    for (let lobby of LobbyManager._lobbyList.values()) {
+    for (let lobby of this._lobbyMap.values()) {
       if (
         lobby.status == 'searching' &&
         lobby.game == this._controller.gameName
       )
         return lobby
+      if (!lobby.status) this.drop(lobby)
     }
   }
 
-  private static createID() {
+  private static _createID() {
     return uuid()
   }
 }
 
-class Lobby implements MatchLobby {
+class Lobby implements ILobby {
   public members = new MemberList()
   private _game: SUPPORTED_GAMES
 
@@ -118,6 +96,7 @@ class Lobby implements MatchLobby {
   }
 
   public get status() {
+    if (this.members.quantityOfMembers == 0) return undefined
     if (this.members.quantityOfPlayers < 10) return 'searching'
     else return this._matchController.status
   }
@@ -141,10 +120,8 @@ class Lobby implements MatchLobby {
     let status = await this._matchController.removeMembers(member)
     if (!status) return false
 
-    status = !this.members.delete(member)
+    status = this.members.delete(member)
 
-    if (this.members.quantityOfSpectators + this.members.quantityOfPlayers == 0)
-      LobbyManager.drop(this)
     return status
   }
 
@@ -155,53 +132,34 @@ class Lobby implements MatchLobby {
    */
   public async updateMember(member: {
     name: string
-    command?: unknown
-    readyFlag?: unknown
+    command?: COMMAND
+    readyFlag?: boolean
   }) {
+    let tmp = this.members.getMember(member.name)
+    if (tmp == this.members.currentUndefined) return false
+
     if (!member.name) return false
     if (!MemberList.isMember(member)) {
-      if (MemberList.isCommand(member.command)) {
-        if (!this._matchController.changeCommand(member.name, member.command))
-          return false
-        if (!this.members.changeCommand(member.name, member.command))
-          return false
-      }
+      let { readyFlag, command } = member
 
-      if (member.readyFlag && typeof member.readyFlag == 'boolean') {
-        if (!this._matchController.changeStatus(member.name, member.readyFlag))
-          return false
-        if (!this.members.changeStatus(member.name, member.readyFlag))
-          return false
-      }
+      if (!readyFlag) member.readyFlag = tmp.readyFlag
+      if (!command) member.command = tmp.command
+
+      if (!this._matchController.updateMember(member as unknown as IMember))
+        return false
+
+      tmp.command = member.command!
+      tmp.readyFlag = member.readyFlag!
+
       return true
     }
 
     if (!this._matchController.updateMember(member)) return false
-    let tmp = this.members.getMember(member)
     if (tmp == this.members.currentUndefined) return false
 
     tmp.command = member.command
     tmp.readyFlag = member.readyFlag
 
     return true
-  }
-
-  public async changeCommand(
-    member: string | IMember,
-    command: command,
-  ): Promise<boolean> {
-    if (!(await this._matchController.changeCommand(member, command)))
-      return false
-
-    return this.members.changeCommand(member, command)
-  }
-
-  public async changeMemberStatus(
-    member: string | IMember,
-    readyFlag: boolean,
-  ): Promise<boolean> {
-    if (!(await this._matchController.changeStatus(member, readyFlag)))
-      return false
-    return this.members.changeStatus(member, readyFlag)
   }
 }

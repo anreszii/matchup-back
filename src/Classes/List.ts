@@ -7,7 +7,7 @@ export class List<T extends Object> {
   protected _elements: Array<T | undefined> = new Array()
   /**
    * Специальное значение, которое используется для определения свободных мест внутри массива
-   * в случае, если будет указан настраеваемый undefined, TurboFan сможет сделать дополнительные оптимизации
+   * в случае, если будет указан настраеваемый undefined, движок TurboFan сможет сделать дополнительные оптимизации
    */
   protected _undefined: undefined | T
 
@@ -43,6 +43,19 @@ export class List<T extends Object> {
   }
 
   /**
+   * Добавляет элеммент типа T.
+   * @return -1, если один из элементов оказался {@link List._undefined} и index вставленного объекта.
+   */
+  public addOne(element: T) {
+    if (element == this._undefined) return -1
+
+    let index = this._freeSpace
+    this._elements[index] = element
+
+    return index
+  }
+
+  /**
    * Добавляет набор новых элемментов типа T.
    * @returns false, если один из элементов оказался {@link List._undefined} или он не был найдет в {@link List._elements} и удаляет остальные элементы. true в остальных случаях
    */
@@ -57,6 +70,14 @@ export class List<T extends Object> {
       this._elements[index] = this._undefined
     }
     return status
+  }
+
+  public indexOf(element: T) {
+    return this._elements.indexOf(element)
+  }
+
+  public valueOf(index: number) {
+    return this._elements[index] ?? this._undefined
   }
 
   /**

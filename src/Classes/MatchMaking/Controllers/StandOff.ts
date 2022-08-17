@@ -1,8 +1,11 @@
-import { command, IMember } from '../Lobby'
-import { MatchController, matchStatus } from './MatchController'
+import {
+  IMember,
+  MATCH_STATUS,
+  MatchController,
+} from '../../../Interfaces/MatchMaking'
 
 export class StandOffController implements MatchController {
-  private _status: Exclude<matchStatus, 'searching'> = 'filled'
+  private _status: Exclude<MATCH_STATUS, 'searching'> = 'filled'
   constructor() {
     //connection
   }
@@ -32,20 +35,6 @@ export class StandOffController implements MatchController {
   }
 
   public async updateMember(member: IMember): Promise<boolean> {
-    return true
-  }
-
-  public async changeCommand(
-    member: string | IMember,
-    command: command,
-  ): Promise<boolean> {
-    return true
-  }
-
-  public async changeStatus(
-    member: string | IMember,
-    readyFlag: boolean,
-  ): Promise<boolean> {
     return true
   }
 
