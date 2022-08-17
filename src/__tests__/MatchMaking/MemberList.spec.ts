@@ -1,6 +1,6 @@
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import { MemberList } from '../../Classes/MatchMaking/MemberList'
-import type { IMember } from '../../Classes/MatchMaking/Lobby'
+import type { IMember } from '../../Interfaces/MatchMaking'
 
 describe('Member List', () => {
   let list: MemberList
