@@ -2,9 +2,10 @@ import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token/index'
 import { ValidationError, validationCause as cause } from '../../error'
 
-import { User } from '../../Models/User/User'
+import { UserModel } from '../../Models'
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { SMTP, Mail } from '../../Utils/smtp'
+import { validatePasswordFormat } from '../../validation'
 
 let router = Router()
 
@@ -23,7 +24,7 @@ router.put(
       } = req.body.user
       let username = req.body.payload.username as string
 
-      let user = await User.getByName(username)
+      let user = await UserModel.getByName(username)
       if (!user) throw new ValidationError('user', cause.NOT_EXIST)
 
       if (id) user.id = id
@@ -35,8 +36,8 @@ router.put(
       if (newName) user.profile.username = newName
 
       if (password) {
-        user.validatePasswordFormat(password)
-        user.setPassword(password)
+        validatePasswordFormat(password)
+        await user.setPassword(password)
       }
 
       await user.validate()
@@ -62,7 +63,7 @@ router.post('/login', async (req, res, next) => {
     if (!username) throw new ValidationError('username', cause.REQUIRED)
     if (!password) throw new ValidationError('password', cause.REQUIRED)
 
-    let user = await User.findOne({ 'profile.username': username })
+    let user = await UserModel.findOne({ 'profile.username': username })
     if (!user) throw new ValidationError('user', cause.NOT_EXIST)
     user.validatePassword(password)
 
@@ -84,10 +85,10 @@ router.post('/registration', async (req, res, next) => {
   try {
     let { username, password } = req.body.user
 
-    let user = new User()
+    let user = new UserModel()
 
-    user.validatePasswordFormat(password)
-    user.setPassword(password)
+    validatePasswordFormat(password)
+    await user.setPassword(password)
 
     let { id, nickname, email, region } = req.body.user
 
@@ -113,12 +114,11 @@ router.put('/recover', async (req, res, next) => {
     let { email } = req.body.user
     if (!email) throw new ValidationError('email', cause.REQUIRED)
 
-    let user = await User.findOne({ email })
+    let user = await UserModel.findOne({ email })
     if (!user) throw new ValidationError('user', cause.NOT_EXIST)
 
     let newPassword = generatePassword()
-    user.setPassword(newPassword)
-    await user.save()
+    await user.setPassword(newPassword)
 
     let mail = new Mail()
     mail.to(email)

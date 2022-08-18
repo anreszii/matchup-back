@@ -157,11 +157,11 @@ export async function sync_lobby(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = MatchMaking.LobbyManager.get(lobbyID)
+    let lobby = StandOffLobbies.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     clientServer.control(socketID).emit('sync_lobby', {
-      status: lobby.status,
+      status: lobby.status as string,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
     })
@@ -221,14 +221,14 @@ export async function add_member(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = MatchMaking.LobbyManager.get(lobbyID)
+    let lobby = StandOffLobbies.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     let status = await lobby.addMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.ADD_MEMBER)
 
     clientServer.control(socketID).emit('sync_lobby', {
-      status: lobby.status,
+      status: lobby.status as string,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
     })
@@ -287,7 +287,7 @@ export async function remove_member(escort: IDataEscort) {
     if (typeof name != 'string')
       throw new ValidationError('name', validationCause.REQUIRED)
 
-    let lobby = MatchMaking.LobbyManager.get(lobbyID)
+    let lobby = StandOffLobbies.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
     if (!lobby.members.hasMember(name))
       throw new ValidationError('name', validationCause.INVALID)
@@ -296,7 +296,7 @@ export async function remove_member(escort: IDataEscort) {
     if (!status) throw new MatchError(lobbyID, matchCause.REMOVE_MEMBER)
 
     clientServer.control(socketID).emit('sync_lobby', {
-      status: lobby.status,
+      status: lobby.status as string,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
     })
@@ -362,7 +362,7 @@ export async function update_member(escort: IDataEscort) {
     if (typeof lobbyID != 'string')
       throw new ValidationError('lobby', validationCause.REQUIRED)
 
-    let lobby = MatchMaking.LobbyManager.get(lobbyID)
+    let lobby = StandOffLobbies.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
 
     if (!lobby.members.hasMember(member.name))
@@ -376,7 +376,7 @@ export async function update_member(escort: IDataEscort) {
     if (!status) throw new MatchError(lobbyID, matchCause.UPDATE_MEMBER)
 
     clientServer.control(socketID).emit('sync_lobby', {
-      status: lobby.status,
+      status: lobby.status as string,
       players: JSON.stringify(lobby.members.players),
       spectators: JSON.stringify(lobby.members.spectators),
     })

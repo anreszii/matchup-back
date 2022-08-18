@@ -3,9 +3,8 @@ import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataE
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
 import { WebSocketValidatior } from '../../../validation/websocket'
-import { User, userRole } from '../../../Models'
-import { MatchListModel } from '../../../Models/MatchMaking/MatchList'
-import { ReportListModel } from '../../../Models/MatchMaking/Reports'
+import { MatchListModel, ReportListModel, UserModel } from '../../../Models'
+import { USER_ROLE } from '../../../Interfaces'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -31,20 +30,20 @@ export async function get_users(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as userRole
+    let role = app.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
 
     let userNameToFind = escort.get('username')
     if (!userNameToFind) {
-      let page: string = JSON.stringify(await User.find({}))
+      let page: string = JSON.stringify(await UserModel.find({}))
       clientServer.control(socketID).emit('get_users', page)
       return
     }
 
     if (typeof userNameToFind != 'string')
       throw new ValidationError('username', validationCause.INVALID_FORMAT)
-    let user = await User.findOne({ 'profile.username': userNameToFind })
+    let user = await UserModel.getByName(userNameToFind)
     if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
     return clientServer.control(socketID).emit('get_users', user.toJSON())
@@ -88,7 +87,7 @@ export async function get_reports(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as userRole
+    let role = app.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
     let reportID = escort.get('reportID')
@@ -143,7 +142,7 @@ export async function get_matchs(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as userRole
+    let role = app.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
     let matchID = escort.get('matchID')
