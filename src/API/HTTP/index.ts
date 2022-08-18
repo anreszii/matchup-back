@@ -9,8 +9,8 @@ router.use('/api/user', require('./user'))
 
 router.use(function (
   errorObject: ValidationError | MongoError.ValidationError | MongoServerError,
-  req: Request,
-  res: Response,
+  _: unknown,
+  _1: unknown,
   next: NextFunction,
 ) {
   let errors: Array<string> = []
