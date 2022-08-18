@@ -56,8 +56,8 @@ export class List<T extends Object> {
   }
 
   /**
-   * Добавляет набор новых элемментов типа T.
-   * @returns false, если один из элементов оказался {@link List._undefined} или он не был найдет в {@link List._elements} и удаляет остальные элементы. true в остальных случаях
+   * Удаляет набор элемментов типа T.
+   * @returns false, если один из элементов оказался {@link List._undefined} или он не был найден в {@link List._elements} и удаляет остальные элементы. true в остальных случаях
    */
   public delete(...elements: Array<T>) {
     let status = true
@@ -78,6 +78,12 @@ export class List<T extends Object> {
 
   public valueOf(index: number) {
     return this._elements[index] ?? this._undefined
+  }
+
+  public has(index: number) {
+    if (this._elements[index] && this._elements[index] != this._undefined)
+      return true
+    return false
   }
 
   /**
