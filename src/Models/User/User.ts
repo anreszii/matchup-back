@@ -48,21 +48,6 @@ export class User {
 
   /* PASSWORD */
 
-  public static validatePasswordFormat(password: string) {
-    if (!password)
-      throw new ValidationError('password', validationCause.REQUIRED)
-    if (
-      !validator.isStrongPassword(password, {
-        minLength: 8,
-        minLowercase: 1,
-        minUppercase: 1,
-        minNumbers: 0,
-        minSymbols: 0,
-      })
-    )
-      throw new ValidationError('password', validationCause.INVALID_FORMAT)
-  }
-
   public async validatePassword(this: DocumentType<User>, password: string) {
     if (!password)
       throw new ValidationError('password', validationCause.REQUIRED)
