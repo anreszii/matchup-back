@@ -10,6 +10,7 @@ import type {
   IMember,
   COMMAND,
 } from '../../Interfaces'
+import { toBoolean } from '../../Utils/toBoolean'
 
 export class LobbyManager implements IManager<ILobby, string> {
   private _lobbyMap: Map<string, Lobby> = new Map()
@@ -132,24 +133,25 @@ class Lobby implements ILobby {
    */
   public async updateMember(member: {
     name: string
-    command?: COMMAND
-    readyFlag?: boolean
+    command?: unknown
+    readyFlag?: unknown
   }) {
     let tmp = this.members.getMember(member.name)
     if (tmp == this.members.currentUndefined) return false
 
     if (!member.name) return false
     if (!MemberList.isMember(member)) {
-      let { readyFlag, command } = member
-
-      if (!readyFlag) member.readyFlag = tmp.readyFlag
-      if (!command) member.command = tmp.command
+      if (!member.command || !MemberList.isCommand(member.command))
+        member.command = tmp.command
+      if (!member.readyFlag) member.readyFlag = tmp.readyFlag
+      else member.readyFlag = toBoolean(member.readyFlag)
 
       if (!this._matchController.updateMember(member as unknown as IMember))
         return false
 
-      tmp.command = member.command!
-      tmp.readyFlag = member.readyFlag!
+      //т.к. tmp является ссылкой на объект, меняя его элементы - меняются и элементы объекта в MemberList
+      tmp.command = member.command! as COMMAND
+      tmp.readyFlag = member.readyFlag! as boolean
 
       return true
     }
