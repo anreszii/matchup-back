@@ -5,7 +5,8 @@ export * from './validation'
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      PORT?: string
+      PORT: string
+      SALT: string
     }
   }
 }
