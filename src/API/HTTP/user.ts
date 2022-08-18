@@ -2,7 +2,7 @@ import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token/index'
 import { ValidationError, validationCause as cause } from '../../error'
 
-import { User } from '../../Models/User'
+import { User } from '../../Models/User/User'
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { SMTP, Mail } from '../../Utils/smtp'
 

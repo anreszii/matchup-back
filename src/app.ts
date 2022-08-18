@@ -2,9 +2,6 @@ import express, { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import fileUploader from 'express-fileupload'
 
-export declare type region = String
-export declare type rewardType = 'exp' | 'mp'
-
 const app = express()
 app.use(fileUploader())
 app.use(express.json())

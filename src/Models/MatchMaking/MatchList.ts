@@ -4,8 +4,8 @@ import {
   Ref,
   ReturnModelType,
 } from '@typegoose/typegoose'
-import * as mongoose from 'mongoose'
-import { SUPPORTED_GAMES } from '../..'
+import { Types } from 'mongoose'
+import { SUPPORTED_GAMES } from '../../Interfaces'
 import { Member } from './Member'
 
 /**
@@ -18,7 +18,7 @@ class MatchList {
   @prop({ required: true })
   public game!: SUPPORTED_GAMES
   @prop({ required: true, ref: Member })
-  public members: Ref<Member>
+  public members!: Types.ArraySubdocument<Ref<Member>>
 
   public static async findByID(
     this: ReturnModelType<typeof MatchList>,

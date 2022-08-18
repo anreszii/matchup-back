@@ -1,11 +1,9 @@
-import { Schema, Types } from 'mongoose'
+import { Types } from 'mongoose'
+import { prop } from '@typegoose/typegoose'
 
-export declare interface IRelations {
-  friends: Types.Array<string>
-  subscribers: Types.Array<string>
+export class Relations {
+  @prop({ required: true, default: [] })
+  public friends!: Types.Array<string>
+  @prop({ required: true, default: [] })
+  public subscribers!: Types.Array<string>
 }
-
-export const Relations = new Schema<IRelations>({
-  friends: [String],
-  subscribers: [String],
-})

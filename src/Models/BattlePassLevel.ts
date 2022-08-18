@@ -1,15 +1,14 @@
-import { model, Schema, Types } from 'mongoose'
-import { RewardSchema, IReward } from './Reward'
+import { Reward } from './Reward'
 
-export declare interface IBattlePassLevel {
-  _id: Types.ObjectId
-  requiredEXP: number
-  reward: IReward
+import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
+
+class BattlePassLevel {
+  @prop({ required: true, unique: true })
+  public id!: number
+  @prop({ required: true })
+  public requiredEXP!: number
+  @prop({ required: true, ref: Reward })
+  public reward: Ref<Reward>
 }
 
-export const BattlePassLevelSchema = new Schema<IBattlePassLevel>({
-  requiredEXP: { type: Number, required: true },
-  reward: RewardSchema,
-})
-
-model('BattlePassLevel', BattlePassLevelSchema)
+export const BPLevelModel = getModelForClass(BattlePassLevel)

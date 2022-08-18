@@ -1,12 +1,10 @@
-import { Schema } from 'mongoose'
-import type { rewardType } from '../app'
+import type { REWARD_TYPE } from '../Interfaces'
 
-export declare interface IReward {
-  amount: number
-  type: rewardType
+import { prop } from '@typegoose/typegoose'
+
+export class Reward {
+  @prop({ required: true })
+  public amount!: number
+  @prop({ required: true })
+  public type!: REWARD_TYPE
 }
-
-export const RewardSchema = new Schema<IReward>({
-  amount: Number,
-  type: String,
-})

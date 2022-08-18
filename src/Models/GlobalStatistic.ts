@@ -1,7 +1,6 @@
 import {
   prop,
   getModelForClass,
-  Ref,
   ReturnModelType,
   DocumentType,
 } from '@typegoose/typegoose'

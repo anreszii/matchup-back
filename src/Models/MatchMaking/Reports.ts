@@ -1,11 +1,10 @@
 import {
   prop,
   getModelForClass,
-  Ref,
   ReturnModelType,
   DocumentType,
 } from '@typegoose/typegoose'
-import { SUPPORTED_GAMES } from '../..'
+import { SUPPORTED_GAMES } from '../../Interfaces'
 import { validationCause, ValidationError } from '../../error'
 
 class ReportList {
