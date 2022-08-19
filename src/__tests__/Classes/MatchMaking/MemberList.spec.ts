@@ -1,7 +1,7 @@
-import type { Match } from '../../Interfaces/MatchMaking'
+import type { Match } from '../../../Interfaces/MatchMaking'
 
-import { UNDEFINED_MEMBER } from '../../configs/match_manager'
-import { MemberList } from '../../Classes'
+import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
+import { MemberList } from '../../../Classes'
 
 describe('Member List', () => {
   let list: MemberList

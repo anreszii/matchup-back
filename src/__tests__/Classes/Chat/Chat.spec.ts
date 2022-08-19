@@ -1,8 +1,8 @@
-import { ChatManager } from "../../Classes"
-import type { IManager, IChat } from "../../Interfaces"
+import { ChatManager } from "../../../Classes"
+import type { Chat } from "../../../Interfaces"
 
-describe('Chat', () => {
-  let manager: IManager<IChat, number>
+describe('Chat manager', () => {
+  let manager: Chat.Manager
   beforeEach(() => {
     manager = new ChatManager()
   })
@@ -27,4 +27,8 @@ describe('Chat', () => {
     }
     
   })
+})
+
+describe('Chat', () => {
+  
 })
