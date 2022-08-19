@@ -1,6 +1,20 @@
-export * from './Lobby'
-export * from './Member'
-export * from './Controller'
-export declare type COMMAND = 'spectator' | 'neutral' | 'command1' | 'command2'
-export declare type MATCH_STATUS = 'searching' | 'filled' | 'started'
-export declare type SUPPORTED_GAMES = 'StandOff2'
+import { IMatchMember } from './Member'
+import { ILobby } from './Lobby'
+import { MatchController } from './Controller'
+import { IManager } from '../'
+
+export declare namespace Match {
+  namespace Manager {
+    interface Interface extends IManager<Match.Lobby.Interface, string> {}
+    type supportedGames = 'StandOff2'
+  }
+  namespace Lobby {
+    interface Interface extends ILobby {}
+    type status = 'searching' | 'filled' | 'started'
+  }
+  namespace Member {
+    interface Interface extends IMatchMember {}
+    type command = 'spectator' | 'neutral' | 'command1' | 'command2'
+  }
+  interface Controller extends MatchController {}
+}

@@ -1,10 +1,11 @@
+import type { Match } from '../../Interfaces/MatchMaking'
+
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
-import { MemberList } from '../../Classes/MatchMaking/MemberList'
-import type { IMember } from '../../Interfaces/MatchMaking'
+import { MemberList } from '../../Classes'
 
 describe('Member List', () => {
   let list: MemberList
-  const TEAM_1: Array<IMember> = [
+  const TEAM_1: Array<Match.Member.Interface> = [
     {name: 'test', command: 'command1', readyFlag: false, statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test1', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test2', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
@@ -12,7 +13,7 @@ describe('Member List', () => {
     {name: 'test4', command: 'command1', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
-  const TEAM_2: Array<IMember> = [
+  const TEAM_2: Array<Match.Member.Interface> = [
     {name: 'test5', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test6', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test7', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
@@ -20,7 +21,7 @@ describe('Member List', () => {
     {name: 'test9', command: 'command2', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
   ]
 
-  const TEAM_NEUTRAL: Array<IMember> = [
+  const TEAM_NEUTRAL: Array<Match.Member.Interface> = [
     {name: 'test10', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test11', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test12', command: 'neutral', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
@@ -29,7 +30,7 @@ describe('Member List', () => {
   ]
 
 
-  const SPECTATORS: Array<IMember> = [
+  const SPECTATORS: Array<Match.Member.Interface> = [
     {name: 'test15', command: 'spectator', readyFlag: false, statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test16', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},
     {name: 'test17', command: 'spectator', readyFlag: false,statistic: {kills: 0, deaths: 0, assists: 0}},

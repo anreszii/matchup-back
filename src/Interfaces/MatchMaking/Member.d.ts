@@ -1,7 +1,7 @@
-import { COMMAND } from './'
-export type IMember = {
+import type { Match } from './'
+export type IMatchMember = {
   name: string
-  command: COMMAND
+  command: Match.Member.command
   readyFlag: boolean
   statistic: {
     kills: number

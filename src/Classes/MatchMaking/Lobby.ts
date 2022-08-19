@@ -1,83 +1,16 @@
+import type { Match } from '../../Interfaces'
 import { matchCause, MatchError } from '../../error'
 import { MemberList } from './MemberList'
-
-import { v4 as uuid } from 'uuid'
-import type {
-  IManager,
-  MatchController,
-  ILobby,
-  SUPPORTED_GAMES,
-  IMember,
-  COMMAND,
-} from '../../Interfaces'
 import { toBoolean } from '../../Utils/toBoolean'
 
-export class LobbyManager implements IManager<ILobby, string> {
-  private _lobbyMap: Map<string, Lobby> = new Map()
-  private _controller: MatchController
-  constructor(controller: MatchController) {
-    this._controller = controller
-  }
-
-  public spawn(): Lobby {
-    const ID = LobbyManager._createID()
-    this._controller.create().then((status) => {
-      if (!status) throw new MatchError('lobby', matchCause.CREATE)
-    })
-
-    let lobby = new Lobby(this._controller, ID)
-    this._lobbyMap.set(ID, lobby)
-
-    return lobby
-  }
-
-  public getFreeLobby(lobbyID?: string): Lobby {
-    if (lobbyID && this._lobbyMap.has(lobbyID))
-      return this._lobbyMap.get(lobbyID)!
-
-    let notFilledLobby = this._findFreeLobby()
-
-    if (notFilledLobby) return notFilledLobby
-    return this.spawn()
-  }
-
-  public get(lobbyID: string) {
-    return this._lobbyMap.get(lobbyID)
-  }
-
-  public has(lobbyID: string) {
-    return this._lobbyMap.has(lobbyID)
-  }
-
-  public drop(lobbyID: string | Lobby): boolean {
-    if (typeof lobbyID == 'string') return this._lobbyMap.delete(lobbyID)
-    return this._lobbyMap.delete(lobbyID.id)
-  }
-
-  private _findFreeLobby() {
-    for (let lobby of this._lobbyMap.values()) {
-      if (
-        lobby.status == 'searching' &&
-        lobby.game == this._controller.gameName
-      )
-        return lobby
-      if (!lobby.status) this.drop(lobby)
-    }
-  }
-
-  private static _createID() {
-    return uuid()
-  }
-}
-
-class Lobby implements ILobby {
+export class Lobby implements Match.Lobby.Interface {
   public members = new MemberList()
-  private _game: SUPPORTED_GAMES
+  private _game: Match.Manager.supportedGames
 
   constructor(
-    private _matchController: MatchController,
+    private _matchController: Match.Controller,
     private _id: string,
-    ...members: Array<IMember>
+    ...members: Array<Match.Member.Interface>
   ) {
     if (members) {
       _matchController.addMembers(...members).then((status) => {
@@ -110,14 +43,14 @@ class Lobby implements ILobby {
     return this._matchController.stop()
   }
 
-  public async addMember(member: IMember) {
+  public async addMember(member: Match.Member.Interface) {
     let status = await this._matchController.addMembers(member)
     if (!status) return false
 
     return this.members.add(member)
   }
 
-  public async removeMember(member: IMember) {
+  public async removeMember(member: Match.Member.Interface) {
     let status = await this._matchController.removeMembers(member)
     if (!status) return false
 
@@ -146,11 +79,15 @@ class Lobby implements ILobby {
       if (!member.readyFlag) member.readyFlag = tmp.readyFlag
       else member.readyFlag = toBoolean(member.readyFlag)
 
-      if (!this._matchController.updateMember(member as unknown as IMember))
+      if (
+        !this._matchController.updateMember(
+          member as unknown as Match.Member.Interface,
+        )
+      )
         return false
 
       //т.к. tmp является ссылкой на объект, меняя его элементы - меняются и элементы объекта в MemberList
-      tmp.command = member.command! as COMMAND
+      tmp.command = member.command! as Match.Member.command
       tmp.readyFlag = member.readyFlag! as boolean
 
       return true

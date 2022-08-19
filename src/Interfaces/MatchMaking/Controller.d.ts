@@ -1,14 +1,14 @@
-import { IMember, MATCH_STATUS, SUPPORTED_GAMES, COMMAND } from './'
+import type { Match } from './index'
 export declare interface MatchController {
-  get status(): Exclude<MATCH_STATUS, 'searching'>
+  get status(): Exclude<Match.Lobby.status, 'searching'>
 
   create(): Promise<boolean>
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
-  addMembers(...members: Array<IMember>): Promise<boolean>
-  removeMembers(...members: Array<IMember>): Promise<boolean>
-  updateMember(member: IMember): Promise<boolean>
+  addMembers(...members: Array<Match.Member.Interface>): Promise<boolean>
+  removeMembers(...members: Array<Match.Member.Interface>): Promise<boolean>
+  updateMember(member: Match.Member.Interface): Promise<boolean>
 
-  get gameName(): SUPPORTED_GAMES
+  get gameName(): Match.Manager.supportedGames
 }

@@ -1,3 +1,4 @@
 export * from './Controllers'
 export * from './MemberList'
+export * from './Manager'
 export * from './Lobby'

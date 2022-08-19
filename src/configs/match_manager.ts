@@ -1,4 +1,4 @@
-import type { IMember } from '../Interfaces'
+import type { Match } from '../Interfaces'
 
 export const enum lobbyStatus {
   STARTED = 'started',
@@ -6,7 +6,7 @@ export const enum lobbyStatus {
   FULL = 'fullfilled',
 }
 
-export const UNDEFINED_MEMBER: IMember = {
+export const UNDEFINED_MEMBER: Match.Member.Interface = {
   name: 'undefined',
   command: 'neutral',
   readyFlag: false,

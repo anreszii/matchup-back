@@ -1,16 +1,16 @@
-import type { IManager, IChat } from '../../Interfaces'
+import type { Chat } from '../../Interfaces'
 import { List } from '../List'
 
-export class ChatManager implements IManager<IChat, number> {
-  private _chatList: List<IChat> = new List()
-  spawn(): IChat {
+export class ChatManager implements Chat.Manager {
+  private _chatList: List<Chat.Controller> = new List()
+  spawn(): Chat.Controller {
     let newChat = new Chat()
 
     newChat.id = this._chatList.addOne(newChat)
     return newChat
   }
 
-  get(entityID: number): IChat | undefined {
+  get(entityID: number): Chat.Controller | undefined {
     return this._chatList.valueOf(entityID)
   }
 
@@ -29,7 +29,7 @@ export class ChatManager implements IManager<IChat, number> {
   }
 }
 
-class Chat implements IChat {
+class Chat implements Chat.Controller {
   private _id!: number
 
   public get id() {

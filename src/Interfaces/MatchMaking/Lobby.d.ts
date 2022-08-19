@@ -1,12 +1,17 @@
-import { IEntity, MATCH_STATUS, IMember } from '../'
+import type { Match } from './'
+import type { IEntity } from '../'
 export declare interface ILobby extends IEntity<string> {
   get id(): string
-  get status(): MATCH_STATUS | undefined
+  get status(): Match.Lobby.status | undefined
+  get game(): Match.Manager.supportedGames
+
   start(): Promise<boolean>
   stop(): Promise<boolean>
-  addMember(member: IMember): Promise<boolean>
-  removeMember(member: IMember): Promise<boolean>
+
+  addMember(member: Match.Member.Interface): Promise<boolean>
+  removeMember(member: Match.Member.Interface): Promise<boolean>
   updateMember(
-    member: Required<Pick<IMember, 'name'>> & Partial<Omit<IMember, 'name'>>,
+    member: Required<Pick<Match.Member.Interface, 'name'>> &
+      Partial<Omit<Match.Member.Interface, 'name'>>,
   ): Promise<boolean>
 }

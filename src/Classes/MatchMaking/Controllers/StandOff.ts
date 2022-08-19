@@ -1,11 +1,7 @@
-import {
-  IMember,
-  MATCH_STATUS,
-  MatchController,
-} from '../../../Interfaces/MatchMaking'
+import type { Match } from '../../../Interfaces/MatchMaking'
 
-export class StandOffController implements MatchController {
-  private _status: Exclude<MATCH_STATUS, 'searching'> = 'filled'
+export class StandOffController implements Match.Controller {
+  private _status: Exclude<Match.Lobby.status, 'searching'> = 'filled'
   constructor() {
     //connection
   }
@@ -26,15 +22,19 @@ export class StandOffController implements MatchController {
     return true
   }
 
-  public async addMembers(...members: IMember[]): Promise<boolean> {
+  public async addMembers(
+    ...members: Match.Member.Interface[]
+  ): Promise<boolean> {
     return true
   }
 
-  public async removeMembers(...members: IMember[]): Promise<boolean> {
+  public async removeMembers(
+    ...members: Match.Member.Interface[]
+  ): Promise<boolean> {
     return true
   }
 
-  public async updateMember(member: IMember): Promise<boolean> {
+  public async updateMember(member: Match.Member.Interface): Promise<boolean> {
     return true
   }
 

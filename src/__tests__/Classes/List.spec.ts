@@ -1,4 +1,4 @@
-import { List } from "../../Classes/List";
+import { List } from "../../Classes";
 
 describe('List class', () => {
   describe('unfixed size', () => {
