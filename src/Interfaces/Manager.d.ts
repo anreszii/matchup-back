@@ -3,7 +3,7 @@
  */
 export declare interface IManager<T extends IEntity<ID>, ID> {
   /** Генерирует сущность T */
-  spawn(): T
+  spawn(...params: unknown[]): T
   get(entityID: T['id']): T | undefined
   has(entityID: T['id']): boolean
   drop(entityID: T['id']): boolean
