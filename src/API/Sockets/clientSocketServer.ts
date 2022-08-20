@@ -9,7 +9,7 @@
  */
 
 import io from 'gamesocket.io'
-import * as Handlers from './Handlers'
+import * as Handlers from './Handlers/index.js'
 
 export let app = io()
 
@@ -33,7 +33,3 @@ clientServer.on('find_match', Handlers.find_match)
 clientServer.on('sync_lobby', Handlers.sync_lobby)
 clientServer.on('add_member', Handlers.add_member)
 clientServer.on('remove_member', Handlers.remove_member)
-
-app.listen(Number(process.env.PORT), (ls) => {
-  if (ls) console.log(`listening websockets on ${process.env.PORT}`)
-})

@@ -1,7 +1,7 @@
-import type { Match } from '../../Interfaces'
-import { matchCause, MatchError } from '../../error'
-import { MemberList } from './MemberList'
-import { toBoolean } from '../../Utils/toBoolean'
+import type { Match } from '../../Interfaces/index.js'
+import { matchCause, MatchError } from '../../error.js'
+import { MemberList } from './MemberList.js'
+import { toBoolean } from '../../Utils/toBoolean.js'
 
 export class Lobby implements Match.Lobby.Interface {
   public members = new MemberList()
@@ -64,11 +64,13 @@ export class Lobby implements Match.Lobby.Interface {
    * @param объект, в котором обязательно должно быть поле name, а также опциональные поля readyFlag, command
    * @returns
    */
-  public async updateMember(member: {
-    name: string
-    command?: unknown
-    readyFlag?: unknown
-  }) {
+  public async updateMember(
+    member: Required<Pick<Match.Member.Interface, 'name'>> & {
+      [Key in Exclude<keyof Match.Member.Interface, 'name' | 'statistic'>]?:
+        | Match.Member.Interface[Key]
+        | string
+    },
+  ) {
     let tmp = this.members.getMember(member.name)
     if (tmp == this.members.currentUndefined) return false
 

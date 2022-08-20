@@ -7,14 +7,14 @@ import {
   SubDocumentType,
 } from '@typegoose/typegoose'
 
-import { ValidationError, validationCause } from '../../error'
+import { ValidationError, validationCause } from '../../error.js'
 import validator from 'validator'
 
-import { USER_ROLE } from '../../Interfaces'
-import { Credentials } from './Credentials'
-import { Level } from './Level'
-import { Profile } from './Profile'
-import { generateHash } from '../../Utils'
+import type { USER_ROLE } from '../../Interfaces/index.js'
+import { Credentials } from './Credentials.js'
+import { Level } from './Level.js'
+import { Profile } from './Profile.js'
+import { generateHash } from '../../Utils/index.js'
 
 export class User {
   @prop({

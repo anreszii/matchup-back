@@ -1,7 +1,7 @@
-import type { Chat } from '../../Interfaces'
-import { List } from '../List'
-import { Factory } from './Controllers'
-import { ChatInstance } from './Instance'
+import type { Chat } from '../../Interfaces/index.js'
+import { List } from '../List.js'
+import { Factory } from './Controllers/index.js'
+import { ChatInstance } from './Instance.js'
 
 export class ChatManager implements Chat.Manager {
   private _chatList: List<Chat.Instance> = new List()

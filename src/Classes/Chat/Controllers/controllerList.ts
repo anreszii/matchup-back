@@ -1,1 +1,1 @@
-export * from './GamesocketController'
+export * from './GamesocketController.js'

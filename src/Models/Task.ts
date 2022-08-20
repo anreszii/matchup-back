@@ -1,14 +1,19 @@
+import { getModelForClass } from '@typegoose/typegoose'
 import { Schema, Model, model, HydratedDocument } from 'mongoose'
-import { TaksList } from '../configs/task_rewards'
-import { DAY_IN_MS, HOUR_IN_MS, MINUTE_IN_MS } from '../configs/time_constants'
-import { IReward, RewardSchema } from './Reward'
+import { TaksList } from '../configs/task_rewards.js'
+import {
+  DAY_IN_MS,
+  HOUR_IN_MS,
+  MINUTE_IN_MS,
+} from '../configs/time_constants.js'
+import { Reward } from './Reward.js'
 
 export declare interface ITask {
   owner: string
   name: string
   completeFlag: boolean
   staticFlag: boolean
-  reward: IReward
+  reward: Reward
   progress: progress
   expirationTime: Date
 }
@@ -19,7 +24,7 @@ export declare interface ITaskBehavior {
     taskName: string,
     expires: expirationTime,
   ): Promise<HydratedDocument<ITask, ITaskBehavior>> | never
-  complete(): Promise<IReward>
+  complete(): Promise<Reward>
 
   isComplete(): boolean
   getProgress(): progress
@@ -52,7 +57,7 @@ const TaskSchema = new Schema<ITask, TaskModel, ITaskBehavior>({
   completeFlag: { type: Boolean, required: true, default: false },
   staticFlag: { type: Boolean, required: true, default: false },
   name: { type: String, required: true },
-  reward: RewardSchema,
+  reward: getModelForClass(Reward),
   progress: new Schema<progress>({
     currentPoint: Number,
     finalPoint: Number,

@@ -1,6 +1,6 @@
-export * from './Classes'
-export * from './Utils'
-export * from './validation'
+export * from './Classes/index.js'
+export * from './Utils/index.js'
+export * from './validation/index.js'
 
 declare global {
   namespace NodeJS {

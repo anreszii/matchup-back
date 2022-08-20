@@ -1,11 +1,11 @@
-import type { IReward } from '../Models/Reward'
-import { getRounded, minMax } from '../Utils/math'
+import type { Reward } from '../Models/index.js'
+import { getRounded, minMax } from '../Utils/index.js'
 
 class Task {
   constructor(
     private step: number,
     private maxProgress: number,
-    private reward: IReward,
+    private reward: Reward,
     private staticFlag: boolean,
   ) {}
   get data() {

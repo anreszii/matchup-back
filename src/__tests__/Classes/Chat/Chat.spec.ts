@@ -1,6 +1,5 @@
-import { Namespace } from "gamesocket.io/lib/Namespace/Namespace"
-import { ChatManager, Controller } from "../../../Classes"
-import type { Chat } from "../../../Interfaces"
+import { ChatManager, Gamesocket } from "../../../Classes/index.js"
+import type { Chat } from "../../../Interfaces/index.js"
 
 describe('Chat manager', () => {
   let manager: Chat.Manager

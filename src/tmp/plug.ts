@@ -1,4 +1,4 @@
-import { IEntity, IManager } from '../Interfaces'
+import { IEntity, IManager } from '../Interfaces/index.js'
 
 class ALManager implements IManager<AliasMap, string> {
   private _aliasMaps: Map<string, AliasMap> = new Map()

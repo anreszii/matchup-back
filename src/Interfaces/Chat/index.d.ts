@@ -1,8 +1,8 @@
-import { IManager } from '../'
-import { IChat } from './Chat'
-import { IChatController } from './Controller'
-import { IChatMember } from './Member'
-import { IChatMessage } from './Message'
+import { IManager } from '../index.js'
+import { IChat } from './Chat.js'
+import { IChatController } from './Controller.js'
+import { IChatMember } from './Member.js'
+import { IChatMessage } from './Message.js'
 
 /**
  * @TODO

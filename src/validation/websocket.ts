@@ -4,7 +4,7 @@ import {
   validationCause,
   wsManageCause,
   WebSocketManageError,
-} from '../error'
+} from '../error.js'
 
 export class WebSocketValidatior {
   constructor(private _app: ReturnType<typeof io>) {}

@@ -1,4 +1,4 @@
-import type { Match } from './index'
+import type { Match } from './index.js'
 export declare interface MatchController {
   get status(): Exclude<Match.Lobby.status, 'searching'>
 

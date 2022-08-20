@@ -1,4 +1,4 @@
-import type { Match } from '../../../Interfaces/MatchMaking'
+import type { Match } from '../../../Interfaces/index.js'
 
 export class StandOffController implements Match.Controller {
   private _status: Exclude<Match.Lobby.status, 'searching'> = 'filled'

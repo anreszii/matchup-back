@@ -1,3 +1,3 @@
-export * from './List'
-export * from './MatchMaking'
-export * from './Chat'
+export * from './MatchMaking/index.js'
+export * from './Chat/index.js'
+export * from './List.js'

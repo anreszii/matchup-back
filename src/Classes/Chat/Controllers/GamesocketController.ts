@@ -1,11 +1,11 @@
 import io from 'gamesocket.io'
-import { Namespace } from 'gamesocket.io/lib/Namespace/Namespace'
-import type { Chat } from '../../../Interfaces'
-import Aliases, { AliasMap } from '../../../tmp/plug'
+import { Namespace } from 'gamesocket.io/lib/Namespace/Namespace.js'
+import type { Chat } from '../../../Interfaces/index.js'
+import Aliases, { AliasMap } from '../../../tmp/plug.js'
 
 let Server = io()
 
-export class Controller implements Chat.Controller.Interface {
+export class Gamesocket implements Chat.Controller.Interface {
   private _map!: AliasMap
   private _nmsp!: Namespace
   private _roomName!: string

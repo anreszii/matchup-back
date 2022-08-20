@@ -1,15 +1,15 @@
-import { app } from '../clientSocketServer'
-import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort'
+import { app } from '../clientSocketServer.js'
+import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort.js'
 import {
   matchCause,
   MatchError,
   MatchUpError,
   validationCause,
   ValidationError,
-} from '../../../error'
-import { WebSocketValidatior } from '../../../validation'
+} from '../../../error.js'
+import { WebSocketValidatior } from '../../../validation/index.js'
 
-import * as MatchMaking from '../../../Classes/MatchMaking'
+import * as MatchMaking from '../../../Classes/MatchMaking/index.js'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)
@@ -370,8 +370,8 @@ export async function update_member(escort: IDataEscort) {
 
     let status = await lobby.updateMember({
       name: member.name,
-      command: member.command,
-      readyFlag: member.readyFlag,
+      command: member.command as string | undefined,
+      readyFlag: member.readyFlag as string | undefined,
     })
     if (!status) throw new MatchError(lobbyID, matchCause.UPDATE_MEMBER)
 

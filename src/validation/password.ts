@@ -1,10 +1,10 @@
-import { ValidationError, validationCause } from '../error'
+import { ValidationError, validationCause } from '../error.js'
 import validator from 'validator'
 
 export function validatePasswordFormat(password: string) {
   if (!password) throw new ValidationError('password', validationCause.REQUIRED)
   if (
-    !validator.isStrongPassword(password, {
+    !validator.default.isStrongPassword(password, {
       minLength: 8,
       minLowercase: 1,
       minUppercase: 1,

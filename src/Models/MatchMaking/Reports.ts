@@ -4,14 +4,14 @@ import {
   ReturnModelType,
   DocumentType,
 } from '@typegoose/typegoose'
-import { SUPPORTED_GAMES } from '../../Interfaces'
-import { validationCause, ValidationError } from '../../error'
+import type { Match } from '../../Interfaces/index.js'
+import { validationCause, ValidationError } from '../../error.js'
 
 class ReportList {
   @prop({ required: true, unique: true })
   public id!: number
   @prop({ required: true })
-  public game!: SUPPORTED_GAMES
+  public game!: Match.Manager.supportedGames
   @prop({ required: true })
   public reason!: string
   @prop({ required: true })
@@ -21,7 +21,7 @@ class ReportList {
 
   public async log(
     this: DocumentType<ReportList>,
-    game: SUPPORTED_GAMES,
+    game: Match.Manager.supportedGames,
     reason: string,
     describe: string,
   ) {

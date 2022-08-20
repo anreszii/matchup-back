@@ -1,4 +1,4 @@
-import type { Match } from './'
+import type { Match } from './index.js'
 export type IMatchMember = {
   name: string
   command: Match.Member.command

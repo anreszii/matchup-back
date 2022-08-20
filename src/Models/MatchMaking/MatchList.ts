@@ -6,9 +6,8 @@ import {
   ArraySubDocumentType,
 } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
-import { SUPPORTED_GAMES } from '../../Interfaces'
-import { Member } from './Member'
-
+import { Member } from './Member.js'
+import type { Match } from '../../Interfaces/index.js'
 /**
  * @TODO
  * Add match score
@@ -17,7 +16,7 @@ class MatchList {
   @prop({ required: true, unique: true })
   public id!: string
   @prop({ required: true })
-  public game!: SUPPORTED_GAMES
+  public game!: Match.Manager.supportedGames
   @prop({ type: () => Member, default: [] })
   public members!: ArraySubDocumentType<Member>[]
 

@@ -1,4 +1,4 @@
-import type { Chat } from '.'
+import type { Chat } from './index.js'
 
 export interface IChatController {
   delete(executor?: Chat.Member): Promise<boolean>

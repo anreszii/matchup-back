@@ -1,9 +1,9 @@
-import type { Match } from '../../Interfaces'
+import type { Match } from '../../Interfaces/index.js'
 
 import { v4 as uuid } from 'uuid'
 
-import { matchCause, MatchError } from '../../error'
-import { Lobby } from './Lobby'
+import { matchCause, MatchError } from '../../error.js'
+import { Lobby } from './Lobby.js'
 
 export class LobbyManager implements Match.Manager.Interface {
   private _lobbyMap: Map<string, Match.Lobby.Interface> = new Map()
