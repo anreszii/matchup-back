@@ -37,7 +37,7 @@ export class List<T extends Object> {
     let status = true
     for (let element of elements.values()) {
       if (element == this._undefined) status = false
-      this._elements[this._freeSpace] = element
+      this._elements[this.freeSpace] = element
     }
     return status
   }
@@ -49,7 +49,7 @@ export class List<T extends Object> {
   public addOne(element: T) {
     if (element == this._undefined) return -1
 
-    let index = this._freeSpace
+    let index = this.freeSpace
     this._elements[index] = element
 
     return index
@@ -80,24 +80,26 @@ export class List<T extends Object> {
     return this._elements[index] ?? this._undefined
   }
 
-  public has(index: number) {
+  public isUndefined(index: number) {
     if (this._elements[index] && this._elements[index] != this._undefined)
-      return true
-    return false
+      return false
+    return true
+  }
+
+  /**
+   * @returns индекс свободной позиции внутри массива.
+   */
+  public get freeSpace(): number {
+    var indexOfFreeSpace = this._hasFreeSpace
+
+    if (!~indexOfFreeSpace) return this._elements.length
+    return indexOfFreeSpace
   }
 
   /**
    * @returns true, если внутри {@link List._elements} есть хотя бы один элемент вида {@link List._undefined}
    */
   protected get _hasFreeSpace() {
-    return this._elements.includes(this._undefined)
-  }
-
-  /**
-   * @returns свободная позиция внутри массива.
-   */
-  protected get _freeSpace(): number {
-    if (!this._hasFreeSpace) return this._elements.length
     return this._elements.indexOf(this._undefined)
   }
 
