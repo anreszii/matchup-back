@@ -1,12 +1,14 @@
 {
     "$schema": "https://typedoc.org/schema.json",
     "sort": ["source-order"],
-    "entryPoints": ["./src/index.ts", "./src/API"],
+    "entryPoints": ["./src/app.ts", "./src/API", "stc/Interfaces"],
     "name": "MatchUp",
     "out": "docs",
     "exclude": ["**/*+(index|.spec|.e2e|.test).ts"],
     "readme": "README.md",
     "tsconfig": "./tsconfig.json",
     "darkHighlightTheme": "material-darker",
-    "lightHighlightTheme": "material-lighter"
+    "lightHighlightTheme": "material-lighter",
+    "excludePrivate": false,
+    "excludeInternal": true
 }

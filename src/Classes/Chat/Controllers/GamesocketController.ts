@@ -37,18 +37,23 @@ export class Gamesocket implements Chat.Controller.Interface {
 
   /**
    * отправляет сообщение формата:
-   * ```ts
-   * {
-   *  chat_id: string
-   *  message: string
-   * }
-   * ```
+   
+ * ```json
+ * {
+ *  "chat_id": "xxxxxx",
+ *  "message": 
+ *  {
+ *    "from": "system or username",
+ *    "message": "text of message"
+ *  }
+ * }
+ * ```
    * @event
    */
   public send(message: string): boolean {
     this._nmsp
       .control(this._roomName)
-      .emit(`match_chat`, { chat_id: this._roomName, message })
+      .emit(`lobby_chat`, { chat_id: this._roomName, message })
     return true
   }
 

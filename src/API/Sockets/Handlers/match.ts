@@ -40,23 +40,18 @@ let LobbyChatManager = new ChatManager()
  *  chat_id: string
  * }
  * ```
- * Все события из чата матча будут приходить на event match_chat в формате:
+ * Все события из чата матча будут приходить на event lobby_chat в формате:
  *
  * ```json
  * {
- *  "chat_id": "xxxxxx"
- *  "message": "JSON message"
+ *  "chat_id": "xxxxxx",
+ *  "message":
+ *  {
+ *    "from": "system or username",
+ *    "message": "text of message"
+ *  }
  * }
  * ```
- *
- * Сам message является JSON объектом со следующими полями:
- *
- * ```json
- * {
- *  "from": "system or username"
- *  "message": "text of message"
- * }
- *```
  * @category MatchMaking
  * @event
  */
@@ -125,23 +120,19 @@ export async function create_match(escort: IDataEscort) {
  *  chat_id: string
  * }
  * ```
- * Все события из чата матча будут приходить на event match_chat в формате:
+ * Все события из чата матча будут приходить на event lobby_chat в формате:
  *
+ 
  * ```json
  * {
- *  "chat_id": "xxxxxx"
- *  "message": "JSON message"
+ *  "chat_id": "xxxxxx",
+ *  "message": 
+ *  {
+ *    "from": "system or username",
+ *    "message": "text of message"
+ *  }
  * }
  * ```
- *
- * Сам message является JSON объектом со следующими полями:
- *
- * ```json
- * {
- *  "from": "system or username"
- *  "message": "text of message"
- * }
- *```
  * @category MatchMaking
  * @event
  */
@@ -498,23 +489,18 @@ export async function update_member(escort: IDataEscort) {
  *  complete: true
  * }
  * ```
- * Все события из чата матча будут приходить на event match_chat в формате:
+ * Все события из чата матча будут приходить на event lobby_chat в формате:
  *
  * ```json
  * {
- *  "chat_id": "xxxxxx"
- *  "message": "JSON message"
+ *  "chat_id": "xxxxxx",
+ *  "message":
+ *  {
+ *    "from": "system or username",
+ *    "message": "text of message"
+ *  }
  * }
  * ```
- *
- * Сам message является JSON объектом со следующими полями:
- *
- * ```json
- * {
- *  "from": "system or username"
- *  "message": "text of message"
- * }
- *```
  * @category MatchMaking
  * @event
  */

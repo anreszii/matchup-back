@@ -43,3 +43,4 @@ app.listen(Number(process.env.HTTP_PORT!), () => {
 export * from './Classes'
 export * from './Utils'
 export * from './validation'
+export * from './Interfaces'
