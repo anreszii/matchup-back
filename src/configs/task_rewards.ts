@@ -1,5 +1,5 @@
-import type { Reward } from '../Models/index.js'
-import { getRounded, minMax } from '../Utils/index.js'
+import type { Reward } from '../Models'
+import { getRounded, minMax } from '../Utils'
 
 class Task {
   constructor(

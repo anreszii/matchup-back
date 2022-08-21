@@ -1,4 +1,4 @@
-import type { REWARD_TYPE } from '../Interfaces/index.js'
+import type { REWARD_TYPE } from '../Interfaces'
 
 import { prop } from '@typegoose/typegoose'
 

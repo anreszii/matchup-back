@@ -1,10 +1,10 @@
-import express, { NextFunction, Request, Response } from 'express'
-import mongoose from 'mongoose'
-import fileUploader from 'express-fileupload'
+import type { Response } from 'express'
+import express = require('express')
+import fileUploader = require('express-fileupload')
 
-import * as Models from './Models/index.js'
-import { router } from './API/HTTP/index.js'
-import { app as WsApp } from './API/index.js'
+import mongoose from 'mongoose'
+import { app as WsApp } from './API'
+require('dotenv').config()
 
 const app = express()
 app.use(fileUploader())
@@ -19,22 +19,27 @@ mongoose.connect(
     console.log('Connected to database')
   },
 )
+require('./Models')
+app.use(require('./API/HTTP'))
 
-app.use(router)
-
-app.use(function (_, _1, next) {
+app.use(function (_: any, _1: any, next: any) {
   var err = new Error('Not Found')
   next(err)
 })
 
-app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
+app.use(function (err: Error, _: any, res: Response, _1: any) {
   res.json({ errors: err })
 })
 
-WsApp.listen(Number(process.env.PORT), (ls: unknown) => {
-  if (ls) console.log(`listening websockets on ${process.env.PORT}`)
+WsApp.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
+  if (ls)
+    console.log(`listening websockets on port ${process.env.WEB_SOCKET_PORT}`)
 })
 
-app.listen(Number(process.env.PORT), () => {
+app.listen(Number(process.env.HTTP_PORT!), () => {
   console.log(`Example app listening on port 3000`)
 })
+
+export * from './Classes'
+export * from './Utils'
+export * from './validation'

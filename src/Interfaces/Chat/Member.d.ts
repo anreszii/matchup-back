@@ -1,4 +1,4 @@
-import type { Chat } from './index.js'
+import type { Chat } from './'
 
 export interface IChatMember {
   name: string

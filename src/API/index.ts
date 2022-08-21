@@ -1,2 +1,2 @@
-export * from './HTTP/index.js'
-export * from './Sockets/index.js'
+export * from './HTTP'
+export * from './Sockets'

@@ -1,9 +1,9 @@
-import { Router, NextFunction, Request, Response } from 'express'
+import { Router, NextFunction } from 'express'
 import { Error as MongoError } from 'mongoose'
 import { MongoServerError } from 'mongodb'
-import { ValidationError } from '../../error.js'
+import { ValidationError } from '../../error'
 
-export let router = Router()
+let router = Router()
 
 router.use('/api/user', require('./user'))
 
@@ -45,3 +45,5 @@ router.use(function (
 
   return next(errors)
 })
+
+module.exports = router

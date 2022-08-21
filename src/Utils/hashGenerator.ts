@@ -1,7 +1,8 @@
-import crypto from 'node:crypto'
+import { pbkdf2Sync } from 'node:crypto'
+require('dotenv').config()
 
 export function generateHash(password: string) {
-  return crypto
-    .pbkdf2Sync(password, process.env.SALT, 10000, 512, 'sha512')
-    .toString('hex')
+  return pbkdf2Sync(password, process.env.SALT!, 10000, 512, 'sha512').toString(
+    'hex',
+  )
 }

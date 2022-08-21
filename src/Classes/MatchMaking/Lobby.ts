@@ -1,7 +1,7 @@
-import type { Match } from '../../Interfaces/index.js'
-import { matchCause, MatchError } from '../../error.js'
-import { MemberList } from './MemberList.js'
-import { toBoolean } from '../../Utils/toBoolean.js'
+import type { Match } from '../../Interfaces'
+import { matchCause, MatchError } from '../../error'
+import { MemberList } from './MemberList'
+import { toBoolean } from '../../Utils'
 
 export class Lobby implements Match.Lobby.Interface {
   public members = new MemberList()

@@ -1,7 +1,6 @@
-import io from 'gamesocket.io'
-import { Namespace } from 'gamesocket.io/lib/Namespace/Namespace.js'
-import type { Chat } from '../../../Interfaces/index.js'
-import Aliases, { AliasMap } from '../../../tmp/plug.js'
+import io, { Namespace } from 'gamesocket.io'
+import type { Chat } from '../../../Interfaces'
+import Aliases, { AliasMap } from '../../../tmp/plug'
 
 let Server = io()
 

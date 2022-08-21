@@ -1,11 +1,10 @@
 import { Router, NextFunction, Request, Response } from 'express'
-import { validateToken, generateToken } from '../../Token/index.js'
-import { ValidationError, validationCause as cause } from '../../error.js'
+import { validateToken, generateToken } from '../../Token'
+import { ValidationError, validationCause as cause } from '../../error'
 
-import { UserModel } from '../../Models/index.js'
-import { generatePassword } from '../../Utils/passwordGenerator.js'
-import { SMTP, Mail } from '../../Utils/smtp.js'
-import { validatePasswordFormat } from '../../validation/password.js'
+import { UserModel } from '../../Models'
+import { SMTP, Mail, generatePassword } from '../../Utils'
+import { validatePasswordFormat } from '../../validation'
 
 let router = Router()
 

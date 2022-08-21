@@ -1,4 +1,4 @@
-import { Reward } from './Reward.js'
+import { Reward } from './Reward'
 
 import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
 

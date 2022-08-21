@@ -1,4 +1,4 @@
-import type { Match } from '../Interfaces/index.js'
+import type { Match } from '../Interfaces'
 
 export const enum lobbyStatus {
   STARTED = 'started',

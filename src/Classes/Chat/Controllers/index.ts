@@ -1,2 +1,2 @@
-export * from './ControllerFactory.js'
-export * from './controllerList.js'
+export * from './ControllerFactory'
+export * from './controllerList'

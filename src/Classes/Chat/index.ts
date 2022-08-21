@@ -1,2 +1,3 @@
-export * from './Manager.js'
-export * from './Controllers/index.js'
+export * from './Controllers'
+export * from './Manager'
+export * from './Instance'

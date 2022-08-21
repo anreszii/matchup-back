@@ -5,9 +5,9 @@
     /* Modules */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "module": "ES6" /* Specify what module code is generated. */,
+    "module": "commonjs" /* Specify what module code is generated. */,
     "moduleResolution": "NodeNext",
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": false,
     "rootDir": "./src" /* Specify the root folder within your source files. */,
     "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */,
     "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
@@ -19,6 +19,6 @@
     "watch": false
   },
 
-  "include": ["src/**/*", "types"],
+  "include": ["src/**/*", "types", "jest.config.js"],
   "exclude": ["node_modules", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }

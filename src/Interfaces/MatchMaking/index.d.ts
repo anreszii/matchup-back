@@ -1,7 +1,7 @@
-import { IMatchMember } from './Member.js'
-import { ILobby } from './Lobby.js'
-import { MatchController } from './Controller.js'
-import { IManager } from '../index.js'
+import { IMatchMember } from './Member'
+import { ILobby } from './Lobby'
+import { MatchController } from './Controller'
+import { IManager } from '../'
 
 export declare namespace Match {
   namespace Manager {

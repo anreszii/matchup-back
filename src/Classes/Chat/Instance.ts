@@ -1,4 +1,4 @@
-import type { Chat } from '../../Interfaces/index.js'
+import type { Chat } from '../../Interfaces'
 export class ChatInstance implements Chat.Instance {
   constructor(
     private _id: number,

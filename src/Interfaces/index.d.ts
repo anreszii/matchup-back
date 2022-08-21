@@ -1,6 +1,6 @@
-export * from './Manager.js'
-export * from './MatchMaking/index.js'
-export * from './Chat/index.js'
+export * from './Manager'
+export * from './MatchMaking'
+export * from './Chat'
 
 export declare type REWARD_TYPE = 'exp' | 'mp'
 export declare type REGION = String

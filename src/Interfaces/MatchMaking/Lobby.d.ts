@@ -1,6 +1,6 @@
-import type { Match } from './index.js'
-import type { IEntity } from '../index.js'
-import { MemberList } from '../../Classes/index.js'
+import type { Match } from './'
+import type { IEntity } from '../'
+import { MemberList } from '../../Classes'
 export declare interface ILobby extends IEntity<string> {
   get id(): string
   get status(): Match.Lobby.status | undefined

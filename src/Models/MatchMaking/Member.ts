@@ -1,6 +1,6 @@
 import { prop, Ref } from '@typegoose/typegoose'
-import { Match } from '../../Interfaces/index.js'
-import { Statistic } from './Statistic.js'
+import { Match } from '../../Interfaces'
+import { Statistic } from './Statistic'
 
 export class Member {
   @prop({ required: true })

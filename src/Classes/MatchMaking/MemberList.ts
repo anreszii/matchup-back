@@ -1,6 +1,6 @@
-import { List } from '../List.js'
-import { UNDEFINED_MEMBER } from '../../configs/match_manager.js'
-import type { Match } from '../../Interfaces/index.js'
+import { List } from '../List'
+import { UNDEFINED_MEMBER } from '../../configs/match_manager'
+import type { Match } from '../../Interfaces'
 
 export class MemberList extends List<Match.Member.Interface> {
   private _spectator = 0

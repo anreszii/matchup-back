@@ -6,8 +6,8 @@ import {
   ArraySubDocumentType,
 } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
-import { Member } from './Member.js'
-import type { Match } from '../../Interfaces/index.js'
+import { Member } from './Member'
+import type { Match } from '../../Interfaces'
 /**
  * @TODO
  * Add match score

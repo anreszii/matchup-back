@@ -1,8 +1,8 @@
-import { app } from '../clientSocketServer.js'
-import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort.js'
+import { app } from '../clientSocketServer'
+import type { IDataEscort } from 'gamesocket.io'
 
-import { WebSocketValidatior } from '../../../validation/websocket.js'
-import { validatePacket } from '../../../Token/index.js'
+import { WebSocketValidatior } from '../../../validation'
+import { validatePacket } from '../../../Token'
 import {
   MatchUpError,
   validationCause,

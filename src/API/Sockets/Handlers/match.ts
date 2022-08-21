@@ -1,15 +1,15 @@
-import { app } from '../clientSocketServer.js'
-import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort.js'
+import { app } from '../clientSocketServer'
+import type { IDataEscort } from 'gamesocket.io'
 import {
   matchCause,
   MatchError,
   MatchUpError,
   validationCause,
   ValidationError,
-} from '../../../error.js'
-import { WebSocketValidatior } from '../../../validation/index.js'
+} from '../../../error'
+import { WebSocketValidatior } from '../../../validation'
 
-import * as MatchMaking from '../../../Classes/MatchMaking/index.js'
+import * as MatchMaking from '../../../Classes/MatchMaking'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)

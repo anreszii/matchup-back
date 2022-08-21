@@ -1,18 +1,10 @@
-import { app } from '../clientSocketServer.js'
-import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort.js'
-import {
-  MatchUpError,
-  validationCause,
-  ValidationError,
-} from '../../../error.js'
+import { app } from '../clientSocketServer'
+import type { IDataEscort } from 'gamesocket.io'
+import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
-import { WebSocketValidatior } from '../../../validation/websocket.js'
-import {
-  MatchListModel,
-  ReportListModel,
-  UserModel,
-} from '../../../Models/index.js'
-import { USER_ROLE } from '../../../Interfaces/index.js'
+import { WebSocketValidatior } from '../../../validation'
+import { MatchListModel, ReportListModel, UserModel } from '../../../Models'
+import { USER_ROLE } from '../../../Interfaces'
 
 let clientServer = app.of('client')
 let wsValidator = new WebSocketValidatior(app)

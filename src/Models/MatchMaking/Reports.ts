@@ -4,8 +4,8 @@ import {
   ReturnModelType,
   DocumentType,
 } from '@typegoose/typegoose'
-import type { Match } from '../../Interfaces/index.js'
-import { validationCause, ValidationError } from '../../error.js'
+import type { Match } from '../../Interfaces'
+import { validationCause, ValidationError } from '../../error'
 
 class ReportList {
   @prop({ required: true, unique: true })

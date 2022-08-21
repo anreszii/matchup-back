@@ -1,9 +1,9 @@
-import type { IDataEscort } from 'gamesocket.io/lib/DataManager/DataEscort/DataEscort.js'
+import type { IDataEscort } from 'gamesocket.io'
 
-import jwt from 'jsonwebtoken'
+import jwt = require('jsonwebtoken')
 import { NextFunction, Request } from 'express'
-import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token.js'
-import { validationCause, ValidationError } from '../error.js'
+import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token'
+import { validationCause, ValidationError } from '../error'
 
 export function validateToken(req: Request, _: unknown, next: NextFunction) {
   let token = getTokenFromRequest(req)

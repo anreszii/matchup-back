@@ -1,2 +1,2 @@
-export * from './clientSocketServer.js'
-export * from './Handlers/index.js'
+export * from './Handlers'
+export * from './clientSocketServer'

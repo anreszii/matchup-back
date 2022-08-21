@@ -1,12 +1,8 @@
 import { getModelForClass } from '@typegoose/typegoose'
 import { Schema, Model, model, HydratedDocument } from 'mongoose'
-import { TaksList } from '../configs/task_rewards.js'
-import {
-  DAY_IN_MS,
-  HOUR_IN_MS,
-  MINUTE_IN_MS,
-} from '../configs/time_constants.js'
-import { Reward } from './Reward.js'
+import { TaksList } from '../configs/task_rewards'
+import { DAY_IN_MS, HOUR_IN_MS, MINUTE_IN_MS } from '../configs/time_constants'
+import { Reward } from './Reward'
 
 export declare interface ITask {
   owner: string

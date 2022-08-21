@@ -4,7 +4,7 @@ import validator from 'validator'
 export function validatePasswordFormat(password: string) {
   if (!password) throw new ValidationError('password', validationCause.REQUIRED)
   if (
-    !validator.default.isStrongPassword(password, {
+    !validator.isStrongPassword(password, {
       minLength: 8,
       minLowercase: 1,
       minUppercase: 1,

@@ -1,6 +1,6 @@
-import nodemailer from 'nodemailer'
 import type { Address, AttachmentLike } from 'nodemailer/lib/mailer'
-import type { Readable } from 'nodemailer/lib/xoauth2.js'
+import type { Readable } from 'nodemailer/lib/xoauth2'
+import nodemailer = require('nodemailer')
 
 type MailAddress = string | Address | Array<string | Address> | undefined
 type MailData = string | Buffer | Readable | AttachmentLike | undefined

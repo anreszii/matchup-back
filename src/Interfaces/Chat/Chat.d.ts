@@ -1,5 +1,5 @@
-import type { IEntity } from '../Manager.js'
-import type { Chat } from './index.js'
+import type { IEntity } from '../Manager'
+import type { Chat } from './'
 
 export interface IChat extends IEntity<number> {
   get controller(): Chat.Controller.Interface

@@ -1,4 +1,4 @@
-import type { Match } from '../../Interfaces/index.js'
+import type { Match } from '../../Interfaces'
 
 import { v4 as uuid } from 'uuid'
 

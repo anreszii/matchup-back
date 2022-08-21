@@ -1,5 +1,5 @@
-import type { Chat } from '../../../Interfaces/index.js'
-import * as list from './controllerList.js'
+import type { Chat } from '../../../Interfaces'
+import * as list from './controllerList'
 
 export class Factory implements Chat.Controller.Factory.Interface {
   static create(

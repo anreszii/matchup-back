@@ -1,1 +1,1 @@
-export * from './StandOff.js'
+export * from './StandOff'

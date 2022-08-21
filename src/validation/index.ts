@@ -1,2 +1,2 @@
-export * from './websocket.js'
-export * from './password.js'
+export * from './websocket'
+export * from './password'
