@@ -1,7 +1,7 @@
 import { IMatchMember } from './Member'
 import { ILobby } from './Lobby'
 import { MatchController } from './Controller'
-import { IManager } from '../'
+import { IManager, Chat } from '../'
 
 export declare namespace Match {
   namespace Manager {

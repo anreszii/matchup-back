@@ -8,8 +8,9 @@ import {
   validationCause,
   ValidationError,
 } from '../../../error.js'
+import Aliases from '../../../tmp/plug'
 
-let clientServer = app.of('client')
+let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 let wsValidator = new WebSocketValidatior(app)
 
 /**
@@ -42,7 +43,7 @@ export function authorize(escort: IDataEscort) {
     let socket = app.sockets.get(socketID)!
     socket.role = token.role
 
-    app.aliases.set(name, socketID)
+    Aliases.get(process.env.CLIENT_NAMESPACE!).set(name, socketID)
     return clientServer.control(socketID).emit('authorize', { complete: true })
   } catch (e) {
     let socketID = escort.get('socket_id') as string

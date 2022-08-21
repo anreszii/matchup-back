@@ -19,7 +19,7 @@ export class ChatInstance implements Chat.Instance {
     return this._controller.deleteMember(member)
   }
 
-  public async send(message: Chat.Message) {
+  public async send(message: string) {
     return this._controller.send(message)
   }
 }

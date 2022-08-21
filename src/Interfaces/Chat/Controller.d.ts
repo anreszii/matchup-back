@@ -17,7 +17,7 @@ export interface IChatController {
    */
   deleteMember(member: Chat.Member): Promise<boolean> | boolean
 
-  send(message: Chat.Message): Promise<boolean> | boolean
+  send(message: string): Promise<boolean> | boolean
 
   set namespace(value: string)
   set roomName(value: string)

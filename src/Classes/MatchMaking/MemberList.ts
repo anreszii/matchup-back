@@ -77,6 +77,13 @@ export class MemberList extends List<Match.Member.Interface> {
     return players
   }
 
+  /**
+   * Массив всех участников матча
+   */
+  public get members() {
+    return this._elements
+  }
+
   public add(...members: Array<Match.Member.Interface>): boolean {
     for (let member of members.values()) {
       if (!this._hasFreeSpaceForMember(member) || this.hasMember(member))
@@ -135,6 +142,11 @@ export class MemberList extends List<Match.Member.Interface> {
     return this._elements[index] as Match.Member.Interface
   }
 
+  /**
+   *
+   * @param entity имя участника или объект участника. От этого скорость не зависит
+   * @returns наличие участника в хранилище
+   */
   public hasMember(entity: string | Match.Member.Interface): boolean {
     let name = typeof entity == 'string' ? entity : entity.name
     for (var i = 0; i < this._elements.length; i++)

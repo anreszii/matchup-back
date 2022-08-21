@@ -1,13 +1,15 @@
-import type { Match } from '../../Interfaces'
+import type { Chat, Match } from '../../Interfaces'
 
 import { v4 as uuid } from 'uuid'
 
 import { matchCause, MatchError } from '../../error.js'
 import { Lobby } from './Lobby.js'
+import { ChatManager } from '../index'
 
 export class LobbyManager implements Match.Manager.Interface {
   private _lobbyMap: Map<string, Match.Lobby.Interface> = new Map()
   private _controller: Match.Controller
+  private _chatManager = new ChatManager()
   constructor(controller: Match.Controller) {
     this._controller = controller
   }
@@ -18,7 +20,7 @@ export class LobbyManager implements Match.Manager.Interface {
       if (!status) throw new MatchError('lobby', matchCause.CREATE)
     })
 
-    let lobby = new Lobby(this._controller, ID)
+    let lobby = new Lobby(ID, this._controller)
     this._lobbyMap.set(ID, lobby)
 
     return lobby

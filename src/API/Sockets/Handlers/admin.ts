@@ -6,7 +6,7 @@ import { WebSocketValidatior } from '../../../validation'
 import { MatchListModel, ReportListModel, UserModel } from '../../../Models'
 import { USER_ROLE } from '../../../Interfaces'
 
-let clientServer = app.of('client')
+let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 let wsValidator = new WebSocketValidatior(app)
 
 /**

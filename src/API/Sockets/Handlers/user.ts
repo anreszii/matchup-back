@@ -5,7 +5,7 @@ import { MatchUpError, validationCause, ValidationError } from '../../../error'
 import { WebSocketValidatior } from '../../../validation'
 import { GlobalStatistic } from '../../../Models'
 
-let clientServer = app.of('client')
+let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 let wsValidator = new WebSocketValidatior(app)
 
 /**

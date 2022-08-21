@@ -2,6 +2,21 @@ import type { Chat } from '../../../Interfaces'
 import * as list from './controllerList'
 
 export class Factory implements Chat.Controller.Factory.Interface {
+  /**
+   * @param controllerName имя контроллера, указанное после -
+   * @param options опции, необходимые для указанного контроллера. В случае, если их будет меньше, выбрасывает ошибку
+   * @returns object {@link Chat.Controller Controller}
+   *
+   * Возможные контроллеры и options к ним:<br>
+   * - gamesocket.io
+   * ```ts
+   * {
+   *   namespace: string
+   *   options: room
+   * }
+   * ```
+   *
+   */
   static create(
     controllerName: 'gamesocket.io',
     options?: { [key: string]: string },

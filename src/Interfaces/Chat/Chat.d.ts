@@ -16,4 +16,5 @@ export interface IChat extends IEntity<number> {
    * @returns результат выполнения операции
    */
   deleteMember(member: Chat.Member, executor?: Chat.Member): Promise<boolean>
+  send(message: string): Promise<boolean>
 }

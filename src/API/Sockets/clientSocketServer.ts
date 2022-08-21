@@ -13,7 +13,7 @@ import * as Handlers from './Handlers'
 
 let app = io()
 
-let clientServer = app.of('client')
+let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 
 /* Basic handlers for user authorization */
 clientServer.on('authorize', Handlers.authorize)

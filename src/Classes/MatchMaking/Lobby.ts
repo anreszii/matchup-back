@@ -1,4 +1,4 @@
-import type { Match } from '../../Interfaces'
+import type { Chat, Match } from '../../Interfaces'
 import { matchCause, MatchError } from '../../error'
 import { MemberList } from './MemberList'
 import { toBoolean } from '../../Utils'
@@ -6,10 +6,11 @@ import { toBoolean } from '../../Utils'
 export class Lobby implements Match.Lobby.Interface {
   public members = new MemberList()
   private _game: Match.Manager.supportedGames
+  private _chat?: Chat.Instance
 
   constructor(
-    private _matchController: Match.Controller,
     private _id: string,
+    private _matchController: Match.Controller,
     ...members: Array<Match.Member.Interface>
   ) {
     if (members) {
@@ -33,6 +34,14 @@ export class Lobby implements Match.Lobby.Interface {
     if (this.members.quantityOfMembers == 0) return undefined
     if (this.members.quantityOfPlayers < 10) return 'searching'
     else return this._matchController.status
+  }
+
+  public get chat() {
+    return this._chat
+  }
+
+  public set chat(instance: Chat.Instance | undefined) {
+    this._chat = instance
   }
 
   public async start() {

@@ -10,14 +10,18 @@ import {
 import { WebSocketValidatior } from '../../../validation'
 
 import * as MatchMaking from '../../../Classes/MatchMaking'
+import { ChatManager } from '../../../app'
+import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
 
-let clientServer = app.of('client')
+let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 let wsValidator = new WebSocketValidatior(app)
 let MemberList = MatchMaking.MemberList
 
 let StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
 )
+
+let LobbyChatManager = new ChatManager()
 
 /**
  * Событие для создания матча со стороны клиента.</br>
@@ -33,9 +37,26 @@ let StandOffLobbies = new MatchMaking.LobbyManager(
  * ```ts
  * {
  *  lobby_id: string
+ *  chat_id: string
+ * }
+ * ```
+ * Все события из чата матча будут приходить на event match_chat в формате:
+ *
+ * ```json
+ * {
+ *  "chat_id": "xxxxxx"
+ *  "message": "JSON message"
  * }
  * ```
  *
+ * Сам message является JSON объектом со следующими полями:
+ *
+ * ```json
+ * {
+ *  "from": "system or username"
+ *  "message": "text of message"
+ * }
+ *```
  * @category MatchMaking
  * @event
  */
@@ -52,23 +73,37 @@ export async function create_match(escort: IDataEscort) {
       throw new ValidationError('member', validationCause.INVALID_FORMAT)
 
     await lobby.addMember(member)
+    let newChatInstance = LobbyChatManager.spawn('gamesocket.io', {
+      namespace: process.env.CLIENT_NAMESPACE!,
+      room: lobby.id,
+    })
+    await newChatInstance.addMember({ name: member.name, role: 'user' })
+    await newChatInstance.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${member.name} вошел в лобби.`,
+      }),
+    )
+    lobby.chat = newChatInstance
 
-    clientServer.control(socketID).emit('create_match', { lobby_id: lobby.id })
+    clientServer
+      .control(socketID)
+      .emit('create_match', { lobby_id: lobby.id, chat_id: newChatInstance.id })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('add_member error', { reason: e.genericMessage })
+          .emit('create_match error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('add_member error', { reason: e.message })
+        .emit('create_match error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('add_member error', { reason: 'unknown error' })
+        .emit('create_match error', { reason: 'unknown error' })
     }
   }
 }
@@ -87,8 +122,26 @@ export async function create_match(escort: IDataEscort) {
  * ```ts
  * {
  *  lobby_id: string
+ *  chat_id: string
  * }
  * ```
+ * Все события из чата матча будут приходить на event match_chat в формате:
+ *
+ * ```json
+ * {
+ *  "chat_id": "xxxxxx"
+ *  "message": "JSON message"
+ * }
+ * ```
+ *
+ * Сам message является JSON объектом со следующими полями:
+ *
+ * ```json
+ * {
+ *  "from": "system or username"
+ *  "message": "text of message"
+ * }
+ *```
  * @category MatchMaking
  * @event
  */
@@ -98,6 +151,24 @@ export async function find_match(escort: IDataEscort) {
     wsValidator.validateSocket(socketID)
 
     let lobby = StandOffLobbies.getFreeLobby()
+    if (!lobby.chat) {
+      let newChatInstance = LobbyChatManager.spawn('gamesocket.io', {
+        namespace: process.env.CLIENT_NAMESPACE!,
+        room: lobby.id,
+      })
+      for (let member of lobby.members.members) {
+        if (member != UNDEFINED_MEMBER) {
+          newChatInstance.addMember({ name: member!.name, role: 'user' })
+          await newChatInstance.send(
+            JSON.stringify({
+              from: 'system',
+              message: `${member!.name} вошел в лобби.`,
+            }),
+          )
+        }
+      }
+      lobby.chat = newChatInstance
+    }
 
     let member = escort.get('member')
     if (!member) throw new ValidationError('member', validationCause.REQUIRED)
@@ -105,7 +176,17 @@ export async function find_match(escort: IDataEscort) {
       throw new ValidationError('member', validationCause.INVALID_FORMAT)
 
     await lobby.addMember(member)
-    clientServer.control(socketID).emit('find_match', { lobby_id: lobby.id })
+    await lobby.chat.addMember({ name: member.name, role: 'user' })
+    await lobby.chat.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${member.name} вошел в лобби.`,
+      }),
+    )
+
+    clientServer
+      .control(socketID)
+      .emit('find_match', { lobby_id: lobby.id, chat_id: lobby.chat.id })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
@@ -395,6 +476,94 @@ export async function update_member(escort: IDataEscort) {
       clientServer
         .control(escort.get('socket_id') as string)
         .emit('update_member error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для создания матча со стороны клиента.</br>
+ * Используемый пакет:
+ *
+ * ```ts
+ * {
+ *  lobby_id: string
+ *  username: string
+ *  message: string
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *  complete: true
+ * }
+ * ```
+ * Все события из чата матча будут приходить на event match_chat в формате:
+ *
+ * ```json
+ * {
+ *  "chat_id": "xxxxxx"
+ *  "message": "JSON message"
+ * }
+ * ```
+ *
+ * Сам message является JSON объектом со следующими полями:
+ *
+ * ```json
+ * {
+ *  "from": "system or username"
+ *  "message": "text of message"
+ * }
+ *```
+ * @category MatchMaking
+ * @event
+ */
+export async function send_to_chat(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobbyID = escort.get('lobby_id')
+
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobby', validationCause.INVALID_FORMAT)
+
+    let lobby = StandOffLobbies.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+
+    let user = escort.get('username')
+    if (typeof user != 'string')
+      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+
+    if (!lobby.members.hasMember(user))
+      throw new ValidationError('user', validationCause.INVALID)
+
+    let message = escort.get('message')
+    if (typeof message != 'string')
+      throw new ValidationError('message', validationCause.INVALID_FORMAT)
+    await lobby.chat!.send(
+      JSON.stringify({
+        from: user,
+        message: message,
+      }),
+    )
+
+    clientServer.control(socketID).emit('send_to_lobby', { complete: true })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('send_to_lobby error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('send_to_lobby error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('send_to_lobby error', { reason: 'unknown error' })
     }
   }
 }

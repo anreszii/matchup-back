@@ -1,11 +1,14 @@
 import type { Match } from './'
-import type { IEntity } from '../'
-import { MemberList } from '../../Classes'
+import type { IEntity, Chat } from '../'
+import type { MemberList } from '../../Classes'
 export declare interface ILobby extends IEntity<string> {
   get id(): string
   get status(): Match.Lobby.status | undefined
   get game(): Match.Manager.supportedGames
   get members(): MemberList
+
+  get chat(): Chat.Instance | undefined
+  set chat(instance: Chat.Instance | undefined)
 
   start(): Promise<boolean>
   stop(): Promise<boolean>
