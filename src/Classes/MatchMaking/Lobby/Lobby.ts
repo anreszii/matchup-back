@@ -1,17 +1,18 @@
-import type { Chat, Match } from '../../Interfaces'
-import { matchCause, MatchError } from '../../error'
-import { MemberList } from './MemberList'
-import { toBoolean } from '../../Utils'
+import type { Chat, Match, Rating } from '../../../Interfaces'
+import { matchCause, MatchError } from '../../../error'
+import { MemberList } from '../MemberList'
+import { toBoolean } from '../../../Utils'
 
-export class Lobby implements Match.Lobby.Interface {
+export class Lobby implements Match.Lobby.Instance {
   public members = new MemberList()
   private _game: Match.Manager.supportedGames
   private _chat?: Chat.Instance
+  private _region!: Rating.SearchEngine.SUPPORTED_REGIONS
 
   constructor(
     private _id: string,
     private _matchController: Match.Controller,
-    ...members: Array<Match.Member.Interface>
+    ...members: Array<Match.Member.Instance>
   ) {
     if (members) {
       _matchController.addMembers(...members).then((status) => {
@@ -44,6 +45,14 @@ export class Lobby implements Match.Lobby.Interface {
     this._chat = instance
   }
 
+  public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
+    this._region = value
+  }
+
+  public get region() {
+    return this._region
+  }
+
   public async start() {
     return this._matchController.start()
   }
@@ -52,14 +61,14 @@ export class Lobby implements Match.Lobby.Interface {
     return this._matchController.stop()
   }
 
-  public async addMember(member: Match.Member.Interface) {
+  public async addMember(member: Match.Member.Instance) {
     let status = await this._matchController.addMembers(member)
     if (!status) return false
 
     return this.members.add(member)
   }
 
-  public async removeMember(member: Match.Member.Interface) {
+  public async removeMember(member: Match.Member.Instance) {
     let status = await this._matchController.removeMembers(member)
     if (!status) return false
 
@@ -74,9 +83,9 @@ export class Lobby implements Match.Lobby.Interface {
    * @returns
    */
   public async updateMember(
-    member: Required<Pick<Match.Member.Interface, 'name'>> & {
-      [Key in Exclude<keyof Match.Member.Interface, 'name' | 'statistic'>]?:
-        | Match.Member.Interface[Key]
+    member: Required<Pick<Match.Member.Instance, 'name'>> & {
+      [Key in Exclude<keyof Match.Member.Instance, 'name' | 'statistic'>]?:
+        | Match.Member.Instance[Key]
         | string
     },
   ) {
@@ -92,7 +101,7 @@ export class Lobby implements Match.Lobby.Interface {
 
       if (
         !this._matchController.updateMember(
-          member as unknown as Match.Member.Interface,
+          member as unknown as Match.Member.Instance,
         )
       )
         return false
@@ -111,5 +120,13 @@ export class Lobby implements Match.Lobby.Interface {
     tmp.readyFlag = member.readyFlag
 
     return true
+  }
+
+  public hasSpace(memberCount: number): false | 'command1' | 'command2' {
+    if (5 - this.members.quantityOfFirstCommandMembers >= memberCount)
+      return 'command1'
+    if (5 - this.members.quantityOfSecondCommandMembers >= memberCount)
+      return 'command1'
+    return false
   }
 }
