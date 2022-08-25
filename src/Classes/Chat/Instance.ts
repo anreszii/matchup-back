@@ -2,7 +2,7 @@ import type { Chat } from '../../Interfaces'
 export class ChatInstance implements Chat.Instance {
   constructor(
     private _id: number,
-    private _controller: Chat.Controller.Interface,
+    private _controller: Chat.Controller.Instance,
   ) {}
   public get controller() {
     return this._controller

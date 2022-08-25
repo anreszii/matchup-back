@@ -21,7 +21,7 @@ export class Factory implements Chat.Controller.Factory.Interface {
     controllerName: 'gamesocket.io',
     options?: { [key: string]: string },
   ) {
-    let controller: Chat.Controller.Interface
+    let controller: Chat.Controller.Instance
     let optionCounter = 0
     switch (controllerName) {
       case 'gamesocket.io': {

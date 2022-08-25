@@ -4,7 +4,7 @@ import Aliases, { AliasMap } from '../../../tmp/plug'
 
 let Server = io()
 
-export class Gamesocket implements Chat.Controller.Interface {
+export class Gamesocket implements Chat.Controller.Instance {
   private _map!: AliasMap
   private _nmsp!: Namespace
   private _roomName!: string
