@@ -1,4 +1,5 @@
-import { app } from '../clientSocketServer'
+import { clientServer } from '../clientSocketServer'
+import { WS_SERVER } from '../../../app'
 import type { IDataEscort } from 'gamesocket.io'
 import {
   matchCause,
@@ -12,10 +13,12 @@ import { WebSocketValidatior } from '../../../validation'
 import * as MatchMaking from '../../../Classes/MatchMaking'
 import { ChatManager } from '../../../app'
 import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
+import { User, UserModel } from '../../../Models/index'
 
-let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
-let wsValidator = new WebSocketValidatior(app)
+let wsValidator = new WebSocketValidatior(WS_SERVER)
 let MemberList = MatchMaking.MemberList
+
+let Teams = new MatchMaking.TeamManager()
 
 let StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
@@ -29,7 +32,10 @@ let LobbyChatManager = new ChatManager()
  *
  * ```ts
  * {
- *  member: Member
+ *  member: {
+ *    name: string
+ *    teamID?: number
+ *  }
  * }
  * ```
  *
@@ -64,26 +70,30 @@ export async function create_match(escort: IDataEscort) {
 
     let member = escort.get('member')
     if (!member) throw new ValidationError('member', validationCause.REQUIRED)
-    if (!MemberList.isMember(member))
-      throw new ValidationError('member', validationCause.INVALID_FORMAT)
+    if (typeof member == 'string') {
+      await lobby.addMember({
+        name: member,
+        command: 'neutral',
+        readyFlag: false,
+      })
+      let newChatInstance = LobbyChatManager.spawn('gamesocket.io', {
+        namespace: process.env.CLIENT_NAMESPACE!,
+        room: lobby.id,
+      })
+      await newChatInstance.addMember({ name: member, role: 'user' })
+      await newChatInstance.send(
+        JSON.stringify({
+          from: 'system',
+          message: `${member} вошел в лобби.`,
+        }),
+      )
+      lobby.chat = newChatInstance
 
-    await lobby.addMember(member)
-    let newChatInstance = LobbyChatManager.spawn('gamesocket.io', {
-      namespace: process.env.CLIENT_NAMESPACE!,
-      room: lobby.id,
-    })
-    await newChatInstance.addMember({ name: member.name, role: 'user' })
-    await newChatInstance.send(
-      JSON.stringify({
-        from: 'system',
-        message: `${member.name} вошел в лобби.`,
-      }),
-    )
-    lobby.chat = newChatInstance
-
-    clientServer
-      .control(socketID)
-      .emit('create_match', { lobby_id: lobby.id, chat_id: newChatInstance.id })
+      clientServer.control(socketID).emit('create_match', {
+        lobby_id: lobby.id,
+        chat_id: newChatInstance.id,
+      })
+    }
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
@@ -364,7 +374,10 @@ export async function remove_member(escort: IDataEscort) {
     if (!lobby.members.hasMember(name))
       throw new ValidationError('name', validationCause.INVALID)
 
-    let status = await lobby.removeMember(lobby.members.getMember(name)!)
+    let member = lobby.members.getMember(name)!
+    if (member.teamID) member.teamID = undefined
+
+    let status = await lobby.removeMember(member)
     if (!status) throw new MatchError(lobbyID, matchCause.REMOVE_MEMBER)
 
     clientServer.control(socketID).emit('sync_lobby', {
@@ -403,6 +416,7 @@ export async function remove_member(escort: IDataEscort) {
  *    name: string //имя пользователя
  *    command: 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
  *    readyFlag: boolean | undefined
+ *    teamID?: number
  *  }
  * }
  * ```
@@ -472,7 +486,7 @@ export async function update_member(escort: IDataEscort) {
 }
 
 /**
- * Событие для создания матча со стороны клиента.</br>
+ * Событие для отправки сообщения в лобби.</br>
  * Используемый пакет:
  *
  * ```ts
@@ -550,6 +564,204 @@ export async function send_to_chat(escort: IDataEscort) {
       clientServer
         .control(escort.get('socket_id') as string)
         .emit('send_to_lobby error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для присоединения к команде.</br>
+ * Используемый пакет:
+ *
+ * ```ts
+ * {
+ *  username: string
+ *  team_id: string
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *  status: boolean
+ *  chat_id?: team#number
+ * }
+ * ```
+ * Все события из чата матча будут приходить на event lobby_chat в формате:
+ *
+ * ```json
+ * {
+ *  "chat_id": "xxxxxx",
+ *  "message":
+ *  {
+ *    "from": "system or username",
+ *    "message": "text of message"
+ *  }
+ * }
+ * ```
+ * @category MatchMaking
+ * @event
+ */
+export async function join_team(escort: IDataEscort) {
+  try {
+    let username = escort.get('username')
+    if (!username || typeof username != 'string')
+      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    if (!(await UserModel.getByName(username)))
+      throw new ValidationError('user', validationCause.INVALID)
+
+    let teamID = escort.get('team_id')
+    if (!teamID) throw new ValidationError('team_id', validationCause.REQUIRED)
+    if (!Teams.has(Number(teamID)))
+      throw new ValidationError('team_id', validationCause.INVALID)
+
+    let team = Teams.get(Number(teamID))!
+    team.join(username)
+
+    team.chat.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${username} joined`,
+      }),
+    )
+
+    clientServer.control(escort.get('socket_id')! as string).emit('join_team', {
+      status: true,
+      chat_id: `team#${team.chat.id}`,
+    })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('join_team error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('join_team error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('join_team error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для выхода из команды.</br>
+ * Используемый пакет:
+ *
+ * ```ts
+ * {
+ *  username: string
+ *  team_id: string
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *  status: boolean
+ * }
+ * ```
+ * @category MatchMaking
+ * @event
+ */
+export async function leave_team(escort: IDataEscort) {
+  try {
+    let username = escort.get('username')
+    if (!username || typeof username != 'string')
+      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    if (!(await UserModel.getByName(username)))
+      throw new ValidationError('user', validationCause.INVALID)
+
+    let teamID = escort.get('team_id')
+    if (!teamID) throw new ValidationError('team_id', validationCause.REQUIRED)
+    if (!Teams.has(Number(teamID)))
+      throw new ValidationError('team_id', validationCause.INVALID)
+
+    let team = Teams.get(Number(teamID))!
+    team.leave(username)
+
+    team.chat.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${username} leaved`,
+      }),
+    )
+
+    clientServer
+      .control(escort.get('socket_id')! as string)
+      .emit('leave_team', {
+        status: true,
+      })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('leave_team error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('leave_team error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('leave_team error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для проверки членов команды.</br>
+ * Используемый пакет:
+ *
+ * ```ts
+ * {
+ *  username: string
+ *  team_id: string
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *  members: Array<Members>
+ * }
+ * ```
+ * @category MatchMaking
+ * @event
+ */
+export async function check_team(escort: IDataEscort) {
+  try {
+    let teamID = escort.get('team_id')
+    if (!teamID) throw new ValidationError('team_id', validationCause.REQUIRED)
+    if (!Teams.has(Number(teamID)))
+      throw new ValidationError('team_id', validationCause.INVALID)
+
+    let team = Teams.get(Number(teamID))!
+    clientServer
+      .control(escort.get('socket_id')! as string)
+      .emit('check_team', {
+        members: JSON.stringify(team.check()),
+      })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('check_team error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('check_team error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('check_team error', { reason: 'unknown error' })
     }
   }
 }
