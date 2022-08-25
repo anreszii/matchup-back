@@ -35,16 +35,17 @@ export class List<T extends Object> {
    */
   public add(...elements: Array<T>) {
     let status = true
-    for (let element of elements.values()) {
-      if (element == this._undefined) status = false
-      this._elements[this.freeSpace] = element
+
+    for (let index = 0; index < elements.length; index++) {
+      if (elements[index] == this._undefined) status = false
+      this._elements[this.freeSpace] = elements[index]
     }
     return status
   }
 
   /**
    * Добавляет элеммент типа T.
-   * @return -1, если один из элементов оказался {@link List._undefined} и index вставленного объекта.
+   * @return -1, если один из элементов оказался {@link List._undefined} или index вставленного объекта в случае успеха.
    */
   public addOne(element: T) {
     if (element == this._undefined) return -1
@@ -61,13 +62,13 @@ export class List<T extends Object> {
    */
   public delete(...elements: Array<T>) {
     let status = true
-    for (let element of elements.values()) {
-      if (element == this._undefined) status = false
+    for (let index = 0; index < elements.length; index++) {
+      if (elements[index] == this._undefined) status = false
 
-      let index = this._getElement(element)
-      if (!~index) status = false
+      let tmp = this._getElement(elements[index])
+      if (!~tmp) status = false
 
-      this._elements[index] = this._undefined
+      this._elements[tmp] = this._undefined
     }
     return status
   }
