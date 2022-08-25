@@ -2,7 +2,7 @@ import { List } from '../List'
 import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import type { Match } from '../../Interfaces'
 
-export class MemberList extends List<Match.Member.Interface> {
+export class MemberList extends List<Match.Member.Instance> {
   private _spectator = 0
   private _command1 = 0
   private _command2 = 0
@@ -61,7 +61,7 @@ export class MemberList extends List<Match.Member.Interface> {
    * Массив всех игроков, включая неопределившихся
    */
   public get players() {
-    let players: Array<Match.Member.Interface> = Array()
+    let players: Array<Match.Member.Instance> = Array()
     for (let member of this._elements)
       if (member!.command != 'spectator') players.push(member!)
     return players
@@ -71,7 +71,7 @@ export class MemberList extends List<Match.Member.Interface> {
    * Массив наблюдателей
    */
   public get spectators() {
-    let players: Array<Match.Member.Interface> = Array()
+    let players: Array<Match.Member.Instance> = Array()
     for (let member of this._elements)
       if (member!.command == 'spectator') players.push(member!)
     return players
@@ -84,7 +84,7 @@ export class MemberList extends List<Match.Member.Interface> {
     return this._elements
   }
 
-  public add(...members: Array<Match.Member.Interface>): boolean {
+  public add(...members: Array<Match.Member.Instance>): boolean {
     for (let member of members.values()) {
       if (!this._hasFreeSpaceForMember(member) || this.hasMember(member))
         return false
@@ -95,14 +95,14 @@ export class MemberList extends List<Match.Member.Interface> {
     return true
   }
 
-  public delete(...members: Array<Match.Member.Interface>): boolean {
+  public delete(...members: Array<Match.Member.Instance>): boolean {
     if (!super.delete(...members)) return false
     for (let member of members.values()) this._decreaseMemberCounter(member)
     return true
   }
 
   public changeCommand(
-    entity: string | Match.Member.Interface,
+    entity: string | Match.Member.Instance,
     command: Match.Member.command,
   ) {
     let member = this.getMember(entity)
@@ -119,7 +119,7 @@ export class MemberList extends List<Match.Member.Interface> {
   }
 
   public changeStatus(
-    entity: string | Match.Member.Interface,
+    entity: string | Match.Member.Instance,
     readyFlag: boolean,
   ) {
     let member = this.getMember(entity)
@@ -130,8 +130,8 @@ export class MemberList extends List<Match.Member.Interface> {
   }
 
   public getMember(
-    entity: string | Match.Member.Interface,
-  ): Match.Member.Interface {
+    entity: string | Match.Member.Instance,
+  ): Match.Member.Instance {
     if (typeof entity == 'string') {
       let member = this._elements.find((_member) => _member?.name == entity)
       if (!member) return UNDEFINED_MEMBER
@@ -139,7 +139,7 @@ export class MemberList extends List<Match.Member.Interface> {
     }
     let index = this._getElement(entity)
     if (!~index) return UNDEFINED_MEMBER
-    return this._elements[index] as Match.Member.Interface
+    return this._elements[index] as Match.Member.Instance
   }
 
   /**
@@ -147,14 +147,14 @@ export class MemberList extends List<Match.Member.Interface> {
    * @param entity имя участника или объект участника. От этого скорость не зависит
    * @returns наличие участника в хранилище
    */
-  public hasMember(entity: string | Match.Member.Interface): boolean {
+  public hasMember(entity: string | Match.Member.Instance): boolean {
     let name = typeof entity == 'string' ? entity : entity.name
     for (var i = 0; i < this._elements.length; i++)
       if (this._elements[i]?.name == name) return true
     return false
   }
 
-  public static isMember(member: unknown): member is Match.Member.Interface {
+  public static isMember(member: unknown): member is Match.Member.Instance {
     if (!member || typeof member != 'object') return false
     return 'name' in member && 'command' in member && 'readyFlag' in member
   }
@@ -200,7 +200,7 @@ export class MemberList extends List<Match.Member.Interface> {
     this._spectator = value
   }
 
-  private _increaseMemberCounter(member: Match.Member.Interface) {
+  private _increaseMemberCounter(member: Match.Member.Instance) {
     return member.command == 'spectator'
       ? this._increaseSpectatorCounter()
       : this._increasePlayerCounter(member.command)
@@ -216,7 +216,7 @@ export class MemberList extends List<Match.Member.Interface> {
     this.spectator++
   }
 
-  private _decreaseMemberCounter(member: Match.Member.Interface) {
+  private _decreaseMemberCounter(member: Match.Member.Instance) {
     return member.command == 'spectator'
       ? this._decreaseSpectatorCounter()
       : this._decreasePlayerCounter(member.command)
@@ -233,7 +233,7 @@ export class MemberList extends List<Match.Member.Interface> {
   }
 
   private _hasFreeSpaceForMember(
-    entity: Match.Member.Interface | Match.Member.command,
+    entity: Match.Member.Instance | Match.Member.command,
   ) {
     let command = typeof entity == 'string' ? entity : entity.command
     return command == 'spectator'

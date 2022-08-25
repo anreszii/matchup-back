@@ -23,18 +23,18 @@ export class StandOffController implements Match.Controller {
   }
 
   public async addMembers(
-    ...members: Match.Member.Interface[]
+    ...members: Match.Member.Instance[]
   ): Promise<boolean> {
     return true
   }
 
   public async removeMembers(
-    ...members: Match.Member.Interface[]
+    ...members: Match.Member.Instance[]
   ): Promise<boolean> {
     return true
   }
 
-  public async updateMember(member: Match.Member.Interface): Promise<boolean> {
+  public async updateMember(member: Match.Member.Instance): Promise<boolean> {
     return true
   }
 
