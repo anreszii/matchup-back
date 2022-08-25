@@ -1,4 +1,5 @@
-import { app } from '../clientSocketServer'
+import { clientServer } from '../clientSocketServer'
+import { WS_SERVER } from '../../../app'
 import type { IDataEscort } from 'gamesocket.io'
 
 import { WebSocketValidatior } from '../../../validation'
@@ -10,8 +11,7 @@ import {
 } from '../../../error.js'
 import Aliases from '../../../tmp/plug'
 
-let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
-let wsValidator = new WebSocketValidatior(app)
+let wsValidator = new WebSocketValidatior(WS_SERVER)
 
 /**
  * Событие для авторизации сокета. </br>
@@ -40,7 +40,7 @@ export function authorize(escort: IDataEscort) {
 
     wsValidator.authorizeSocket(socketID)
     let name = token.username as string
-    let socket = app.sockets.get(socketID)!
+    let socket = WS_SERVER.sockets.get(socketID)!
     socket.role = token.role
 
     Aliases.get(process.env.CLIENT_NAMESPACE!).set(name, socketID)
@@ -91,7 +91,7 @@ export function change_role(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let socket = app.sockets.get(socketID)!
+    let socket = WS_SERVER.sockets.get(socketID)!
     let role = escort.get('newRole')
     if (!role)
       return clientServer

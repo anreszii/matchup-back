@@ -1,4 +1,4 @@
-import { app } from '../clientSocketServer'
+import { clientServer } from '../clientSocketServer'
 import type { IDataEscort } from 'gamesocket.io'
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
@@ -6,7 +6,6 @@ import { WebSocketValidatior } from '../../../validation'
 import { MatchListModel, ReportListModel, UserModel } from '../../../Models'
 import { USER_ROLE } from '../../../Interfaces'
 
-let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
 let wsValidator = new WebSocketValidatior(app)
 
 /**

@@ -1,8 +1,7 @@
 import io, { Namespace } from 'gamesocket.io'
+import { WS_SERVER } from '../../../app'
 import type { Chat } from '../../../Interfaces'
 import Aliases, { AliasMap } from '../../../tmp/plug'
-
-let Server = io()
 
 export class Gamesocket implements Chat.Controller.Instance {
   private _map!: AliasMap
@@ -11,7 +10,7 @@ export class Gamesocket implements Chat.Controller.Instance {
   constructor(nmsp?: string) {
     if (nmsp) {
       this._map = Aliases.get(nmsp)
-      this._nmsp = Server.of(nmsp)
+      this._nmsp = WS_SERVER.of(nmsp)
     }
   }
 
@@ -59,7 +58,7 @@ export class Gamesocket implements Chat.Controller.Instance {
 
   set namespace(value: string) {
     this._map = Aliases.get(value)
-    this._nmsp = Server.of(value)
+    this._nmsp = WS_SERVER.of(value)
   }
 
   set roomName(value: string) {

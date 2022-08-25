@@ -1,12 +1,12 @@
-import { app } from '../clientSocketServer'
+import { clientServer } from '../clientSocketServer'
+import { WS_SERVER } from '../../../app'
 import type { IDataEscort } from 'gamesocket.io'
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
 import { WebSocketValidatior } from '../../../validation'
 import { GlobalStatistic } from '../../../Models'
 
-let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
-let wsValidator = new WebSocketValidatior(app)
+let wsValidator = new WebSocketValidatior(WS_SERVER)
 
 /**
  * Событие для получения глоьальной статистики. </br>
@@ -26,7 +26,7 @@ export async function get_statistic(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role
+    let role = WS_SERVER.sockets.get(socketID)!.role
     if (!role) throw new ValidationError('user role', validationCause.REQUIRED)
 
     await GlobalStatistic.update()

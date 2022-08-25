@@ -1,10 +1,15 @@
 import type { Response } from 'express'
+
+import io from 'gamesocket.io'
+
 import express = require('express')
 import fileUploader = require('express-fileupload')
 
 import mongoose from 'mongoose'
-import { app as WsApp } from './API'
+
 require('dotenv').config()
+
+export const WS_SERVER = io()
 
 const app = express()
 app.use(fileUploader())
@@ -31,7 +36,7 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
   res.json({ errors: err })
 })
 
-WsApp.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
+WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
   if (ls)
     console.log(`listening websockets on port ${process.env.WEB_SOCKET_PORT}`)
 })

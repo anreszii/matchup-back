@@ -8,12 +8,10 @@
  * @packageDocumentation
  */
 
-import io from 'gamesocket.io'
+import { WS_SERVER } from '../../app'
 import * as Handlers from './Handlers'
 
-let app = io()
-
-let clientServer = app.of(process.env.CLIENT_NAMESPACE!)
+let clientServer = WS_SERVER.of(process.env.CLIENT_NAMESPACE!)
 
 /* Basic handlers for user authorization */
 clientServer.on('authorize', Handlers.authorize)
@@ -33,4 +31,7 @@ clientServer.on('find_match', Handlers.find_match)
 clientServer.on('sync_lobby', Handlers.sync_lobby)
 clientServer.on('add_member', Handlers.add_member)
 clientServer.on('remove_member', Handlers.remove_member)
-export { app }
+
+/* Chat handlers */
+clientServer.on('send_to_chat', Handlers.send_to_chat)
+export { clientServer }
