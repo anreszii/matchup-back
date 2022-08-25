@@ -2,7 +2,7 @@ import type { IEntity } from '../Manager'
 import type { Chat } from './'
 
 export interface IChat extends IEntity<number> {
-  get controller(): Chat.Controller.Interface
+  get controller(): Chat.Controller.Instance
   /**
    * @param member - пользователь, над которым происходит действие
    * @param executor - пользователь, который вызвал действие

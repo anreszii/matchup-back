@@ -6,9 +6,9 @@ export declare interface MatchController {
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
-  addMembers(...members: Array<Match.Member.Interface>): Promise<boolean>
-  removeMembers(...members: Array<Match.Member.Interface>): Promise<boolean>
-  updateMember(member: Match.Member.Interface): Promise<boolean>
+  addMembers(...members: Array<Match.Member.Instance>): Promise<boolean>
+  removeMembers(...members: Array<Match.Member.Instance>): Promise<boolean>
+  updateMember(member: Match.Member.Instance): Promise<boolean>
 
   get gameName(): Match.Manager.supportedGames
 }

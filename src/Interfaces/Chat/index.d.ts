@@ -20,14 +20,14 @@ export declare namespace Chat {
   interface Member extends IChatMember {}
   interface Message extends IChatMessage {}
   namespace Controller {
-    interface Interface extends IChatController {}
+    interface Instance extends IChatController {}
     namespace Factory {
       type supportedControllers = 'gamesocket.io'
       abstract class Interface {
         static create(
           controllerName: supportedControllers,
           options?: { [key: string]: string },
-        ): Chat.Controller.Interface
+        ): Chat.Controller.Instance
       }
     }
   }
