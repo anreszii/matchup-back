@@ -80,7 +80,7 @@ export class MemberList extends List<Match.Member.Instance> {
   /**
    * Массив всех участников матча
    */
-  public get members() {
+  public get toArray() {
     return this._elements
   }
 
