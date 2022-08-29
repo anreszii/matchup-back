@@ -12,10 +12,22 @@ export class ChatInstance implements Chat.Instance {
     return this._id
   }
   public async addMember(member: Chat.Member, executor?: Chat.Member) {
+    this._controller.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${member!.name} joined`,
+      }),
+    )
     return this._controller.addMember(member)
   }
 
   public async deleteMember(member: Chat.Member, executor?: Chat.Member) {
+    this._controller.send(
+      JSON.stringify({
+        from: 'system',
+        message: `${member!.name} leaved`,
+      }),
+    )
     return this._controller.deleteMember(member)
   }
 
