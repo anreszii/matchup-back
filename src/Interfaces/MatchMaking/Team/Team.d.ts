@@ -1,8 +1,8 @@
 import { IEntity, Match, Chat } from '../../'
 
 export interface ITeam extends IEntity<number> {
-  join(name: string): boolean
-  leave(name: string): boolean
+  join(name: string): Promise<boolean>
+  leave(name: string): Promise<boolean>
   check(): Array<Match.Member.Instance>
 
   get chat(): Chat.Instance

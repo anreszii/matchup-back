@@ -30,7 +30,7 @@ export class List<T extends Object> {
   }
 
   /**
-   * Добавляет набор новых элемментов типа T.
+   * Добавляет набор новых элементов типа T.
    * @return false, если один из элементов оказался {@link List._undefined} и добавляет остальные элементы. true в остальных случаях
    */
   public add(...elements: Array<T>) {

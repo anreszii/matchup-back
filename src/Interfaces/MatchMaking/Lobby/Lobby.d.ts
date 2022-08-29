@@ -13,6 +13,8 @@ export declare interface ILobby extends IEntity<string> {
   get region(): Rating.SearchEngine.SUPPORTED_REGIONS
   set region(region: Rating.SearchEngine.SUPPORTED_REGIONS)
 
+  get GRI(): number
+
   start(): Promise<boolean>
   stop(): Promise<boolean>
 

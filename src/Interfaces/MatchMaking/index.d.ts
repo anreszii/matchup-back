@@ -7,7 +7,7 @@ import type { TeamsManager, ITeam } from './Team'
 export declare namespace Match {
   namespace Manager {
     interface Instance extends IManager<Match.Lobby.Instance, string> {
-      get Lobbies(): IterableIterator<Match.Lobby.Instance>
+      get lobbies(): Array<Match.Lobby.Instance>
     }
     type supportedGames = 'StandOff2'
   }
@@ -23,7 +23,9 @@ export declare namespace Match {
 
   namespace Team {
     interface Manager extends TeamsManager {}
-    interface Instance extends ITeam {}
+    interface Instance extends ITeam {
+      get GRI(): number
+    }
   }
 
   interface Controller extends MatchController {}

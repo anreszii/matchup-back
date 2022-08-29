@@ -1,5 +1,6 @@
+import { Match } from '../index'
 import type { RatingCalculator } from './Calculator'
-import { MatchFinder } from './SearchEngine'
+import type { MatchFinder } from './SearchEngine'
 
 export declare namespace Rating {
   namespace Calculator {
@@ -7,9 +8,19 @@ export declare namespace Rating {
   }
   namespace SearchEngine {
     interface Instance extends MatchFinder {}
-    const enum SUPPORTED_REGIONS {
-      'Europe',
-      'Asia',
+    type SUPPORTED_REGIONS = 'Europe' | 'Asia'
+
+    const enum SEARCH_ZONE {
+      'small' = 0,
+      'medium' = 1,
+      'large' = 2,
+    }
+
+    type FILTER_PRIORITY = 'optional' | 'required'
+
+    interface Filter {
+      getResults(lobbies: Array<Match.Lobby.Instance>): Array<string>
+      get priority(): FILTER_PRIORITY
     }
   }
 }
