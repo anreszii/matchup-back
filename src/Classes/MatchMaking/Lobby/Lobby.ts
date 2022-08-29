@@ -1,13 +1,15 @@
 import type { Chat, Match, Rating } from '../../../Interfaces'
 import { matchCause, MatchError } from '../../../error'
 import { MemberList } from '../MemberList'
-import { toBoolean } from '../../../Utils'
+import { toBoolean, getMedian } from '../../../Utils'
+import { UserModel } from '../../../Models/index'
 
 export class Lobby implements Match.Lobby.Instance {
   public members = new MemberList()
   private _game: Match.Manager.supportedGames
   private _chat?: Chat.Instance
   private _region!: Rating.SearchEngine.SUPPORTED_REGIONS
+  private _membersGRI: Map<string, number> = new Map()
 
   constructor(
     private _id: string,
@@ -53,6 +55,10 @@ export class Lobby implements Match.Lobby.Instance {
     return this._region
   }
 
+  public get GRI() {
+    return getMedian(...this._membersGRI.values())
+  }
+
   public async start() {
     return this._matchController.start()
   }
@@ -62,19 +68,18 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   public async addMember(member: Match.Member.Instance) {
-    let status = await this._matchController.addMembers(member)
-    if (!status) return false
+    if (!(await this._matchController.addMembers(member))) return false
+    if (!this.members.add(member)) return false
 
-    return this.members.add(member)
+    this._membersGRI.set(member.name, await UserModel.getGRI(member.name))
+    return true
   }
 
   public async removeMember(member: Match.Member.Instance) {
-    let status = await this._matchController.removeMembers(member)
-    if (!status) return false
+    if (!(await this._matchController.removeMembers(member))) return false
+    if (!this.members.delete(member)) return false
 
-    status = this.members.delete(member)
-
-    return status
+    return this._membersGRI.delete(member.name)
   }
 
   /**

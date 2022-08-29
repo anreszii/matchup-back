@@ -1,5 +1,7 @@
-import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
 import type { Match, Chat } from '../../../Interfaces'
+import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
+import { UserModel } from '../../../Models/index'
+import { getMedian } from '../../../Utils/math'
 
 export class Team implements Match.Team.Instance {
   private _members: Array<Match.Member.Instance> = new Array(5).fill(
@@ -8,15 +10,22 @@ export class Team implements Match.Team.Instance {
   private _membersCount = 0
   private _captain!: string
   private _teamChat!: Chat.Instance
+  private _membersGRI: Map<string, number> = new Map()
+
   constructor(private _id: number) {}
 
   get id() {
     return this._id
   }
 
-  join(name: string): boolean {
+  get GRI(): number {
+    return getMedian(...this._membersGRI.values())
+  }
+
+  async join(name: string): Promise<boolean> {
     if (this._membersCount >= 5) return false
 
+    this._membersGRI.set(name, await UserModel.getGRI(name))
     let member = {
       name,
       readyFlag: false,
@@ -37,7 +46,7 @@ export class Team implements Match.Team.Instance {
     return true
   }
 
-  leave(name: string): boolean {
+  async leave(name: string): Promise<boolean> {
     if (this._membersCount == 0) return false
     let member = this.getMember(name)
     if (!member) return false
@@ -51,7 +60,7 @@ export class Team implements Match.Team.Instance {
     member.teamID = undefined
     this._members[this._members.indexOf(member)] = UNDEFINED_MEMBER
     this._membersCount--
-    return true
+    return this._membersGRI.delete(member.name)
   }
 
   check(): Match.Member.Instance[] {
