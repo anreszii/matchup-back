@@ -22,6 +22,10 @@ export class Team implements Match.Team.Instance {
     return getMedian(...this._membersGRI.values())
   }
 
+  get membersCount(): number {
+    return this._membersCount
+  }
+
   async join(name: string): Promise<boolean> {
     if (this._membersCount >= 5) return false
 
