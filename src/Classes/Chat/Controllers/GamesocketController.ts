@@ -1,4 +1,4 @@
-import io, { Namespace } from 'gamesocket.io'
+import { Namespace } from 'gamesocket.io'
 import { WS_SERVER } from '../../../app'
 import type { Chat } from '../../../Interfaces'
 import Aliases, { AliasMap } from '../../../tmp/plug'
