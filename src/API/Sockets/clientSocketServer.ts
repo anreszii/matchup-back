@@ -26,8 +26,7 @@ clientServer.on('get_matchs', Handlers.get_matchs)
 clientServer.on('get_statistic', Handlers.get_statistic)
 
 /* Match hanlers */
-clientServer.on('create_match', Handlers.create_match)
-clientServer.on('find_match', Handlers.find_match)
+clientServer.on('find_lobby', Handlers.find_lobby)
 clientServer.on('sync_lobby', Handlers.sync_lobby)
 clientServer.on('add_member', Handlers.add_member)
 clientServer.on('remove_member', Handlers.remove_member)
