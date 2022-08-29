@@ -85,10 +85,13 @@ export class MemberList extends List<Match.Member.Instance> {
   }
 
   public add(...members: Array<Match.Member.Instance>): boolean {
-    for (let member of members.values()) {
-      if (!this._hasFreeSpaceForMember(member) || this.hasMember(member))
+    for (let index = 0; index < members.length; index++) {
+      if (
+        !this._hasFreeSpaceForMember(members[index]) ||
+        this.hasMember(members[index])
+      )
         return false
-      this._increaseMemberCounter(member)
+      this._increaseMemberTeamCounter(members[index].command)
     }
 
     super.add(...members)
@@ -200,10 +203,10 @@ export class MemberList extends List<Match.Member.Instance> {
     this._spectator = value
   }
 
-  private _increaseMemberCounter(member: Match.Member.Instance) {
-    return member.command == 'spectator'
+  private _increaseMemberTeamCounter(command: Match.Member.command) {
+    return command == 'spectator'
       ? this._increaseSpectatorCounter()
-      : this._increasePlayerCounter(member.command)
+      : this._increasePlayerCounter(command)
   }
 
   private _increasePlayerCounter(

@@ -8,13 +8,13 @@ import {
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
-import validator from 'validator'
 
 import type { USER_ROLE } from '../../Interfaces'
 import { Credentials } from './Credentials'
 import { Level } from './Level'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
+import { Rating } from '../MatchMaking/Rating'
 
 export class User {
   @prop({
@@ -34,6 +34,8 @@ export class User {
   profile!: SubDocumentType<Profile>
   @prop({ type: () => Level })
   level!: SubDocumentType<Level>
+  @prop({ type: () => Rating })
+  rating!: SubDocumentType<Rating>
   @prop({ required: true })
   role!: USER_ROLE
 
@@ -44,6 +46,17 @@ export class User {
     return this.findOne({
       'profile.username': name,
     }).exec() as unknown as DocumentType<User>
+  }
+
+  public static async getGRI(
+    this: ReturnModelType<typeof User>,
+    name: string,
+  ): Promise<number> {
+    let user = (await this.findOne({
+      'profile.username': name,
+    }).exec()) as unknown as DocumentType<User>
+
+    return user.getGRI()
   }
 
   /* PASSWORD */
@@ -156,6 +169,10 @@ export class User {
     await user.deleteFriend(this.profile.username)
 
     return this.addSubscriber(name)
+  }
+
+  public getGRI(this: DocumentType<User>) {
+    return this.rating.GRI
   }
 }
 
