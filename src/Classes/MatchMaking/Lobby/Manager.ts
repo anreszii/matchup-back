@@ -48,8 +48,8 @@ export class LobbyManager implements Match.Manager.Instance {
     return this._lobbyMap.delete(lobbyID.id)
   }
 
-  public get Lobbies(): IterableIterator<Match.Lobby.Instance> {
-    return this._lobbyMap.values()
+  public get lobbies(): Array<Match.Lobby.Instance> {
+    return [...this._lobbyMap.values()]
   }
 
   private _findFreeLobby() {
