@@ -3,6 +3,8 @@ import { matchCause, MatchError } from '../../../error'
 import { MemberList } from '../MemberList'
 import { toBoolean, getMedian } from '../../../Utils'
 import { UserModel } from '../../../Models/index'
+import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
+import { ChatInstance } from '../../index'
 
 export class Lobby implements Match.Lobby.Instance {
   public members = new MemberList()
@@ -44,7 +46,18 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   public set chat(instance: Chat.Instance | undefined) {
-    this._chat = instance
+    this._chat = instance as ChatInstance
+    for (let member of this.members.toArray) {
+      if (member != UNDEFINED_MEMBER) {
+        this._chat!.addMember({ name: member!.name, role: 'user' })
+        this._chat!.send(
+          JSON.stringify({
+            from: 'system',
+            message: `${member!.name} вошел в лобби.`,
+          }),
+        )
+      }
+    }
   }
 
   public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
