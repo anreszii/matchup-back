@@ -25,6 +25,7 @@ export declare namespace Match {
     interface Manager extends TeamsManager {}
     interface Instance extends ITeam {
       get GRI(): number
+      get membersCount(): number
     }
   }
 
