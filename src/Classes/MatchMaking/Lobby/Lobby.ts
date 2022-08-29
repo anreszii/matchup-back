@@ -48,15 +48,8 @@ export class Lobby implements Match.Lobby.Instance {
   public set chat(instance: Chat.Instance | undefined) {
     this._chat = instance as ChatInstance
     for (let member of this.members.toArray) {
-      if (member != UNDEFINED_MEMBER) {
+      if (member != UNDEFINED_MEMBER)
         this._chat!.addMember({ name: member!.name, role: 'user' })
-        this._chat!.send(
-          JSON.stringify({
-            from: 'system',
-            message: `${member!.name} вошел в лобби.`,
-          }),
-        )
-      }
     }
   }
 
@@ -84,6 +77,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._matchController.addMembers(member))) return false
     if (!this.members.add(member)) return false
 
+    this._chat?.addMember({ name: member!.name, role: 'user' })
     this._membersGRI.set(member.name, await UserModel.getGRI(member.name))
     return true
   }
@@ -92,6 +86,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._matchController.removeMembers(member))) return false
     if (!this.members.delete(member)) return false
 
+    this._chat?.deleteMember({ name: member!.name, role: 'user' })
     return this._membersGRI.delete(member.name)
   }
 
