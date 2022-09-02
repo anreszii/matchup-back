@@ -1,10 +1,4 @@
-import {
-  prop,
-  getModelForClass,
-  Ref,
-  ReturnModelType,
-  ArraySubDocumentType,
-} from '@typegoose/typegoose'
+import { prop, getModelForClass, ReturnModelType } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
 import { Member } from './Member'
 import type { Match } from '../../Interfaces'
@@ -17,8 +11,8 @@ class MatchList {
   public id!: string
   @prop({ required: true })
   public game!: Match.Manager.supportedGames
-  @prop({ type: () => Member, default: [] })
-  public members!: ArraySubDocumentType<Member>[]
+  @prop({ default: [] })
+  public members!: Types.Array<Member>
 
   public static async findByID(
     this: ReturnModelType<typeof MatchList>,

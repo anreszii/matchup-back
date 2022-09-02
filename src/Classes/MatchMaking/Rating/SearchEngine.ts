@@ -119,6 +119,21 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
     if (this._searchZone < 3) this._searchZone++
   }
 
+  /**
+   * Обновляет счетчик фильтров, который необходим для последующей проверки. <br>
+   * Формат:
+   *
+   * ```ts
+   *  {
+   *    required: number
+   *    optional: number
+   *  }
+   * ```
+   *
+   *
+   * @param newFilter
+   * @returns
+   */
   private _addFilter(newFilter: Rating.SearchEngine.Filter) {
     this._filters.push(newFilter)
 

@@ -1,10 +1,8 @@
 import {
   prop,
   getModelForClass,
-  Ref,
   ReturnModelType,
   DocumentType,
-  SubDocumentType,
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
@@ -28,14 +26,14 @@ export class User {
     },
   })
   id!: number
-  @prop({ type: () => Credentials })
-  credentials!: SubDocumentType<Credentials>
-  @prop({ type: () => Profile })
-  profile!: SubDocumentType<Profile>
-  @prop({ type: () => Level })
-  level!: SubDocumentType<Level>
-  @prop({ type: () => Rating })
-  rating!: SubDocumentType<Rating>
+  @prop({ required: true })
+  credentials!: Credentials
+  @prop({ required: true })
+  profile!: Profile
+  @prop({ required: true })
+  level!: Level
+  @prop({ required: true, default: 0 })
+  rating!: Rating
   @prop({ required: true })
   role!: USER_ROLE
 
