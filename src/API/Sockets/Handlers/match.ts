@@ -14,7 +14,6 @@ import * as MatchMaking from '../../../Classes/MatchMaking'
 import { ChatManager, MatchFinder } from '../../../Classes'
 import { UserModel } from '../../../Models/index'
 import { Match, Rating } from '../../../Interfaces/index'
-import Aliases from '../../../tmp/plug'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 let MemberList = MatchMaking.MemberList
