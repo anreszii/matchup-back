@@ -6,8 +6,13 @@ export type orders =
   | 'leave'
   | 'changeName'
   | 'changeTag'
+  | 'changeRole'
 
-export type roles = 'owner' | 'moderator' | 'member'
+export const enum roles {
+  owner = 2,
+  moderator = 1,
+  member = 0,
+}
 export class Member {
   @prop({ required: true })
   name!: string
@@ -16,11 +21,11 @@ export class Member {
 
   public hasRightToExecute(order: orders) {
     switch (this.role) {
-      case 'owner':
+      case roles.owner:
         return Owner.hasRightToExecute(order)
-      case 'moderator':
+      case roles.moderator:
         return Moderator.hasRightToExecute(order)
-      case 'member':
+      case roles.moderator:
         return Default.hasRightToExecute(order)
     }
   }

@@ -6,7 +6,7 @@ import {
 } from '@typegoose/typegoose'
 import { validationCause, ValidationError } from '../../error'
 import { UserModel } from '../index'
-import { Info, Member } from './'
+import { Info, Member, roles } from './'
 import { Types } from 'mongoose'
 
 export class Guild {
@@ -68,7 +68,8 @@ export class Guild {
     memberName: string,
   ) {
     let executor = this.getMemberByName(executorName)
-    if (!executor) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!executor)
+      throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('addMember'))
       throw new Error('No rights to execute order')
@@ -82,7 +83,8 @@ export class Guild {
     memberName: string,
   ) {
     let executor = this.getMemberByName(executorName)
-    if (!executor) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!executor)
+      throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('removeMember'))
       throw new Error('No rights to execute order')
@@ -90,7 +92,38 @@ export class Guild {
     return this.save()
   }
 
-  async changeGuildName(this: DocumentType<Guild>, newName: string) {
+  async changeMemberRole(
+    this: DocumentType<Guild>,
+    executorName: string,
+    memberName: string,
+    newRole: roles,
+  ) {
+    let executor = this.getMemberByName(executorName)
+    let member = this.getMemberByName(memberName)
+    if (!executor || !member)
+      throw new ValidationError('member', validationCause.NOT_EXIST)
+
+    if (!executor.hasRightToExecute('changeRole'))
+      throw new Error('No rights to execute order')
+
+    if (executor.role <= newRole || member.role == newRole)
+      throw new ValidationError('role', validationCause.INVALID)
+    member.role = newRole
+    return this.save()
+  }
+
+  async changeGuildName(
+    this: DocumentType<Guild>,
+    executorName: string,
+    newName: string,
+  ) {
+    let executor = this.getMemberByName(executorName)
+    if (!executor)
+      throw new ValidationError('member', validationCause.NOT_EXIST)
+
+    if (!executor.hasRightToExecute('changeName'))
+      throw new Error('No rights to execute order')
+
     if (newName == this.info.name) return false
     if (await GuildModel.getByName(newName))
       throw new ValidationError('guild', validationCause.ALREADY_EXIST)
@@ -100,7 +133,18 @@ export class Guild {
     return this.save()
   }
 
-  async changeTagName(this: DocumentType<Guild>, newTag: string) {
+  async changeTagName(
+    this: DocumentType<Guild>,
+    executorName: string,
+    newTag: string,
+  ) {
+    let executor = this.getMemberByName(executorName)
+    if (!executor)
+      throw new ValidationError('member', validationCause.NOT_EXIST)
+
+    if (!executor.hasRightToExecute('changeTag'))
+      throw new Error('No rights to execute order')
+
     if (newTag == this.info.tag) return false
     if (await GuildModel.getByTag(newTag))
       throw new ValidationError('guild tag', validationCause.ALREADY_EXIST)
