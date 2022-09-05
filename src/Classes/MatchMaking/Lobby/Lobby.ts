@@ -12,6 +12,8 @@ export class Lobby implements Match.Lobby.Instance {
   private _chat?: Chat.Instance
   private _region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _membersGRI: Map<string, number> = new Map()
+  private _maxTeamSize: number = 1
+  private _teamsSize: Map<number, number> = new Map()
 
   constructor(
     private _id: string,
@@ -45,6 +47,14 @@ export class Lobby implements Match.Lobby.Instance {
     return this._chat
   }
 
+  public get region() {
+    return this._region
+  }
+
+  public get GRI() {
+    return getMedian(...this._membersGRI.values())
+  }
+
   public set chat(instance: Chat.Instance | undefined) {
     this._chat = instance as ChatInstance
     for (let member of this.members.toArray) {
@@ -55,14 +65,6 @@ export class Lobby implements Match.Lobby.Instance {
 
   public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
     this._region = value
-  }
-
-  public get region() {
-    return this._region
-  }
-
-  public get GRI() {
-    return getMedian(...this._membersGRI.values())
   }
 
   public async start() {
@@ -79,6 +81,15 @@ export class Lobby implements Match.Lobby.Instance {
 
     this._chat?.addMember({ name: member!.name, role: 'user' })
     this._membersGRI.set(member.name, await UserModel.getGRI(member.name))
+    if (member.teamID) {
+      if (!this._teamsSize.has(member.teamID))
+        this._teamsSize.set(member.teamID, 1)
+      else {
+        let tmp = this._teamsSize.get(member.teamID)!
+        this._teamsSize.set(member.teamID, tmp + 1)
+        this._checkMaxTeamSize()
+      }
+    }
     return true
   }
 
@@ -86,6 +97,12 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._matchController.removeMembers(member))) return false
     if (!this.members.delete(member)) return false
 
+    if (member.teamID) {
+      let tmp = this._teamsSize.get(member.teamID)
+      if (tmp) this._teamsSize.set(member.teamID, tmp - 1)
+
+      this._checkMaxTeamSize()
+    }
     this._chat?.deleteMember({ name: member!.name, role: 'user' })
     return this._membersGRI.delete(member.name)
   }
@@ -135,11 +152,22 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
+  public canAddTeamWithSize(size: number): boolean {
+    if (!this.hasSpace(size)) return false
+    if (size > this._maxTeamSize) return false
+    return true
+  }
+
   public hasSpace(memberCount: number): false | 'command1' | 'command2' {
     if (5 - this.members.quantityOfFirstCommandMembers >= memberCount)
       return 'command1'
     if (5 - this.members.quantityOfSecondCommandMembers >= memberCount)
       return 'command1'
     return false
+  }
+
+  private _checkMaxTeamSize() {
+    for (let [id, teamSize] of this._teamsSize)
+      if (teamSize > this._maxTeamSize) this._maxTeamSize = teamSize
   }
 }

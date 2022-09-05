@@ -18,6 +18,8 @@ export declare interface ILobby extends IEntity<string> {
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
+  canAddTeamWithSize(size: number): boolean
+
   hasSpace(
     memberCount: number,
   ): Exclude<Match.Member.command, 'spectator' | 'neutral'> | false
