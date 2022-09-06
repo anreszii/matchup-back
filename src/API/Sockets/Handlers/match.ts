@@ -50,7 +50,7 @@ setInterval(async () => {
  *  chat_id: string
  * }
  * ```
- * Все события из чата матча будут приходить на event lobby_chat в формате:
+ * Все события из чата матча будут приходить на event chat в формате:
  *
  
  * ```json
@@ -74,7 +74,7 @@ export async function find_lobby(escort: IDataEscort) {
     let username = escort.get('username')
     if (!username || typeof username != 'string')
       throw new ValidationError('user', validationCause.INVALID_FORMAT)
-    if (!(await UserModel.getByName(username)))
+    if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
     let Finder = new MatchFinder(StandOffLobbies)
@@ -429,7 +429,7 @@ export async function update_member(escort: IDataEscort) {
  *  complete: true
  * }
  * ```
- * Все события из чата матча будут приходить на event lobby_chat в формате:
+ * Все события из чата матча будут приходить на event chat в формате:
  *
  * ```json
  * {
@@ -512,7 +512,7 @@ export async function send_to_chat(escort: IDataEscort) {
  *  chat_id?: team#number
  * }
  * ```
- * Все события из чата матча будут приходить на event lobby_chat в формате:
+ * Все события из чата матча будут приходить на event chat в формате:
  *
  * ```json
  * {
@@ -535,7 +535,7 @@ export async function join_team(escort: IDataEscort) {
     let username = escort.get('username')
     if (!username || typeof username != 'string')
       throw new ValidationError('user', validationCause.INVALID_FORMAT)
-    if (!(await UserModel.getByName(username)))
+    if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
     let teamID = escort.get('team_id')
@@ -604,7 +604,7 @@ export async function leave_team(escort: IDataEscort) {
     let username = escort.get('username')
     if (!username || typeof username != 'string')
       throw new ValidationError('user', validationCause.INVALID_FORMAT)
-    if (!(await UserModel.getByName(username)))
+    if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
     let teamID = escort.get('team_id')

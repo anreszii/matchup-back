@@ -42,7 +42,7 @@ export async function get_users(escort: IDataEscort) {
 
     if (typeof userNameToFind != 'string')
       throw new ValidationError('username', validationCause.INVALID_FORMAT)
-    let user = await UserModel.getByName(userNameToFind)
+    let user = await UserModel.findByName(userNameToFind)
     if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
     return clientServer.control(socketID).emit('get_users', user.toJSON())

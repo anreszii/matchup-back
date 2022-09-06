@@ -23,7 +23,7 @@ router.put(
       } = req.body.user
       let username = req.body.payload.username as string
 
-      let user = await UserModel.getByName(username)
+      let user = await UserModel.findByName(username)
       if (!user) throw new ValidationError('user', cause.NOT_EXIST)
 
       if (id) user.id = id
