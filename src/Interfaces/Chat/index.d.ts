@@ -35,6 +35,7 @@ export declare namespace Chat {
     spawn(
       controller: Chat.Controller.Factory.supportedControllers,
       options?: { [key: string]: string },
+      customID?: string,
     ): Chat.Instance
   }
   type userRole = 'user' | 'moderator'

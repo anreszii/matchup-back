@@ -1,7 +1,7 @@
 import type { Chat } from '../../Interfaces'
 export class ChatInstance implements Chat.Instance {
   constructor(
-    private _id: number,
+    private _id: number | string,
     private _controller: Chat.Controller.Instance,
   ) {}
   public get controller() {
@@ -15,7 +15,7 @@ export class ChatInstance implements Chat.Instance {
     this._controller.send(
       JSON.stringify({
         from: 'system',
-        message: `${member!.name} joined`,
+        message: `${member!.name} joined chat`,
       }),
     )
     return this._controller.addMember(member)
@@ -25,7 +25,7 @@ export class ChatInstance implements Chat.Instance {
     this._controller.send(
       JSON.stringify({
         from: 'system',
-        message: `${member!.name} leaved`,
+        message: `${member!.name} leaved chat`,
       }),
     )
     return this._controller.deleteMember(member)

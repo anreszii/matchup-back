@@ -35,7 +35,7 @@ export class Gamesocket implements Chat.Controller.Instance {
   }
 
   /**
-   * отправляет сообщение формата:
+   * отправляет сообщение формата на ивент chat:
    
  * ```json
  * {
@@ -52,7 +52,7 @@ export class Gamesocket implements Chat.Controller.Instance {
   public send(message: string): boolean {
     this._nmsp
       .control(this._roomName)
-      .emit(`lobby_chat`, { chat_id: this._roomName, message })
+      .emit(`chat`, { chat_id: this._roomName, message })
     return true
   }
 
