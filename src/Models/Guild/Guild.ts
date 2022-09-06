@@ -14,6 +14,8 @@ export class Guild {
   memberList!: Types.Array<Member>
   @prop({ required: true })
   info!: Info
+  @prop({ required: false })
+  isPrivate!: boolean
 
   static async create(
     this: ReturnModelType<typeof Guild>,
@@ -21,7 +23,7 @@ export class Guild {
     guildName: string,
     memberName: string,
   ) {
-    let user = await UserModel.getByName(memberName)
+    let user = await UserModel.findByName(memberName)
     if (!user) throw new ValidationError('user', validationCause.INVALID)
 
     let guild = new this()
@@ -62,10 +64,18 @@ export class Guild {
     return false
   }
 
+  hasMember(name: string) {
+    for (let i = 0; i < this.memberList.length; i++)
+      if (this.memberList[i].name == name) return true
+
+    return false
+  }
+
   async addMember(
     this: DocumentType<Guild>,
     executorName: string,
     memberName: string,
+    mpr: number,
   ) {
     let executor = this.getMemberByName(executorName)
     if (!executor)
@@ -73,8 +83,33 @@ export class Guild {
 
     if (!executor.hasRightToExecute('addMember'))
       throw new Error('No rights to execute order')
-    this.memberList.push({ name: memberName, role: 'member' })
+    this.memberList.push({ name: memberName, role: 'member', mpr: mpr })
     return this.save()
+  }
+
+  async join(this: DocumentType<Guild>, memberName: string) {
+    let User = await UserModel.findByName(memberName)
+    if (!User) return
+
+    if (!this.isPrivate) {
+      if (User.getGRI() < this.info.requiredMPR) throw Error('low MPR')
+
+      this.memberList.push({
+        name: memberName,
+        user: User._id,
+        role: roles.member,
+      })
+      await User.joinGuild(this._id)
+      return this.save()
+    }
+  }
+
+  async leave(this: DocumentType<Guild>, memberName: string) {
+    if (this.deleteMemberByName(memberName)) {
+      let User = await UserModel.findByName(memberName)
+      await User.leaveGuild()
+      return this.save()
+    }
   }
 
   async removeMember(
@@ -151,6 +186,16 @@ export class Guild {
 
     this.info.tag = newTag
     await this.validate()
+    return this.save()
+  }
+
+  async makePrivate(this: DocumentType<Guild>) {
+    this.isPrivate = true
+    return this.save()
+  }
+
+  async makePublic(this: DocumentType<Guild>) {
+    this.isPrivate = false
     return this.save()
   }
 }

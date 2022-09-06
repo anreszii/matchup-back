@@ -1,4 +1,5 @@
-import { prop, DocumentType } from '@typegoose/typegoose'
+import { prop, DocumentType, Ref } from '@typegoose/typegoose'
+import { User } from '../index'
 
 export type orders =
   | 'addMember'
@@ -16,6 +17,8 @@ export const enum roles {
 export class Member {
   @prop({ required: true })
   name!: string
+  @prop({ required: true, ref: () => User })
+  id!: Ref<User>
   @prop({ required: true })
   role!: roles
 
