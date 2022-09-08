@@ -8,6 +8,7 @@ import { validationCause, ValidationError } from '../../error'
 import { UserModel } from '../index'
 import { Info, Member, roles } from './'
 import { Types } from 'mongoose'
+import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
 export class Guild {
   @prop({ required: true, default: [] })
@@ -17,31 +18,32 @@ export class Guild {
   @prop({ required: false })
   isPrivate!: boolean
 
-  static async create(
+  static async new(
     this: ReturnModelType<typeof Guild>,
     tag: string,
     guildName: string,
-    memberName: string,
+    ownerName: string,
   ) {
-    let user = await UserModel.findByName(memberName)
+    let user = await UserModel.findByName(ownerName)
     if (!user) throw new ValidationError('user', validationCause.INVALID)
+    await user.buy(PRICE_OF_GUILD_CREATION)
 
     let guild = new this()
-    guild.memberList.push({ role: 'owner', name: memberName })
+    guild.memberList.push({ role: 'owner', name: ownerName })
     guild.info.name = guildName
     guild.info.tag = tag
     await guild.validate()
     return guild.save()
   }
 
-  static async getByName(
+  static async findByName(
     this: ReturnModelType<typeof Guild>,
     guildName: string,
   ) {
     return this.findOne({ 'info.name': guildName })
   }
 
-  static async getByTag(this: ReturnModelType<typeof Guild>, tag: string) {
+  static async findByTag(this: ReturnModelType<typeof Guild>, tag: string) {
     return this.findOne({ 'info.tag': tag })
   }
 
@@ -160,7 +162,7 @@ export class Guild {
       throw new Error('No rights to execute order')
 
     if (newName == this.info.name) return false
-    if (await GuildModel.getByName(newName))
+    if (await GuildModel.findByName(newName))
       throw new ValidationError('guild', validationCause.ALREADY_EXIST)
 
     this.info.name = newName
@@ -181,7 +183,7 @@ export class Guild {
       throw new Error('No rights to execute order')
 
     if (newTag == this.info.tag) return false
-    if (await GuildModel.getByTag(newTag))
+    if (await GuildModel.findByTag(newTag))
       throw new ValidationError('guild tag', validationCause.ALREADY_EXIST)
 
     this.info.tag = newTag

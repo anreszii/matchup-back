@@ -3,16 +3,19 @@ import {
   getModelForClass,
   ReturnModelType,
   DocumentType,
+  Ref,
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
 
-import type { USER_ROLE } from '../../Interfaces'
+import type { USER_PREFIX, USER_ROLE } from '../../Interfaces'
 import { Credentials } from './Credentials'
 import { Level } from './Level'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
+import { Guild, GuildModel } from '../index'
+import { Types } from 'mongoose'
 
 export class User {
   @prop({
@@ -36,8 +39,12 @@ export class User {
   rating!: Rating
   @prop({ required: true })
   role!: USER_ROLE
+  @prop()
+  prefix?: USER_PREFIX
+  @prop({ required: true, ref: () => Guild })
+  guild?: Ref<Guild>
 
-  public static async getByName(
+  public static async findByName(
     this: ReturnModelType<typeof User>,
     name: string,
   ): Promise<DocumentType<User>> {
@@ -143,7 +150,7 @@ export class User {
     if (!name) throw new ValidationError('name', validationCause.REQUIRED)
     if (this.hasFriend(name)) return
 
-    let user = await UserModel.getByName(name)
+    let user = await UserModel.findByName(name)
     if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
@@ -160,7 +167,7 @@ export class User {
     if (!name) throw new ValidationError('name', validationCause.REQUIRED)
     if (!this.hasFriend(name)) return
 
-    let user = await UserModel.getByName(name)
+    let user = await UserModel.findByName(name)
     if (!user?.hasFriend(this.profile.username)) return
 
     await this.deleteFriend(name)
@@ -169,8 +176,26 @@ export class User {
     return this.addSubscriber(name)
   }
 
+  /* GUILD */
+
+  public async joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
+    let Guild = await GuildModel.findById(guildID)
+    if (!Guild || !Guild.hasMember(this.profile.username)) return
+
+    this.guild = guildID
+    return this.save()
+  }
+
+  public async leaveGuild(this: DocumentType<User>) {}
+
   public getGRI(this: DocumentType<User>) {
     return this.rating.GRI
+  }
+
+  public async buy(this: DocumentType<User>, itemPrice: number) {
+    if (itemPrice < 0) throw new Error('Need more money')
+    this.profile.balance -= itemPrice
+    return this.save()
   }
 }
 
