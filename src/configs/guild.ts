@@ -1,0 +1,1 @@
+export const PRICE_OF_GUILD_CREATION = 1000

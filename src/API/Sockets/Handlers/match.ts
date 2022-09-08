@@ -13,7 +13,7 @@ import { WebSocketValidatior } from '../../../validation'
 import * as MatchMaking from '../../../Classes/MatchMaking'
 import { ChatManager, MatchFinder } from '../../../Classes'
 import { UserModel } from '../../../Models/index'
-import { Match, Rating } from '../../../Interfaces/index'
+import { Rating } from '../../../Interfaces/index'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 let MemberList = MatchMaking.MemberList
@@ -28,7 +28,7 @@ let LobbyChatManager = new ChatManager()
 
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies)
-    if (!lobby.chat) createChatForLobby(lobby)
+    if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
 }, 1000 * 3)
 
 /**
@@ -91,7 +91,7 @@ export async function find_lobby(escort: IDataEscort) {
       Finder.filterByTeamSize(team.membersCount)
       let lobby = await Finder.findLobby()
 
-      if (!lobby.chat) createChatForLobby(lobby)
+      if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
 
       for (let member of team.check()) await lobby.addMember(member)
       return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
@@ -103,7 +103,7 @@ export async function find_lobby(escort: IDataEscort) {
     Finder.filterByTeamSize(1)
     Finder.filterByGRI(await UserModel.getGRI(username))
     let lobby = await Finder.findLobby()
-    if (!lobby.chat) createChatForLobby(lobby)
+    if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
     await lobby.addMember({
       name: username,
       readyFlag: false,
@@ -709,11 +709,9 @@ function isCorrectRegion(
   return false
 }
 
-function createChatForLobby(lobby: Match.Lobby.Instance): void {
-  if (!lobby.chat) {
-    lobby.chat = LobbyChatManager.spawn('gamesocket.io', {
-      namespace: process.env.CLIENT_NAMESPACE!,
-      room: `lobby#${lobby.id}`,
-    })
-  }
+function createChatForLobby(lobbyID: string) {
+  return LobbyChatManager.spawn('gamesocket.io', {
+    namespace: process.env.CLIENT_NAMESPACE!,
+    room: `lobby#${lobbyID}`,
+  })
 }

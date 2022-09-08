@@ -5,8 +5,9 @@ import { MatchUpError, validationCause, ValidationError } from '../../../error'
 import { WebSocketValidatior } from '../../../validation'
 import { MatchListModel, ReportListModel, UserModel } from '../../../Models'
 import { USER_ROLE } from '../../../Interfaces'
+import { WS_SERVER } from '../../../app'
 
-let wsValidator = new WebSocketValidatior(app)
+let wsValidator = new WebSocketValidatior(WS_SERVER)
 
 /**
  * Событие для получения списка пользователей. </br>
@@ -29,7 +30,7 @@ export async function get_users(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as USER_ROLE
+    let role = WS_SERVER.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
 
@@ -86,7 +87,7 @@ export async function get_reports(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as USER_ROLE
+    let role = WS_SERVER.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
     let reportID = escort.get('reportID')
@@ -141,7 +142,7 @@ export async function get_matchs(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let role = app.sockets.get(socketID)!.role as USER_ROLE
+    let role = WS_SERVER.sockets.get(socketID)!.role as USER_ROLE
     if (role != 'admin')
       throw new ValidationError('user role', validationCause.INVALID)
     let matchID = escort.get('matchID')
