@@ -1,4 +1,5 @@
 import type { Response } from 'express'
+require('dotenv').config()
 
 import io from 'gamesocket.io'
 
@@ -6,8 +7,6 @@ import express = require('express')
 import fileUploader = require('express-fileupload')
 
 import mongoose from 'mongoose'
-
-require('dotenv').config()
 
 export const WS_SERVER = io()
 

@@ -31,7 +31,7 @@ export declare namespace Chat {
       }
     }
   }
-  interface Manager extends IManager<Chat.Instance, number> {
+  interface Manager extends IManager<Chat.Instance, string | number> {
     spawn(
       controller: Chat.Controller.Factory.supportedControllers,
       options?: { [key: string]: string },

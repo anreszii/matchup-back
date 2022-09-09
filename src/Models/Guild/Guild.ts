@@ -6,7 +6,8 @@ import {
 } from '@typegoose/typegoose'
 import { validationCause, ValidationError } from '../../error'
 import { UserModel } from '../index'
-import { Info, Member, roles } from './'
+import { Info } from './GuildInfo'
+import { Member, roles } from './Member'
 import { Types } from 'mongoose'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
