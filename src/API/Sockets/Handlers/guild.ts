@@ -145,6 +145,27 @@ export async function leave_guild(escort: IDataEscort) {
 }
 clientServer.on('leave_guild', leave_guild)
 
+/**
+ * Событие для выхода из гильдии </br>
+ * Используемый пакет:
+ *
+ * ```ts
+ * {
+ *    guildName: string
+ *    guildTag: string
+ *    userName: string
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *    status: true
+ * }
+ * ```
+ * @category Guild
+ * @event
+ */
 export async function create_guild(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
@@ -172,6 +193,7 @@ export async function create_guild(escort: IDataEscort) {
 
     let chat = createGuildChat(guildName)
     chat.addMember({ name: userName, role: 'user' })
+    clientServer.control(socketID).emit('create_guild', { status: true })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
