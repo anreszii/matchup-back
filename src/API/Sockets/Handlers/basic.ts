@@ -63,6 +63,7 @@ export function authorize(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('authorize', authorize)
 
 /**
  * Событие для смены роли сокета пользователя. </br>
@@ -123,3 +124,4 @@ export function change_role(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('change_role', change_role)

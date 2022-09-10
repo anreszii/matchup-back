@@ -21,7 +21,7 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  * @category User
  * @event
  */
-export async function get_statistic(escort: IDataEscort) {
+export async function load_statistic(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -55,3 +55,4 @@ export async function get_statistic(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('load_statistic', load_statistic)

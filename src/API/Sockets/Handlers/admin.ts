@@ -25,7 +25,7 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  * @category Admin
  * @event
  */
-export async function get_users(escort: IDataEscort) {
+export async function load_users(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -65,6 +65,7 @@ export async function get_users(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('load_users', load_users)
 
 /**
  * Событие для получения репортов. </br>
@@ -82,7 +83,7 @@ export async function get_users(escort: IDataEscort) {
  * @category Admin
  * @event
  */
-export async function get_reports(escort: IDataEscort) {
+export async function load_reports(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -120,6 +121,7 @@ export async function get_reports(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('load_reports', load_reports)
 
 /**
  * Событие для получения результатов матчей. </br>
@@ -137,7 +139,7 @@ export async function get_reports(escort: IDataEscort) {
  * @category Admin
  * @event
  */
-export async function get_matchs(escort: IDataEscort) {
+export async function load_matchs(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -175,3 +177,4 @@ export async function get_matchs(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('load_matchs', load_matchs)

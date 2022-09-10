@@ -132,6 +132,7 @@ export async function find_lobby(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('find_lobby', find_lobby)
 
 /**
  * Событие для ручной синхронизации пользователя с лобби.</br>
@@ -191,6 +192,7 @@ export async function sync_lobby(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('sync_lobby', sync_lobby)
 
 /**
  * Событие для добавления пользователя в лобби.</br>
@@ -258,6 +260,7 @@ export async function add_member(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('add_member', add_member)
 
 /**
  * Событие для удаления пользователя из лобби.</br>
@@ -329,6 +332,7 @@ export async function remove_member(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('remove_member', remove_member)
 
 /**
  * Событие для обновления статуса пользователя со стороны клиента.</br>
@@ -410,6 +414,7 @@ export async function update_member(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('update_member', update_member)
 
 /**
  * Событие для отправки сообщения в лобби.</br>
@@ -493,6 +498,7 @@ export async function send_to_chat(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('send_to_chat', send_to_chat)
 
 /**
  * Событие для присоединения к команде.</br>
@@ -575,6 +581,7 @@ export async function join_team(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('join_team', join_team)
 
 /**
  * Событие для выхода из команды.</br>
@@ -645,6 +652,7 @@ export async function leave_team(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('leave_team', leave_team)
 
 /**
  * Событие для проверки членов команды.</br>
@@ -700,6 +708,7 @@ export async function check_team(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('check_team', check_team)
 
 function isCorrectRegion(
   region: string,

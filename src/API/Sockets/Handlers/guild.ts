@@ -11,7 +11,6 @@ import { ChatManager } from '../../../Classes/index'
 
 export let GuildChatManager = new ChatManager(true)
 let wsValidator = new WebSocketValidatior(WS_SERVER)
-let IDStorage = new Map()
 
 /**
  * Событие для вступления в гильдию </br>
@@ -79,6 +78,7 @@ export async function join_guild(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('join_guild', join_guild)
 
 /**
  * Событие для выхода из гильдии </br>
@@ -143,6 +143,7 @@ export async function leave_guild(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('leave_guild', leave_guild)
 
 export async function create_guild(escort: IDataEscort) {
   try {
@@ -189,6 +190,7 @@ export async function create_guild(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('create_guild', create_guild)
 
 function findGuildChat(guildName: string) {
   return GuildChatManager.get(guildName)

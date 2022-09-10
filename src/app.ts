@@ -24,6 +24,7 @@ mongoose.connect(
   },
 )
 require('./Models')
+require('./API/Sockets')
 app.use(require('./API/HTTP'))
 
 app.use(function (_: any, _1: any, next: any) {
