@@ -7,7 +7,7 @@ export class List<T extends Object> {
   protected _elements: Array<T | undefined> = new Array()
   /**
    * Специальное значение, которое используется для определения свободных мест внутри массива
-   * в случае, если будет указан настраеваемый undefined, движок TurboFan сможет сделать дополнительные оптимизации
+   * в случае, если будет указан настраеваемый undefined, движок V8 сможет сделать дополнительные оптимизации
    */
   protected _undefined: undefined | T
 
