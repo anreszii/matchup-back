@@ -3,7 +3,7 @@ import { WS_SERVER } from '../../../app'
 import type { Chat } from '../../../Interfaces'
 import Aliases, { AliasMap } from '../../../tmp/plug'
 
-export class Gamesocket implements Chat.Controller.Instance {
+module.exports = class Gamesocket implements Chat.Controller.Instance {
   private _map!: AliasMap
   private _nmsp!: Namespace
   private _roomName!: string

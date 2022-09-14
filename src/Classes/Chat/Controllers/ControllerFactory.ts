@@ -1,5 +1,4 @@
 import type { Chat } from '../../../Interfaces'
-import * as list from './controllerList'
 
 export class Factory implements Chat.Controller.Factory.Interface {
   /**
@@ -25,8 +24,9 @@ export class Factory implements Chat.Controller.Factory.Interface {
     let optionCounter = 0
     switch (controllerName) {
       case 'gamesocket.io': {
+        let GameSocketController = require('./GamesocketController')
         //считывает, сколько опций не хватило для корректной работы контроллера
-        controller = new list.Gamesocket()
+        controller = new GameSocketController()
         if (options?.namespace) {
           controller.namespace = options.namespace
           optionCounter++
