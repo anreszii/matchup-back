@@ -1,3 +1,6 @@
+import type { USER_PREFIX, USER_ROLE } from '../../Interfaces'
+import type { Types } from 'mongoose'
+
 import {
   prop,
   getModelForClass,
@@ -7,15 +10,12 @@ import {
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
-
-import type { USER_PREFIX, USER_ROLE } from '../../Interfaces'
 import { Credentials } from './Credentials'
 import { Level } from './Level'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
 import { Guild, GuildModel } from '../index'
-import { Types } from 'mongoose'
 
 export class User {
   @prop({
@@ -41,7 +41,7 @@ export class User {
   role!: USER_ROLE
   @prop()
   prefix?: USER_PREFIX
-  @prop({ required: true, ref: () => Guild })
+  @prop({ ref: () => Guild })
   guild?: Ref<Guild>
 
   public static async findByName(
