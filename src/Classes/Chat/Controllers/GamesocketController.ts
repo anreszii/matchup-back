@@ -1,15 +1,12 @@
 import { Namespace } from 'gamesocket.io'
 import { WS_SERVER } from '../../../app'
 import type { Chat } from '../../../Interfaces'
-import Aliases, { AliasMap } from '../../../tmp/plug'
 
 module.exports = class Gamesocket implements Chat.Controller.Instance {
-  private _map!: AliasMap
   private _nmsp!: Namespace
   private _roomName!: string
   constructor(nmsp?: string) {
     if (nmsp) {
-      this._map = Aliases.get(nmsp)
       this._nmsp = WS_SERVER.of(nmsp)
     }
   }
@@ -19,7 +16,7 @@ module.exports = class Gamesocket implements Chat.Controller.Instance {
   }
 
   public addMember(member: Chat.Member): boolean {
-    let IDs = this._map.get(member.name)
+    let IDs = this._nmsp.Aliases.get(member.name)
     if (!IDs) return false
 
     this._nmsp.control(this._roomName).join(IDs)
@@ -27,7 +24,7 @@ module.exports = class Gamesocket implements Chat.Controller.Instance {
   }
 
   public deleteMember(member: Chat.Member): boolean {
-    let IDs = this._map.get(member.name)
+    let IDs = this._nmsp.Aliases.get(member.name)
     if (!IDs) return false
 
     this._nmsp.control(this._roomName).leave(IDs)
@@ -57,7 +54,6 @@ module.exports = class Gamesocket implements Chat.Controller.Instance {
   }
 
   set namespace(value: string) {
-    this._map = Aliases.get(value)
     this._nmsp = WS_SERVER.of(value)
   }
 
