@@ -1,4 +1,10 @@
-import { Client, Collection, GatewayIntentBits, OAuth2Guild } from 'discord.js'
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Guild,
+  OAuth2Guild,
+} from 'discord.js'
 import type { Match } from '../../Interfaces/index'
 import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
@@ -15,10 +21,14 @@ export class DiscordClient {
       this._guilds = await this.client.guilds.fetch()
     })
   }
-  public async createChannelsForMatch(guildName: string, teamID: string) {
+  public async createChannelsForMatch(guild: string | Guild, teamID: string) {
     let voiceChannels = new Array()
-    let guild = await this.getGuildByName(guildName)
-    if (!guild) return
+    if (typeof guild == 'string') {
+      let tmp = await this.getGuildByName(guild)
+      if (!tmp) return
+
+      guild = tmp
+    }
 
     voiceChannels.push(
       await DiscordChannelManager.createChannelForTeam(
@@ -94,6 +104,19 @@ export class DiscordClient {
 
   public get guilds() {
     return this._updateGuilds()
+  }
+
+  public get guildWithFreeChannelsForVoice() {
+    return this._updateGuilds().then(async (guilds) => {
+      for (let [_, guild] of guilds) {
+        let tmp = await guild.fetch().then((fetchedGuild) => {
+          if (fetchedGuild.channels.channelCountWithoutThreads <= 498)
+            return fetchedGuild
+        })
+
+        if (tmp) return tmp
+      }
+    })
   }
 
   private async _getMembersFromGuild(guildName: string) {
