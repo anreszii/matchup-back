@@ -7,14 +7,14 @@ type PlayerCommand = Exclude<Match.Member.command, 'spectator' | 'neutral'>
 export class StateManager {
   constructor(public state: VoiceState, private _client: DiscordClient) {}
 
-  public get teamId() {
+  public get memberTeamID() {
     let role = this.state.member?.roles.cache.find((role) => {
-      if (!role.name.startsWith('team')) return false
+      if (!role.name.startsWith('mm_team')) return false
       return true
     })
 
     if (!role) return
-    return role.name.slice(5)
+    return role.name.slice('mm_team'.length)
   }
 
   public getRole(roleName: string) {
@@ -25,14 +25,14 @@ export class StateManager {
   }
 
   public get memberCommand() {
-    if (this.getRole('command1')) return 'command1'
-    if (this.getRole('command2')) return 'command2'
+    if (this.getRole('mm_command1')) return 'command1'
+    if (this.getRole('mm_command2')) return 'command2'
     return
   }
 
   public get channelCommand() {
-    if (this.state.channel?.name.startsWith('command1')) return 'command1'
-    if (this.state.channel?.name.startsWith('command2')) return 'command2'
+    if (this.state.channel?.name.includes('mm_command1')) return 'command1'
+    if (this.state.channel?.name.includes('mm_command2')) return 'command2'
     return
   }
 
@@ -42,7 +42,7 @@ export class StateManager {
 
   public get isCommandVoice() {
     if (
-      !this.channelName?.startsWith('command') ||
+      !this.channelName?.startsWith('mm_command') ||
       !this.state.channel?.isVoiceBased
     )
       return false

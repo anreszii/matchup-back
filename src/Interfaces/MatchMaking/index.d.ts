@@ -3,6 +3,7 @@ import type { MatchController } from './Controller'
 import type { IManager } from '../'
 import type { IStatistic } from './Statistic'
 import type { TeamsManager, ITeam } from './Team'
+import { DiscordClient } from '../../Classes/Discord/Client'
 
 export declare namespace Match {
   namespace Manager {
@@ -12,7 +13,10 @@ export declare namespace Match {
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
-    interface Instance extends ILobby {}
+    interface Instance extends ILobby {
+      set dsClient(client: DiscordClient | undefined)
+      get dsClient(): DiscordClient | undefined
+    }
     type status = 'searching' | 'filled' | 'started'
   }
   namespace Member {

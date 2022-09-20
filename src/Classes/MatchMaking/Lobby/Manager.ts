@@ -25,6 +25,7 @@ export class LobbyManager implements Match.Manager.Instance {
 
     let lobby = new Lobby(ID, this._controller)
     this._lobbyMap.set(ID, lobby)
+    lobby.dsClient = this._dsClient
 
     return lobby
   }

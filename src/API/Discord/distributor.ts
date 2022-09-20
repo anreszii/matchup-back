@@ -7,7 +7,7 @@ export function distribute(manager: StateManager) {
   let memberCommand = manager.memberCommand
   if (!memberCommand) return
 
-  let teamID = manager.teamId
+  let teamID = manager.memberTeamID
   if (!teamID) return
 
   manager.channel = {
