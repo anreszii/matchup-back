@@ -37,7 +37,7 @@ export class User {
   level!: Level
   @prop({ required: true, default: 0 })
   rating!: Rating
-  @prop({ required: true })
+  @prop({ required: true, default: 'default' })
   role!: USER_ROLE
   @prop()
   prefix?: USER_PREFIX

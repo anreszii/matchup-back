@@ -47,6 +47,7 @@ router.put(
         nickname: user.profile.nickname,
         region: user.credentials.region,
         email: user.credentials.email,
+        role: user.role,
       })
 
       res.status(201).json({ token: token })
