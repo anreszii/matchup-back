@@ -29,10 +29,11 @@ export class Guild {
     if (!user) throw new ValidationError('user', validationCause.INVALID)
     await user.buy(PRICE_OF_GUILD_CREATION)
 
-    let guild = new this()
-    guild.memberList.push({ role: 'owner', name: ownerName })
-    guild.info.name = guildName
-    guild.info.tag = tag
+    let guild = new this({
+      info: { name: guildName, tag: tag },
+      memberlist: [{ role: 'owner', name: ownerName }],
+    })
+
     await guild.validate()
     return guild.save()
   }

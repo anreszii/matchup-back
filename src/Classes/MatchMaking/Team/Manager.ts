@@ -25,4 +25,13 @@ export class TeamManager implements Match.Team.Manager {
   public has(teamID: number): boolean {
     return !this._teams.isUndefined(teamID)
   }
+
+  public findByUser(username: string): Match.Team.Instance | undefined {
+    for (let team of this._teams.values()) {
+      if (!team) continue
+      for (let member of team.check()) {
+        if (member.name == username) return team
+      }
+    }
+  }
 }

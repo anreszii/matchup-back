@@ -16,7 +16,6 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  *
  * ```ts
  * {
- *  token: string //полученный при авторизации пользователя
  *  username?: string //поиск по имени внутри приложения
  * }
  * ```
@@ -74,7 +73,6 @@ clientServer.on('load_users', load_users)
  *
  * ```ts
  * {
- *  token: string //полученный при авторизации пользователя
  *  reportID?: number //ID репорта, который нужно посмотреть
  * }
  * ```
@@ -130,7 +128,6 @@ clientServer.on('load_reports', load_reports)
  *
  * ```ts
  * {
- *  token: string //полученный при авторизации пользователя
  *  matchID?: string //ID матча, который нужно посмотреть
  * }
  * ```

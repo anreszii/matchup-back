@@ -12,13 +12,13 @@ export class WebSocketValidatior {
   public validateSocket(socketID: string): void | never {
     let socket = this._getSocket(socketID)
 
-    if (!socket.authotize)
+    if (!socket.isAuth)
       throw new ValidationError('socket', validationCause.INVALID)
   }
 
   public authorizeSocket(socketID: string) {
     let socket = this._getSocket(socketID)
-    socket.authorize = true
+    socket.isAuth = true
   }
 
   private _getSocket(socketID: string) {
