@@ -90,8 +90,6 @@ router.post('/registration', async (req, res, next) => {
       credentials: { email, region },
     })
 
-    console.log(user)
-
     validatePasswordFormat(password)
     user.setPassword(password)
 

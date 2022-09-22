@@ -30,14 +30,17 @@ export class User {
     },
   })
   id!: number
-  @prop({ required: true, type: () => Credentials, default: new Credentials() })
-  credentials!: SubDocumentType<Credentials>
-  @prop({ required: true, type: () => Profile, default: new Profile() })
-  profile!: SubDocumentType<Profile>
-  @prop({ required: true, type: () => Level, default: new Level() })
-  level!: SubDocumentType<Level>
-  @prop({ required: true, type: () => Rating, default: new Rating() })
-  rating!: SubDocumentType<Rating>
+  @prop({ required: true })
+  credentials!: Credentials
+  @prop({ required: true })
+  profile!: Profile
+  @prop({
+    required: true,
+    default: { currentBPLevel: 0, currentRequiredEXP: 0, currentEXP: 0 },
+  })
+  level!: Level
+  @prop({ required: true, default: { GRI: 0, GS: 0, GSI: 1, WS: 0, LC: 0 } })
+  rating!: Rating
   @prop({ required: true, default: 'default' })
   role!: USER_ROLE
   @prop()

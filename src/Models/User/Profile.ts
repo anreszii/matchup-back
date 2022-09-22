@@ -30,8 +30,8 @@ export class Profile {
   balance!: number
   @prop()
   avatar?: string
-  @prop({ required: true, type: () => Relations, default: new Relations() })
-  relations!: SubDocumentType<Relations>
+  @prop({ required: true, default: new Relations() })
+  relations!: Relations
   @prop()
   tag?: string
 }
