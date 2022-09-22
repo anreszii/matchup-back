@@ -20,7 +20,7 @@ router.put(
         password,
         nickname,
         id,
-      } = req.body.user
+      } = req.body
       let username = req.body.payload.username as string
 
       let user = await UserModel.findByName(username)
@@ -59,7 +59,7 @@ router.put(
 
 router.post('/login', async (req, res, next) => {
   try {
-    let { username, password } = req.body.user
+    let { username, password } = req.body
     if (!username) throw new ValidationError('username', cause.REQUIRED)
     if (!password) throw new ValidationError('password', cause.REQUIRED)
 
@@ -83,7 +83,7 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/registration', async (req, res, next) => {
   try {
-    let { username, password, id, nickname, email, region } = req.body.user
+    let { username, password, id, nickname, email, region } = req.body
     let user = new UserModel({
       id,
       profile: { username, nickname },
@@ -106,7 +106,7 @@ router.post('/registration', async (req, res, next) => {
 
 router.put('/recover', async (req, res, next) => {
   try {
-    let { email } = req.body.user
+    let { email } = req.body
     if (!email) throw new ValidationError('email', cause.REQUIRED)
 
     let user = await UserModel.findOne({ email })
