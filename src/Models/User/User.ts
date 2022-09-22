@@ -57,6 +57,15 @@ export class User {
     }).exec() as unknown as DocumentType<User>
   }
 
+  public static async findByEmail(
+    this: ReturnModelType<typeof User>,
+    email: string,
+  ) {
+    return this.findOne({
+      'credentials.email': email,
+    }).exec() as unknown as DocumentType<User>
+  }
+
   public static async getGRI(
     this: ReturnModelType<typeof User>,
     name: string,
@@ -70,7 +79,7 @@ export class User {
 
   /* PASSWORD */
 
-  public async validatePassword(this: DocumentType<User>, password: string) {
+  public validatePassword(this: DocumentType<User>, password: string) {
     if (!password)
       throw new ValidationError('password', validationCause.REQUIRED)
 
