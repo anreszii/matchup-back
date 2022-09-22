@@ -1,4 +1,4 @@
-import { prop } from '@typegoose/typegoose'
+import { prop, SubDocumentType } from '@typegoose/typegoose'
 import { Relations } from '../Relations.js'
 
 export class Profile {
@@ -30,8 +30,8 @@ export class Profile {
   balance!: number
   @prop()
   avatar?: string
-  @prop()
-  relations!: Relations
+  @prop({ required: true, type: () => Relations, default: new Relations() })
+  relations!: SubDocumentType<Relations>
   @prop()
   tag?: string
 }

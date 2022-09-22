@@ -7,6 +7,7 @@ import {
   ReturnModelType,
   DocumentType,
   Ref,
+  SubDocumentType,
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
@@ -29,14 +30,14 @@ export class User {
     },
   })
   id!: number
-  @prop({ required: true })
-  credentials!: Credentials
-  @prop({ required: true })
-  profile!: Profile
-  @prop({ required: true })
-  level!: Level
-  @prop({ required: true, default: 0 })
-  rating!: Rating
+  @prop({ required: true, type: () => Credentials, default: new Credentials() })
+  credentials!: SubDocumentType<Credentials>
+  @prop({ required: true, type: () => Profile, default: new Profile() })
+  profile!: SubDocumentType<Profile>
+  @prop({ required: true, type: () => Level, default: new Level() })
+  level!: SubDocumentType<Level>
+  @prop({ required: true, type: () => Rating, default: new Rating() })
+  rating!: SubDocumentType<Rating>
   @prop({ required: true, default: 'default' })
   role!: USER_ROLE
   @prop()
@@ -74,12 +75,12 @@ export class User {
       throw new ValidationError('password', validationCause.INVALID)
   }
 
-  public async setPassword(this: DocumentType<User>, password: string) {
+  public setPassword(this: DocumentType<User>, password: string) {
     if (!password)
       throw new ValidationError('password', validationCause.REQUIRED)
 
     this.credentials.password = generateHash(password)
-    return this.save()
+    return
   }
 
   /* RELATIONS */

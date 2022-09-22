@@ -83,25 +83,22 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/registration', async (req, res, next) => {
   try {
-    let { username, password } = req.body.user
+    let { username, password, id, nickname, email, region } = req.body.user
+    let user = new UserModel({
+      id,
+      profile: { username, nickname },
+      credentials: { email, region },
+    })
 
-    let user = new UserModel()
+    console.log(user)
 
     validatePasswordFormat(password)
-    await user.setPassword(password)
-
-    let { id, nickname, email, region } = req.body.user
-
-    user.id = id
-    user.profile.username = username
-    user.profile.nickname = nickname
-    user.credentials.email = email
-    user.credentials.region = region
+    user.setPassword(password)
 
     await user.validate()
     await user.save()
 
-    let payload = { username, nickname, email, region, role: 'default' }
+    let payload = { username, nickname, email, region, role: user.role }
     let token = generateToken(payload)
     res.status(201).json({ token: token })
   } catch (e) {

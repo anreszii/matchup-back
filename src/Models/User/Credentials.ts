@@ -3,7 +3,7 @@ import { prop } from '@typegoose/typegoose'
 import validator from 'validator'
 
 export class Credentials {
-  @prop({ required: [true, 'password required'], default: '' })
+  @prop({ required: [true, 'password required'] })
   password!: string
   @prop({
     required: [true, 'email required'],
