@@ -1,5 +1,5 @@
 import { prop, SubDocumentType } from '@typegoose/typegoose'
-import { Relations } from '../Relations.js'
+import { Relations } from './Relations.js'
 
 export class Profile {
   @prop({
