@@ -34,16 +34,15 @@ class TaskList {
   @prop({ required: true, ref: () => Task, default: [] })
   tasks!: Ref<Task>[]
 
-  public static findListByUserName(
+  public static async findListByUserName(
     this: ReturnModelType<typeof TaskList>,
     name: string,
   ) {
-    return UserModel.findByName(name).then((user) => {
-      if (user) return this.findOne({ owner: user._id })
-    })
+    const user = await UserModel.findByName(name)
+    if (user) return this.findOne({ owner: user._id })
   }
 
-  public static findListByUser(
+  public static async findListByUser(
     this: ReturnModelType<typeof TaskList>,
     user: User | Types.ObjectId,
   ) {
