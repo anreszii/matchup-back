@@ -7,7 +7,6 @@ import {
   ReturnModelType,
   DocumentType,
   Ref,
-  SubDocumentType,
 } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
@@ -16,7 +15,7 @@ import { Level } from './Level'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
-import { Guild, GuildModel } from '../index'
+import { BPLevelModel, Guild, GuildModel } from '../index'
 
 export class User {
   @prop({
@@ -107,15 +106,13 @@ export class User {
     return this.profile.relations.subscribers.includes(name)
   }
 
-  public async addSubscriber(this: DocumentType<User>, name: string) {
+  public addSubscriber(this: DocumentType<User>, name: string) {
     if (this.hasSubscriber(name)) return
 
     this.profile.relations.subscribers.push(name)
-
-    return this.save()
   }
 
-  public async deleteSubscriber(this: DocumentType<User>, name: string) {
+  public deleteSubscriber(this: DocumentType<User>, name: string) {
     if (!this.hasSubscriber(name)) return
     let subscribers = this.profile.relations.subscribers
 
@@ -123,7 +120,6 @@ export class User {
 
     if (~subscriberIndex) {
       subscribers.splice(subscriberIndex, 1)
-      return this.save()
     }
   }
 
@@ -137,24 +133,19 @@ export class User {
     return this.profile.relations.friends.includes(name)
   }
 
-  public async addFriend(this: DocumentType<User>, name: string) {
+  public addFriend(this: DocumentType<User>, name: string) {
     if (this.hasSubscriber(name)) return
 
     this.profile.relations.friends.push(name)
-
-    return this.save()
   }
 
-  public async deleteFriend(this: DocumentType<User>, name: string) {
+  public deleteFriend(this: DocumentType<User>, name: string) {
     if (!this.hasSubscriber(name)) return
     let friends = this.profile.relations.friends
 
     let friendIndex = friends.indexOf(name)
 
-    if (~friendIndex) {
-      friends.splice(friendIndex, 1)
-      return this.save()
-    }
+    if (~friendIndex) friends.splice(friendIndex, 1)
   }
 
   /* RELATION ACTIONS */
@@ -170,10 +161,13 @@ export class User {
       return user.addSubscriber(this.profile.username)
     }
 
-    await user.addFriend(this.profile.username)
-    await this.deleteSubscriber(name)
+    user.addFriend(this.profile.username)
 
-    return this.addFriend(user.profile.username)
+    this.deleteSubscriber(name)
+    this.addFriend(user.profile.username)
+
+    await user.save()
+    return this.save()
   }
 
   public async dropRelation(this: DocumentType<User>, name: string) {
@@ -183,32 +177,90 @@ export class User {
     let user = await UserModel.findByName(name)
     if (!user?.hasFriend(this.profile.username)) return
 
-    await this.deleteFriend(name)
-    await user.deleteFriend(this.profile.username)
+    this.deleteFriend(name)
+    this.addSubscriber(name)
 
-    return this.addSubscriber(name)
+    user.deleteFriend(this.profile.username)
+
+    await user.save()
+    return this.save()
   }
 
   /* GUILD */
 
-  public async joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
-    let Guild = await GuildModel.findById(guildID)
-    if (!Guild || !Guild.hasMember(this.profile.username)) return
+  public joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
+    GuildModel.findById(guildID).then((Guild) => {
+      if (!Guild || !Guild.hasMember(this.profile.username)) return
 
-    this.guild = guildID
-    return this.save()
+      this.guild = guildID
+    })
   }
 
-  public async leaveGuild(this: DocumentType<User>) {}
+  public leaveGuild(this: DocumentType<User>) {
+    if (!this.guild) return
+    GuildModel.findById(this.guild).then((Guild) => {
+      if (!Guild || !Guild.hasMember(this.profile.username))
+        return (this.guild = undefined)
+
+      Guild.leave(this.profile.username).then(() => {
+        this.guild = undefined
+      })
+    })
+  }
+
+  /* SIMPLE ACTIONS */
 
   public getGRI(this: DocumentType<User>) {
     return this.rating.GRI
   }
 
-  public async buy(this: DocumentType<User>, itemPrice: number) {
+  public buy(this: DocumentType<User>, itemPrice: number) {
     if (itemPrice < 0) throw new Error('Need more money')
     this.profile.balance -= itemPrice
-    return this.save()
+  }
+
+  public addEXP(amount: number) {
+    this.level.currentEXP += amount
+  }
+
+  public addMP(amount: number) {
+    this.profile.balance += amount
+  }
+
+  /* BATTLEPASS */
+
+  public checkLevel(this: DocumentType<User>) {
+    if (this.level.currentEXP >= this.level.currentRequiredEXP)
+      this._updateLevel()
+  }
+
+  private _updateLevel(this: DocumentType<User>) {
+    this._collectRewardsFromBP()
+    BPLevelModel.findOne({
+      level: this.level.currentBPLevel + 1,
+    }).then((newLevel) => {
+      if (!newLevel) return
+      this.level.currentRequiredEXP = newLevel.requiredEXP
+      this.level.currentBPLevel += 1
+      this.level.reward = newLevel.reward
+    })
+  }
+
+  private _collectRewardsFromBP(this: DocumentType<User>) {
+    let reward = this.level.reward
+    if (!reward) return
+    switch (reward.type) {
+      case 'mp': {
+        this.addMP(reward.amount)
+        break
+      }
+      case 'exp': {
+        this.addEXP(reward.amount)
+        break
+      }
+    }
+
+    this.level.reward = undefined
   }
 }
 
