@@ -4,11 +4,11 @@ import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
 
 class BattlePassLevel {
   @prop({ required: true, unique: true })
-  public id!: number
+  public level!: number
   @prop({ required: true })
   public requiredEXP!: number
-  @prop({ required: true, ref: Reward })
-  public reward: Ref<Reward>
+  @prop({ required: true })
+  public reward!: Reward
 }
 
 export const BPLevelModel = getModelForClass(BattlePassLevel)
