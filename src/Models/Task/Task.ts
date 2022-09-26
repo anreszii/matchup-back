@@ -142,6 +142,8 @@ class TaskList {
   }
 }
 
+export const TaskListModel = getModelForClass(TaskList)
+
 class Task {
   @prop({ required: true })
   owner!: string
