@@ -1,10 +1,13 @@
 import { prop } from '@typegoose/typegoose'
+import { Reward } from '../index'
 
 export class Level {
   @prop({ required: true, default: 0 })
   currentBPLevel!: number
   @prop({ required: true, default: 0 })
-  currentRequirerEXP!: number
+  currentRequiredEXP!: number
   @prop({ required: true, default: 0 })
   currentEXP!: number
+  @prop()
+  reward?: Reward
 }
