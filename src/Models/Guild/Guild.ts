@@ -111,7 +111,8 @@ export class Guild {
   async leave(this: DocumentType<Guild>, memberName: string) {
     if (this.deleteMemberByName(memberName)) {
       let User = await UserModel.findByName(memberName)
-      await User.leaveGuild()
+      User.leaveGuild()
+      await User.save()
       return this.save()
     }
   }

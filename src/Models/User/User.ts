@@ -198,14 +198,8 @@ export class User {
 
   public leaveGuild(this: DocumentType<User>) {
     if (!this.guild) return
-    GuildModel.findById(this.guild).then((Guild) => {
-      if (!Guild || !Guild.hasMember(this.profile.username))
-        return (this.guild = undefined)
-
-      Guild.leave(this.profile.username).then(() => {
-        this.guild = undefined
-      })
-    })
+    this.guild = undefined
+    return
   }
 
   /* SIMPLE ACTIONS */
