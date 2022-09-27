@@ -7,6 +7,6 @@ export class Member {
   public name!: string
   @prop({ required: true })
   public command!: Match.Member.command
-  @prop({ required: true, ref: Statistic, _id: false })
-  public statistic!: Ref<Statistic>
+  @prop({ required: true })
+  public statistic!: Statistic
 }
