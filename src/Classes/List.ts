@@ -20,11 +20,11 @@ export class List<T extends Object> {
   }
 
   /** Генератор значений элементов. Возвращает любые значения, которые не равны {@link List._undefined | 'List._undefined'} */
-  public *values() {
+  public *values(): Generator<T> {
     let index = 0
     while (index < this._elements.length) {
       if (this._elements[index] != this._undefined)
-        yield this._elements[index++]
+        yield this._elements[index++] as T
       else index++
     }
   }
