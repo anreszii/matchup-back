@@ -16,13 +16,10 @@ import { UserModel } from '../../../Models/index'
 import { Rating } from '../../../Interfaces/index'
 import { DiscordClient } from '../../../Classes/Discord/Client'
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
-
 let wsValidator = new WebSocketValidatior(WS_SERVER)
-let MemberList = MatchMaking.MemberList
 
-let Teams = new MatchMaking.TeamManager()
-
-let StandOffLobbies = new MatchMaking.LobbyManager(
+const Teams = new MatchMaking.TeamManager()
+export const StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
   dsClient,
 )
