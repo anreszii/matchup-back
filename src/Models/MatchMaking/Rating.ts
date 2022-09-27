@@ -21,8 +21,7 @@ export class Rating {
   @prop({ required: true, default: 0 })
   LC!: number //Lose Counter
 
-  public async integrate(
-    this: DocumentType<Rating>,
+  public integrate(
     statistic: Match.Member.Statistic,
     resultOfMatch: Match.Result,
   ) {
@@ -42,19 +41,17 @@ export class Rating {
     Calculator.calculateMatchResult(resultOfMatch)
 
     this.GRI += Calculator.RatingIndicator
-
-    return this.save()
   }
 
-  private async _addKills(this: DocumentType<Rating>, count: number) {
+  private _addKills(count: number) {
     this.GS.kills += count
   }
 
-  private async _addDeaths(this: DocumentType<Rating>, count: number) {
+  private _addDeaths(count: number) {
     this.GS.deaths += count
   }
 
-  private async _addAssists(this: DocumentType<Rating>, count: number) {
+  private _addAssists(count: number) {
     this.GS.assists += count
   }
 }
