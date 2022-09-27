@@ -9,6 +9,7 @@ import { Types } from 'mongoose'
 import { Member } from './Member'
 import type { Match } from '../../Interfaces'
 import { Image, ImageModel } from '../Image'
+import { MapScore } from './MapScore'
 /**
  * @TODO
  * Add match score
@@ -20,6 +21,8 @@ class MatchList {
   public game!: Match.Manager.supportedGames
   @prop({ default: [] })
   public members!: Types.Array<Member>
+  @prop({ required: true })
+  public score!: MapScore
   @prop({ ref: () => Image })
   public screen?: Ref<Image>
 
