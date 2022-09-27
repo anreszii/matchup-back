@@ -2,9 +2,12 @@ import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token'
 import { ValidationError, validationCause as cause } from '../../error'
 
-import { UserModel } from '../../Models'
+import { MatchListModel, UserModel } from '../../Models'
 import { SMTP, Mail, generatePassword } from '../../Utils'
 import { validatePasswordFormat } from '../../validation'
+import { StandOffLobbies } from '../index'
+import { writeFile } from 'fs'
+import { UserFlagsBitField } from 'discord.js'
 
 let router = Router()
 
@@ -133,6 +136,48 @@ router.put('/recover', async (req, res, next) => {
 
     SMTP.send(mail)
     res.status(200)
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * Путь для загрузки изображения результатов матча
+ * Входящие параметры:
+ * token - jwt
+ * post - match_id
+ * match.[pnp/jpeg]
+ * @category_match
+ * @event
+ */
+router.post('/match_image', validateToken, async (req, res, next) => {
+  try {
+    if (!req.files) throw new ValidationError('image', cause.REQUIRED)
+    let image = req.files[Object.keys(req.files)[0]]
+    if (!image) throw new ValidationError('image', cause.REQUIRED)
+    if (
+      image instanceof Array ||
+      (image.mimetype != 'image/jpeg' && image.mimetype != 'image/png')
+    )
+      throw new ValidationError('image', cause.INVALID_FORMAT)
+
+    let { match_id } = req.body
+    if (!match_id || typeof match_id != 'string')
+      throw new ValidationError('match_id', cause.REQUIRED)
+
+    let lobby = StandOffLobbies.get(match_id)
+    if (!lobby) throw new ValidationError('match_id', cause.INVALID)
+
+    if (lobby.captain != (req.body.payload.username as string))
+      throw new ValidationError('user', cause.INVALID)
+
+    let matchData = await MatchListModel.findByID(match_id)
+    if (!matchData) throw new ValidationError('match_id', cause.INVALID)
+
+    matchData.setScreen(image.data, image.mimetype)
+    matchData.save()
+
+    res.sendStatus(200)
   } catch (e) {
     next(e)
   }
