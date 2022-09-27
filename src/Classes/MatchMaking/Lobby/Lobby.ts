@@ -32,52 +32,6 @@ export class Lobby implements Match.Lobby.Instance {
     this._game = _matchController.gameName
   }
 
-  public get game() {
-    return this._game
-  }
-
-  public get id() {
-    return this._id
-  }
-
-  public get status() {
-    if (this.members.quantityOfMembers == 0) return undefined
-    if (this.members.quantityOfPlayers < 10) return 'searching'
-    else return this._matchController.status
-  }
-
-  public get chat() {
-    return this._chat
-  }
-
-  public get region() {
-    return this._region
-  }
-
-  public get GRI() {
-    return getMedian(...this._membersGRI.values())
-  }
-
-  public get dsClient(): DiscordClient | undefined {
-    return this._dsClient
-  }
-
-  public set chat(instance: Chat.Instance | undefined) {
-    this._chat = instance as ChatInstance
-    for (let member of this.members.toArray) {
-      if (member != UNDEFINED_MEMBER)
-        this._chat!.addMember({ name: member!.name, role: 'user' })
-    }
-  }
-
-  public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
-    this._region = value
-  }
-
-  public set dsClient(client: DiscordClient | undefined) {
-    this._dsClient = client
-  }
-
   public async start() {
     return this._matchController.start()
   }
@@ -86,12 +40,17 @@ export class Lobby implements Match.Lobby.Instance {
     return this._matchController.stop()
   }
 
-  public async addMember(member: Match.Member.Instance) {
-    if (!(await this._matchController.addMembers(member))) return false
-    if (!this.members.add(member)) return false
+  public async addMember(member: Omit<Match.Member.Instance, 'GRI'>) {
+    let memberGRI = await UserModel.getGRI(member.name)
+    if (!memberGRI) return false
+
+    let memberWithGRI = { ...member, GRI: memberGRI }
+    if (!(await this._matchController.addMembers(memberWithGRI))) return false
+    if (!this.members.add(memberWithGRI)) return false
 
     this._chat?.addMember({ name: member!.name, role: 'user' })
-    this._membersGRI.set(member.name, await UserModel.getGRI(member.name))
+    this._membersGRI.set(member.name, memberGRI)
+
     if (member.teamID) {
       if (!this._teamsSize.has(member.teamID))
         this._teamsSize.set(member.teamID, 1)
@@ -214,6 +173,52 @@ export class Lobby implements Match.Lobby.Instance {
     if (5 - this.members.quantityOfSecondCommandMembers >= memberCount)
       return 'command1'
     return false
+  }
+
+  public get game() {
+    return this._game
+  }
+
+  public get id() {
+    return this._id
+  }
+
+  public get status() {
+    if (this.members.quantityOfMembers == 0) return undefined
+    if (this.members.quantityOfPlayers < 10) return 'searching'
+    else return this._matchController.status
+  }
+
+  public get chat() {
+    return this._chat
+  }
+
+  public get region() {
+    return this._region
+  }
+
+  public get averageGRI() {
+    return getMedian(...this._membersGRI.values())
+  }
+
+  public get dsClient(): DiscordClient | undefined {
+    return this._dsClient
+  }
+
+  public set chat(instance: Chat.Instance | undefined) {
+    this._chat = instance as ChatInstance
+    for (let member of this.members.toArray) {
+      if (member != UNDEFINED_MEMBER)
+        this._chat!.addMember({ name: member!.name, role: 'user' })
+    }
+  }
+
+  public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
+    this._region = value
+  }
+
+  public set dsClient(client: DiscordClient | undefined) {
+    this._dsClient = client
   }
 
   private _checkMaxTeamSize() {
