@@ -8,6 +8,7 @@ import { validatePasswordFormat } from '../../validation'
 import { StandOffLobbies } from '../index'
 import { writeFile } from 'fs'
 import { UserFlagsBitField } from 'discord.js'
+import { Match } from '../../Interfaces/index'
 
 let router = Router()
 
@@ -150,8 +151,13 @@ router.put('/recover', async (req, res, next) => {
  * @category_match
  * @event
  */
-router.post('/match_image', validateToken, async (req, res, next) => {
+router.post('/end_match', validateToken, async (req, res, next) => {
   try {
+    let username = req.body.payload.username as string
+    let user = await UserModel.findByName(username)
+    if (!user || user.role != 'admin')
+      throw new ValidationError('user', cause.INVALID)
+
     if (!req.files) throw new ValidationError('image', cause.REQUIRED)
     let image = req.files[Object.keys(req.files)[0]]
     if (!image) throw new ValidationError('image', cause.REQUIRED)
@@ -168,16 +174,41 @@ router.post('/match_image', validateToken, async (req, res, next) => {
     let lobby = StandOffLobbies.get(match_id)
     if (!lobby) throw new ValidationError('match_id', cause.INVALID)
 
-    if (lobby.captain != (req.body.payload.username as string))
-      throw new ValidationError('user', cause.INVALID)
-
     let matchData = await MatchListModel.findByID(match_id)
     if (!matchData) throw new ValidationError('match_id', cause.INVALID)
 
     matchData.setScreen(image.data, image.mimetype)
     matchData.save()
 
+    let promises = []
+    for (let matchMember of matchData.members) {
+      let user = await UserModel.findByName(matchMember.name)
+      if (!user)
+        throw new ValidationError(
+          `user with name ${matchMember.name}`,
+          cause.NOT_EXIST,
+        )
+
+      let result: Match.Result = Match.Result.DRAW
+
+      let flags = {
+        isDraw: matchData.score.command1 == matchData.score.command2,
+        isFirstCommandWinner:
+          matchData.score.command1 > matchData.score.command2,
+      }
+
+      if (!flags.isDraw) {
+        if (flags.isFirstCommandWinner && matchMember.command == 'command1')
+          result = Match.Result.WIN
+        else result = Match.Result.DRAW
+      }
+
+      promises.push(user.rating.integrate(matchMember.statistic, result))
+    }
+
     res.sendStatus(200)
+    await Promise.all(promises)
+    await lobby.stop()
   } catch (e) {
     next(e)
   }
