@@ -24,8 +24,8 @@ export declare interface ILobby extends IEntity<string> {
     memberCount: number,
   ): Exclude<Match.Member.command, 'spectator' | 'neutral'> | false
 
-  addMember(member: Match.Member.Instance): Promise<boolean>
-  removeMember(member: Match.Member.Instance): Promise<boolean>
+  addMember(member: Omit<Match.Member.Instance, 'GRI'>): Promise<boolean>
+  removeMember(member: Omit<Match.Member.Instance, 'GRI'>): Promise<boolean>
   updateMember(
     member: Required<Pick<Match.Member.Instance, 'name'>> & {
       [Key in Exclude<keyof Match.Member.Instance, 'name'>]?:
