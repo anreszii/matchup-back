@@ -1,11 +1,8 @@
 import type { DYNAMIC_TASK } from '../../configs/task_reward'
-import { Reward } from './Reward'
 import { getRounded, minMax } from '../../Utils'
 
 export class TaskData {
-  constructor(private _TASK_DATA: DYNAMIC_TASK) {}
-  public get data() {
-    let taskData = this._TASK_DATA
+  public static getDataFrom(taskData: DYNAMIC_TASK) {
     let reward = { mp: 0, exp: 0 }
 
     let pointsCount = getRounded(
