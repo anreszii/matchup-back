@@ -22,7 +22,7 @@ import {
 } from '../../configs/task_reward'
 import { validationCause, ValidationError } from '../../error'
 import { User, UserModel } from '../index'
-import { expirationTime, ExpirationTime } from './ExpirationTime'
+import { expirationTime, ExpirationTime, expType } from './ExpirationTime'
 import { Flags } from './Flags'
 import { Progress } from './Progress'
 import { Reward } from './Reward'
@@ -49,6 +49,18 @@ class TaskList {
     return this.findOne({ owner: user })
   }
 
+  public static async createListForUser(
+    this: ReturnModelType<typeof TaskList>,
+    user: User | Types.ObjectId | string,
+  ) {
+    let userDocument: DocumentType<User> | null
+    if (typeof user == 'string')
+      userDocument = await UserModel.findByName(user)!
+    else userDocument = await UserModel.findById(user)!
+
+    return this.create({ owner: userDocument, tasks: [] })
+  }
+
   public getDaily(this: DocumentType<TaskList>) {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
 
@@ -57,9 +69,19 @@ class TaskList {
       if (!taskID) continue
 
       TaskModel.findById(taskID).then((task) => {
-        if (!task) return
-        if (task.expires && task.expires.expirationType == 'day')
-          dailyTasks.push(task)
+        if (!task || task.isExpired || !task.expires) return
+        if (this._isDailyTask(task)) dailyTasks.push(task)
+      })
+    }
+
+    if (dailyTasks.length < 4) {
+      let promises = []
+      for (let task of dailyTasks) promises.push(task.delete())
+      return Promise.all(promises).then(() => {
+        return this._createDailyTasks().then((tasks) => {
+          if (!tasks) throw new Error(`Can't create daity tasks`)
+          return tasks
+        })
       })
     }
 
@@ -70,7 +92,7 @@ class TaskList {
     let user = await UserModel.findById(this.owner)
     if (!user) return
 
-    let daily = this.getDaily()
+    let daily = await this.getDaily()
     let collectedReward = {
       exp: 0,
       mp: 0,
@@ -108,10 +130,8 @@ class TaskList {
     let data: STATIC_TASK | undefined
 
     if (DYNAMIC_DATA.has(name)) {
-      let dataSe = DYNAMIC_DATA.get(name)!
-      let tmp = new TaskData(dataSe)
-
-      data = tmp.data
+      let dataSet = DYNAMIC_DATA.get(name)!
+      data = TaskData.getDataFrom(dataSet)
     } else if (STATIC_DATA.has(name)) {
       data = STATIC_DATA.get(name)!
     }
@@ -121,15 +141,89 @@ class TaskList {
     if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
-    task.expirationTime = {
-      amount: 1,
-      format: 'day',
+    if (data.expirationType) {
+      task.expirationTime = {
+        amount: 1,
+        format: data.expirationType,
+      }
     }
 
     return task.save()
   }
 
-  public _create(userName: string, taskName: string, requiredPoints: number) {
+  private async _createDailyTasks(this: DocumentType<TaskList>) {
+    let usedNames: Array<string> = []
+    let dailyTasks = []
+    let promises = []
+    let task
+
+    while (dailyTasks.length != 3) {
+      task = await this._createRandomDailyTask(usedNames)
+      if (!task) return
+
+      dailyTasks.push(task)
+      usedNames.push(task.name)
+      promises.push(task.save())
+    }
+
+    let completeDailyTask = await this._createTaskToCompleteAllDaily
+
+    dailyTasks.push(completeDailyTask)
+    promises.push(completeDailyTask.save())
+
+    await Promise.all(promises)
+    return dailyTasks
+  }
+
+  private async _createRandomDailyTask(
+    this: DocumentType<TaskList>,
+    usedTasksNames: Array<string>,
+  ) {
+    let user = await UserModel.findById(this.owner)
+    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+
+    let task = DYNAMIC_DATA.getRandomDaily(usedTasksNames)
+    if (!task) return
+
+    let data = TaskData.getDataFrom(task.data)
+
+    let createdTask = await this._create(
+      user.profile.username,
+      task.name,
+      data.points,
+    )
+    if (data.reward.mp && data.reward.mp > 0) createdTask.mp = data.reward.mp
+    if (data.reward.exp && data.reward.exp > 0)
+      createdTask.exp = data.reward.exp
+
+    createdTask.expirationTime = {
+      amount: 1,
+      format: task.data.expirationType,
+    }
+
+    return createdTask
+  }
+
+  private get _createTaskToCompleteAllDaily() {
+    let data = STATIC_DATA.get('completedDaily')!
+    return this._ownerName.then((username) => {
+      return this._create(username, 'completedDaily', data.points).then(
+        (task) => {
+          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+
+          task.expirationTime = {
+            amount: 1,
+            format: data.expirationType!,
+          }
+
+          return task
+        },
+      )
+    })
+  }
+
+  private _create(userName: string, taskName: string, requiredPoints: number) {
     return TaskModel.create({
       owner: userName,
       name: taskName,
@@ -137,6 +231,18 @@ class TaskList {
         currentPoints: 0,
         requiredPoints,
       },
+    })
+  }
+
+  private _isDailyTask(task: DocumentType<Task>) {
+    if (!task.expires || task.expires.expirationType != 'day') return false
+    return true
+  }
+
+  private get _ownerName() {
+    return UserModel.findById(this.owner).then((user) => {
+      if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+      return user.profile.username
     })
   }
 }
@@ -254,6 +360,11 @@ class Task {
     for (let reward of this.rewards)
       if ((reward.type = 'exp')) return reward.amount
     return 0
+  }
+
+  public get isExpired() {
+    if (!this.expiresIn) return false
+    return this.expiresIn <= 0
   }
 }
 
