@@ -81,8 +81,8 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  public async removeMember(member: Match.Member.Instance) {
-    if (!(await this._matchController.removeMembers(member))) return false
+  public async removeMember(member: Omit<Match.Member.Instance, 'GRI'>) {
+    if (!(await this._matchController.removeMembers(member.name))) return false
     if (!this.members.delete(member)) return false
 
     if (member.teamID) {

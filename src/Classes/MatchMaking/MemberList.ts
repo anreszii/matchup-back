@@ -44,11 +44,23 @@ export class MemberList extends List<Match.Member.Instance> {
     return true
   }
 
-  public delete(...members: Array<Match.Member.Instance>): boolean {
-    if (!super.delete(...members)) return false
-    for (let member of members.values()) this._decreaseMemberCounter(member)
+  public delete(
+    ...members: Array<Omit<Match.Member.Instance, 'GRI'>>
+  ): boolean {
+    let membersWithGRI = []
+    for (let i = 0; i < members.length; i++) {
+      let memberFromElements = this.getMember(members[i].name)
+      if (memberFromElements && memberFromElements != this._undefined) {
+        membersWithGRI.push(memberFromElements)
+        this._decreaseMemberCounter(memberFromElements)
+      }
+    }
+
+    if (!super.delete(...membersWithGRI)) return false
+
     this._captains = new Map()
     this._updateCaptains()
+
     return true
   }
 
