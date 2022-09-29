@@ -15,7 +15,8 @@ import { Level } from './Level'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
-import { BPLevelModel, Guild, GuildModel } from '../index'
+import { BPLevelModel, GuildModel } from '../index'
+import { Guild } from '../Guild/Guild'
 
 export class User {
   @prop({
@@ -29,16 +30,21 @@ export class User {
     },
   })
   id!: number
-  @prop({ required: true })
+  @prop({ required: true, _id: false })
   credentials!: Credentials
-  @prop({ required: true })
+  @prop({ required: true, _id: false })
   profile!: Profile
   @prop({
     required: true,
     default: { currentBPLevel: 0, currentRequiredEXP: 0, currentEXP: 0 },
+    _id: false,
   })
   level!: Level
-  @prop({ required: true, default: { GRI: 0, GS: 0, GSI: 1, WS: 0, LC: 0 } })
+  @prop({
+    required: true,
+    default: new Rating(),
+    _id: false,
+  })
   rating!: Rating
   @prop({ required: true, default: 'default' })
   role!: USER_ROLE
@@ -65,6 +71,25 @@ export class User {
     }).exec() as unknown as DocumentType<User>
   }
 
+  public static async findByEmai(
+    this: ReturnModelType<typeof User>,
+    email: string,
+  ) {
+    return this.findOne({
+      'credentials.email': email,
+    }).exec() as unknown as DocumentType<User>
+  }
+
+  public static async getPublicData(
+    this: ReturnModelType<typeof User>,
+    name: string,
+  ) {
+    return this.findOne(
+      { 'profile.username': name },
+      'id profile level rating role prefix guild',
+    )
+  }
+
   public static async getGRI(
     this: ReturnModelType<typeof User>,
     name: string,
@@ -73,7 +98,7 @@ export class User {
       'profile.username': name,
     }).exec()) as unknown as DocumentType<User>
 
-    return user.getGRI()
+    return user.GRI
   }
 
   /* PASSWORD */
@@ -204,7 +229,7 @@ export class User {
 
   /* SIMPLE ACTIONS */
 
-  public getGRI(this: DocumentType<User>) {
+  public get GRI() {
     return this.rating.GRI
   }
 

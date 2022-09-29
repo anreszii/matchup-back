@@ -7,7 +7,7 @@ import {
 import type { Match } from '../../Interfaces'
 import { validationCause, ValidationError } from '../../error'
 
-class ReportList {
+export class ReportList {
   @prop({ required: true, unique: true })
   public id!: number
   @prop({ required: true })
@@ -59,5 +59,3 @@ class ReportList {
     return report.save()
   }
 }
-
-export const ReportListModel = getModelForClass(ReportList)

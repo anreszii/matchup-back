@@ -1,19 +1,13 @@
-import {
-  DocumentType,
-  getModelForClass,
-  prop,
-  ReturnModelType,
-} from '@typegoose/typegoose'
+import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { validationCause, ValidationError } from '../../error'
-import { UserModel } from '../index'
+import { UserModel, GuildModel } from '../index'
 import { Info } from './GuildInfo'
 import { Member, roles } from './Member'
-import { Types } from 'mongoose'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
 export class Guild {
-  @prop({ required: true, default: [] })
-  memberList!: Types.Array<Member>
+  @prop({ required: true, default: [], type: () => Member })
+  memberList!: Member[]
   @prop({ required: true })
   info!: Info
   @prop({ required: false })
@@ -79,7 +73,6 @@ export class Guild {
     this: DocumentType<Guild>,
     executorName: string,
     memberName: string,
-    mpr: number,
   ) {
     let executor = this.getMemberByName(executorName)
     if (!executor)
@@ -87,7 +80,12 @@ export class Guild {
 
     if (!executor.hasRightToExecute('addMember'))
       throw new Error('No rights to execute order')
-    this.memberList.push({ name: memberName, role: 'member', mpr: mpr })
+
+    let member = new Member()
+    ;(member.name = memberName),
+      (member.id = await UserModel.findByName(memberName))
+    member.role = roles.member
+    this.memberList.push()
     return this.save()
   }
 
@@ -96,13 +94,13 @@ export class Guild {
     if (!User) return
 
     if (!this.isPrivate) {
-      if (User.getGRI() < this.info.requiredMPR) throw Error('low MPR')
+      if (User.GRI < this.info.requiredMPR) throw Error('low MPR')
 
-      this.memberList.push({
-        name: memberName,
-        user: User._id,
-        role: roles.member,
-      })
+      let member = new Member()
+      ;(member.name = memberName), (member.id = User)
+      member.role = roles.member
+
+      this.memberList.push(member)
       await User.joinGuild(this._id)
       return this.save()
     }
@@ -204,5 +202,3 @@ export class Guild {
     return this.save()
   }
 }
-
-export const GuildModel = getModelForClass(Guild)

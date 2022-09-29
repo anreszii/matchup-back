@@ -1,4 +1,3 @@
-export * from './MatchList'
-export * from './Member'
+export * from './Rating'
 export * from './Reports'
-export * from './Statistic'
+export * from './MatchList'

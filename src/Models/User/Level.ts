@@ -1,5 +1,5 @@
 import { prop } from '@typegoose/typegoose'
-import { Reward } from '../index'
+import { Reward } from '../Reward'
 
 export class Level {
   @prop({ required: true, default: 0 })

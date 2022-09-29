@@ -14,14 +14,14 @@ import { MapScore } from './MapScore'
  * @TODO
  * Add match score
  */
-class MatchList {
+export class MatchList {
   @prop({ required: true, unique: true })
   public id!: string
   @prop({ required: true })
   public game!: Match.Manager.supportedGames
-  @prop({ default: [] })
-  public members!: Types.Array<Member>
-  @prop({ required: true })
+  @prop({ required: true, default: [], type: () => Member, _id: false })
+  public members!: Member[]
+  @prop({ required: true, _id: false })
   public score!: MapScore
   @prop({ ref: () => Image })
   public screen?: Ref<Image>
@@ -48,5 +48,3 @@ class MatchList {
     })
   }
 }
-
-export const MatchListModel = getModelForClass(MatchList)

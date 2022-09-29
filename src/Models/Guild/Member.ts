@@ -1,5 +1,5 @@
-import { prop, DocumentType, Ref } from '@typegoose/typegoose'
-import { User } from '../index'
+import { prop, Ref } from '@typegoose/typegoose'
+import { User } from '../User/User'
 
 export type orders =
   | 'addMember'

@@ -1,6 +1,11 @@
-import { Reward } from './Reward'
+import { Reward } from '../Reward'
 
-import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
+import {
+  prop,
+  getModelForClass,
+  Ref,
+  ReturnModelType,
+} from '@typegoose/typegoose'
 
 class BattlePassLevel {
   @prop({ required: true, unique: true })
@@ -9,6 +14,12 @@ class BattlePassLevel {
   public requiredEXP!: number
   @prop({ required: true })
   public reward!: Reward
+
+  public static async getAllLevels(
+    this: ReturnModelType<typeof BattlePassLevel>,
+  ) {
+    return this.find()
+  }
 }
 
 export const BPLevelModel = getModelForClass(BattlePassLevel)

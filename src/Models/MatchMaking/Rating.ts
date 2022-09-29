@@ -1,19 +1,18 @@
 import { Match } from '../../Interfaces'
-import { DocumentType, getModelForClass, prop } from '@typegoose/typegoose'
+import { prop } from '@typegoose/typegoose'
 import { RatingCalculator } from '../../Classes'
+import { Statistic } from './Statistic'
 
 export class Rating {
   @prop({ required: true, default: 0 })
   GRI!: number //Generalized Rating Indicator
   @prop({
     required: true,
-    default: {
-      kills: 0,
-      deaths: 0,
-      assists: 0,
-    },
+    default: new Statistic(),
+    type: () => Statistic,
+    _id: false,
   })
-  GS!: Match.Member.Statistic //Generalized Statistic
+  GS!: Statistic //Generalized Statistic
   @prop({ required: true, default: 1 })
   GSI!: number ////Generalized Statistic Indicator
   @prop({ required: true, default: 0 })
@@ -55,5 +54,3 @@ export class Rating {
     this.GS.assists += count
   }
 }
-
-export const RatingModel = getModelForClass(Rating)
