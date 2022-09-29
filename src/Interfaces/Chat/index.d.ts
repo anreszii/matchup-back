@@ -31,11 +31,11 @@ export declare namespace Chat {
       }
     }
   }
-  interface Manager extends IManager<Chat.Instance, string | number> {
+  interface Manager extends IManager<Chat.Instance, string> {
     spawn(
       controller: Chat.Controller.Factory.supportedControllers,
+      ID: string,
       options?: { [key: string]: string },
-      customID?: string,
     ): Chat.Instance
   }
   type userRole = 'user' | 'moderator'
