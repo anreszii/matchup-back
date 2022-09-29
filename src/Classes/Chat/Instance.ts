@@ -1,7 +1,9 @@
 import type { Chat } from '../../Interfaces'
+import { List } from '../List'
 export class ChatInstance implements Chat.Instance {
+  private _memberNames: List<string> = new List(32)
   constructor(
-    private _id: number | string,
+    private _id: string,
     private _controller: Chat.Controller.Instance,
   ) {}
   public get controller() {
@@ -12,26 +14,24 @@ export class ChatInstance implements Chat.Instance {
     return this._id
   }
   public async addMember(member: Chat.Member, executor?: Chat.Member) {
-    this._controller.send(
-      JSON.stringify({
-        from: 'system',
-        message: `${member!.name} joined chat`,
-      }),
-    )
-    return this._controller.addMember(member)
+    if (!this._controller.addMember(member)) return false
+    this._memberNames.addOne(member.name)
+
+    return true
   }
 
   public async deleteMember(member: Chat.Member, executor?: Chat.Member) {
-    this._controller.send(
-      JSON.stringify({
-        from: 'system',
-        message: `${member!.name} leaved chat`,
-      }),
-    )
-    return this._controller.deleteMember(member)
+    if (!this._controller.deleteMember(member)) return false
+    this._memberNames.delete(member.name)
+
+    return true
   }
 
   public async send(message: string) {
     return this._controller.send(message)
+  }
+
+  public has(memberName: string) {
+    return Boolean(~this._memberNames.indexOf(memberName))
   }
 }

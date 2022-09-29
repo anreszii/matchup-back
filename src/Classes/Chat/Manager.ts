@@ -1,60 +1,43 @@
 import type { Chat } from '../../Interfaces'
-import { List, ChatInstance } from '../'
+import { ChatInstance } from '../'
 import { Factory } from './Controllers'
 
 export class ChatManager implements Chat.Manager {
-  private _chatList: List<Chat.Instance> = new List()
-  public map?: Map<string, Chat.Instance>
+  private static _chatMap: Map<string, Chat.Instance> = new Map()
 
-  constructor(private _customIDFlag = false) {
-    if (_customIDFlag) this.map = new Map()
-  }
+  constructor() {}
 
   spawn(
     controllerClassName: Chat.Controller.Factory.supportedControllers,
+    ID: string,
     options?: { [key: string]: string },
-    customID?: string,
   ): Chat.Instance {
-    if (this._customIDFlag && !customID) throw new Error('Custom ID required')
+    if (!ID) throw new Error('Chat ID required')
     let controller = Factory.create(controllerClassName, options)
+    let newChat = ChatManager._chatMap.get(ID)
 
-    let newChat
-    if (this._customIDFlag && customID) {
-      newChat = this.map!.get(customID)
-      if (newChat) return newChat
-      newChat = new ChatInstance(customID, controller)
-      this.map!.set(customID, newChat)
-    } else {
-      newChat = new ChatInstance(this._chatList.freeSpace, controller)
-      this._chatList.addOne(newChat)
-    }
+    if (newChat) return newChat
+    newChat = new ChatInstance(ID, controller)
+    ChatManager._chatMap.set(ID, newChat)
+
     return newChat
   }
 
-  get(entityID: number | string): Chat.Instance | undefined {
-    if (typeof entityID == 'string') return this.map?.get(entityID)
-    return this._chatList.valueOf(entityID)
+  get(ID: string): Chat.Instance | undefined {
+    return ChatManager._chatMap.get(ID)
   }
 
-  has(entityID: number | string): boolean {
-    if (typeof entityID == 'string') {
-      if (!this.map) return false
-      return this.map.has(entityID)
-    }
-    return !this._chatList.isUndefined(entityID)
+  has(ID: string): boolean {
+    return ChatManager._chatMap.has(ID)
   }
 
-  drop(entityID: number | string): boolean {
-    let chat
-    if (typeof entityID == 'string') {
-      if (!this.map) return false
-      chat = this.map.get(entityID)
-    } else chat = this._chatList.valueOf(entityID)
+  drop(ID: string): boolean {
+    let chat = ChatManager._chatMap.get(ID)
     if (!chat) return false
 
     chat.controller.delete().then((status) => {
       if (!status) throw new Error('chat deleting error')
     })
-    return this._chatList.delete(chat)
+    return ChatManager._chatMap.delete(ID)
   }
 }

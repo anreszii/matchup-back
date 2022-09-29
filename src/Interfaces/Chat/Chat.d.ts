@@ -1,7 +1,7 @@
 import type { IEntity } from '../Manager'
 import type { Chat } from './'
 
-export interface IChat extends IEntity<number | string> {
+export interface IChat extends IEntity<string> {
   get controller(): Chat.Controller.Instance
   /**
    * @param member - пользователь, над которым происходит действие
@@ -17,4 +17,6 @@ export interface IChat extends IEntity<number | string> {
    */
   deleteMember(member: Chat.Member, executor?: Chat.Member): Promise<boolean>
   send(message: string): Promise<boolean>
+
+  has(memberName: string): boolean
 }
