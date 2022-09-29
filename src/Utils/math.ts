@@ -32,9 +32,11 @@ export function getMedian(...numbers: Array<number>): number {
  * ```
  */
 export function inRange(
-  toCheck: number,
-  standart: number,
+  toCheck: unknown,
+  standart: unknown,
   range: number,
 ): boolean {
+  if (!toCheck && !standart) return true
+  if (typeof toCheck != 'number' || typeof standart != 'number') return false
   return standart - range <= toCheck && toCheck <= standart + range
 }
