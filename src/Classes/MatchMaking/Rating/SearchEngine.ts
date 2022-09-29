@@ -16,8 +16,9 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
   private _lobbies: Array<Match.Lobby.Instance> = new Array()
 
   constructor(private _manager: Match.Manager.Instance) {
-    this._intervals.push(setInterval(this._updateLobbies, 1000 * 2.5))
-    this._intervals.push(setInterval(this._clear, 1000))
+    this._intervals.push(
+      setInterval(this._updateLobbies.bind(this), 1000 * 2.5),
+    )
   }
 
   public filterByGRI(GRI: number) {
@@ -51,22 +52,14 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
         clearInterval(ID)
       this._extendSearch()
     }, 1000 * 30)
-
     this._intervals.push(ID)
-    this._intervals.push(
-      setInterval(() => {
-        for (let filter of this._filters) {
-          let priority = filter.priority
-          let tmp = filter.getResults(this._lobbies)
-          for (let lobbyID of tmp) {
-            this._addPoint(lobbyID, priority)
-          }
-        }
-      }, 1000),
-    )
+
+    if (this._manager.lobbies.length == 0) return this._manager.spawn()
+    if (this._lobbies.length == 0) this._updateLobbies()
 
     let searchStartTimeInMs = Date.now()
     while (Date.now() - searchStartTimeInMs < this._maxWaitingTime) {
+      this._useFilters()
       switch (this._searchZone) {
         case 0: {
           let lobby = this._searchInSmallZone()
@@ -93,6 +86,7 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
           break
         }
       }
+      this._clearFilterResults()
     }
 
     this.delete()
@@ -163,14 +157,22 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
     this._results.set(lobbyID, tmp)
   }
 
-  private _clear() {
-    for (let key of this._results.keys()) {
-      this._results.delete(key)
-    }
+  private _clearFilterResults() {
+    for (let key of this._results.keys()) this._results.delete(key)
   }
 
   private _updateLobbies() {
     this._lobbies = this._manager.lobbies
+  }
+
+  private _useFilters() {
+    for (let filter of this._filters) {
+      let priority = filter.priority
+      let tmp = filter.getResults(this._lobbies)
+      for (let lobbyID of tmp) {
+        this._addPoint(lobbyID, priority)
+      }
+    }
   }
 
   private _searchInSmallZone() {
