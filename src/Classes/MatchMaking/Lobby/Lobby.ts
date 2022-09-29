@@ -1,11 +1,11 @@
 import type { Chat, Match, Rating } from '../../../Interfaces'
 import type { DiscordClient } from '../../Discord/Client'
+import type { ChatInstance } from '../../index'
 import { matchCause, MatchError } from '../../../error'
 import { MemberList } from '../MemberList'
 import { toBoolean, getMedian } from '../../../Utils'
 import { UserModel } from '../../../Models/index'
 import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
-import { ChatInstance } from '../../index'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 
 export class Lobby implements Match.Lobby.Instance {
@@ -42,13 +42,21 @@ export class Lobby implements Match.Lobby.Instance {
 
   public async addMember(member: Omit<Match.Member.Instance, 'GRI'>) {
     let memberGRI = await UserModel.getGRI(member.name)
-    if (!memberGRI) return false
+    if (typeof memberGRI != 'number') return false
 
     let memberWithGRI = { ...member, GRI: memberGRI }
     if (!(await this._matchController.addMembers(memberWithGRI))) return false
     if (!this.members.add(memberWithGRI)) return false
 
-    this._chat?.addMember({ name: member!.name, role: 'user' })
+    if (this._chat) {
+      await this._chat.addMember({ name: member!.name, role: 'user' })
+      await this._chat.send(
+        JSON.stringify({
+          from: member!.name,
+          message: `member ${member.name} joined lobby#${this.id}`,
+        }),
+      )
+    }
     this._membersGRI.set(member.name, memberGRI)
 
     if (member.teamID) {
@@ -91,7 +99,15 @@ export class Lobby implements Match.Lobby.Instance {
 
       this._checkMaxTeamSize()
     }
-    this._chat?.deleteMember({ name: member!.name, role: 'user' })
+    if (this._chat) {
+      await this._chat.deleteMember({ name: member!.name, role: 'user' })
+      await this._chat.send(
+        JSON.stringify({
+          from: member!.name,
+          message: `member ${member.name} leaved lobby#${this.id}`,
+        }),
+      )
+    }
 
     if (this._dsClient) {
       let guild = await this._dsClient.findGuildWithCustomTeamIdRole(this.id)
