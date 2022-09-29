@@ -39,8 +39,14 @@ export class Team implements Match.Team.Instance {
 
     this._teamChat
       .addMember({ name: member.name, role: 'user' })
-      .then((status) => {
+      .then(async (status) => {
         if (!status) throw new Error('Chat delete error')
+        await this._teamChat.send(
+          JSON.stringify({
+            from: 'system',
+            message: `${member.name} joined team#${this.id}`,
+          }),
+        )
       })
 
     this._members[this._members.indexOf(UNDEFINED_MEMBER)] = member
@@ -57,8 +63,14 @@ export class Team implements Match.Team.Instance {
 
     this._teamChat
       .deleteMember({ name: member.name, role: 'user' })
-      .then((status) => {
+      .then(async (status) => {
         if (!status) throw new Error('Chat delete error')
+        await this._teamChat.send(
+          JSON.stringify({
+            from: 'system',
+            message: `${member!.name} leaved team#${this.id}`,
+          }),
+        )
       })
 
     member.teamID = undefined

@@ -27,7 +27,7 @@ export declare namespace Match {
 
   namespace Team {
     interface Manager extends TeamsManager {
-      findByUser(username: string): Instance | undefined
+      findByUserName(username: string): Instance | undefined
     }
     interface Instance extends ITeam {
       get GRI(): number
