@@ -9,7 +9,7 @@ import { WebSocketValidatior } from '../../../validation'
 import { UserModel, GuildModel } from '../../../Models/index'
 import { ChatManager } from '../../../Classes/index'
 
-export let GuildChatManager = new ChatManager(true)
+const chats = new ChatManager()
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
 /**
@@ -19,7 +19,6 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  * ```ts
  * {
  *    guildName: string
- *    userName: string
  * }
  * ```
  *
@@ -37,6 +36,11 @@ export async function join_guild(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+
     let guildName = escort.get('guildName')
     if (!guildName || typeof guildName != 'string')
       throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
@@ -47,18 +51,11 @@ export async function join_guild(escort: IDataEscort) {
     if (guild.isPrivate) throw new Error('guild is private')
     if (guild.memberList.length >= 50) throw new Error('Max member count')
 
-    let userName = escort.get('userName')
-    if (!userName || typeof userName != 'string')
-      throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
-
-    let user = await UserModel.findByName(userName)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
-
     let chat = findGuildChat(guild.info.name)
     if (!chat) chat = createGuildChat(guild.info.name)
-    chat.addMember({ name: userName, role: 'user' })
+    chat.addMember({ name: username, role: 'user' })
 
-    await guild.join(userName)
+    await guild.join(username)
     clientServer.control(socketID).emit('join_guild', { guildName })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
@@ -82,14 +79,6 @@ clientServer.on('join_guild', join_guild)
 
 /**
  * Событие для выхода из гильдии </br>
- * Используемый пакет:
- *
- * ```ts
- * {
- *    guildName: string
- *    userName: string
- * }
- * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  * ```ts
@@ -106,25 +95,24 @@ export async function leave_guild(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let guildName = escort.get('guildName')
-    if (!guildName || typeof guildName != 'string')
-      throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
 
-    let guild = await GuildModel.findByName(guildName)
-    if (!guild) throw new ValidationError('guild', validationCause.NOT_EXIST)
+    let guild = await GuildModel.findById(user.guild)
+    if (!guild)
+      return clientServer
+        .control(clientServer.Aliases.get(username)!)
+        .emit('leave_guild', { status: true })
 
-    let userName = escort.get('userName')
-    if (!userName || typeof userName != 'string')
-      throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
+    chat = chats.get(guild.info.name)
+    if (chat) chat.deleteMember({ name: username, role: 'user' })
 
-    let user = await UserModel.findByName(userName)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
-
-    chat = GuildChatManager.get(guild.info.name)
-    if (chat) chat.deleteMember({ name: userName, role: 'user' })
-
-    if (await guild.leave(userName))
-      clientServer.control(socketID).emit('leave_guild', { status: true })
+    if (await guild.leave(username))
+      clientServer
+        .control(clientServer.Aliases.get(username)!)
+        .emit('leave_guild', { status: true })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
@@ -153,7 +141,6 @@ clientServer.on('leave_guild', leave_guild)
  * {
  *    guildName: string
  *    guildTag: string
- *    userName: string
  * }
  * ```
  *
@@ -171,6 +158,11 @@ export async function create_guild(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+
     let guildName = escort.get('guildName')
     if (!guildName || typeof guildName != 'string')
       throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
@@ -185,14 +177,10 @@ export async function create_guild(escort: IDataEscort) {
     guild = await GuildModel.findByTag(guildTag)
     if (guild) throw new ValidationError('guild', validationCause.ALREADY_EXIST)
 
-    let userName = escort.get('userName')
-    if (!userName || typeof userName != 'string')
-      throw new ValidationError('user name', validationCause.INVALID_FORMAT)
-
-    guild = await GuildModel.new(guildTag, guildName, userName)
+    guild = await GuildModel.new(guildTag, guildName, username)
 
     let chat = createGuildChat(guildName)
-    chat.addMember({ name: userName, role: 'user' })
+    chat.addMember({ name: username, role: 'user' })
     clientServer.control(socketID).emit('create_guild', { status: true })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
@@ -214,17 +202,63 @@ export async function create_guild(escort: IDataEscort) {
 }
 clientServer.on('create_guild', create_guild)
 
+/**
+ * Событие для просмотра гильдии, в которой состоит пользователь </br>
+ * Используемый пакет:
+ *
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *    status: true
+ * }
+ * ```
+ * @category Guild
+ * @event
+ */
+export async function check_guild(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+
+    if (!user.guild)
+      throw new ValidationError('guild', validationCause.REQUIRED)
+    let guild = await GuildModel.findById(user.guild)
+    if (!guild) throw new ValidationError('guild', validationCause.NOT_EXIST)
+
+    clientServer.control(socketID).emit('check_guild', JSON.stringify(guild))
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('check_guild error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('check_guild error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('check_guild error', { reason: 'unknown error' })
+    }
+  }
+}
+clientServer.on('check_guild', create_guild)
+
 function findGuildChat(guildName: string) {
-  return GuildChatManager.get(guildName)
+  return chats.get(guildName)
 }
 
 function createGuildChat(guildName: string) {
-  return GuildChatManager.spawn(
-    'gamesocket.io',
-    {
-      namespace: 'client',
-      room: `guild#${guildName}`,
-    },
-    guildName,
-  )
+  return chats.spawn('gamesocket.io', `guild#${guildName}`, {
+    namespace: 'client',
+    room: `guild#${guildName}`,
+  })
 }

@@ -24,11 +24,11 @@ export const StandOffLobbies = new MatchMaking.LobbyManager(
   dsClient,
 )
 
-let LobbyChatManager = new ChatManager()
+const chats = new ChatManager()
 
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies)
-    if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
+    if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
 }, 1000 * 3)
 
 /**
@@ -37,7 +37,6 @@ setInterval(async () => {
  *
  * ```ts
  * {
- *  username: string
  *  region: 'Europe' | 'Asia'
  *  teamID?: number
  * }
@@ -71,9 +70,8 @@ export async function find_lobby(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let username = escort.get('username')
-    if (!username || typeof username != 'string')
-      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
     if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
@@ -82,6 +80,7 @@ export async function find_lobby(escort: IDataEscort) {
     if (typeof region != 'string' || !isCorrectRegion(region))
       throw new ValidationError('region', validationCause.INVALID)
 
+    Finder.filterByRegion(region)
     let teamID = escort.get('team_id')
     if (teamID && Teams.has(Number(teamID))) {
       let team = Teams.get(Number(teamID))!
@@ -89,7 +88,8 @@ export async function find_lobby(escort: IDataEscort) {
       Finder.filterByTeamSize(team.membersCount)
       let lobby = await Finder.findLobby()
 
-      if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
+      if (!lobby.region) lobby.region = region
+      if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
 
       for (let member of team.check()) await lobby.addMember(member)
       return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
@@ -100,8 +100,12 @@ export async function find_lobby(escort: IDataEscort) {
 
     Finder.filterByTeamSize(1)
     Finder.filterByGRI(await UserModel.getGRI(username))
+
     let lobby = await Finder.findLobby()
-    if (!lobby.chat) lobby.chat = createChatForLobby(lobby.id)
+
+    if (!lobby.region) lobby.region = region
+    if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
+
     await lobby.addMember({
       name: username,
       readyFlag: false,
@@ -199,13 +203,9 @@ clientServer.on('sync_lobby', sync_lobby)
  * ```ts
  * {
  *  lobby_id: string, //строка с id существующего лобби
- *  member:
- *  {
- *    name: string //имя пользователя
- *    command: 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
- *    readyFlag: boolean | undefined
- *    teamID?: number
- *  }
+ *  command: 'spectator' | 'neutral' | 'command1' | 'command2' | undefined
+ *  readyFlag: boolean | undefined
+ *  teamID?: number
  * }
  * ```
  *
@@ -280,8 +280,7 @@ clientServer.on('update_member', update_member)
  *
  * ```ts
  * {
- *  lobby_id: string
- *  username: string
+ *  chat_id: string
  *  message: string
  * }
  * ```
@@ -312,27 +311,24 @@ export async function send_to_chat(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let lobbyID = escort.get('lobby_id')
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
 
-    if (typeof lobbyID != 'string')
-      throw new ValidationError('lobby', validationCause.INVALID_FORMAT)
+    let chatID = escort.get('chat_id')
 
-    let lobby = StandOffLobbies.get(lobbyID)
-    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+    if (typeof chatID != 'string')
+      throw new ValidationError('chat', validationCause.INVALID_FORMAT)
 
-    let user = escort.get('username')
-    if (typeof user != 'string')
-      throw new ValidationError('user', validationCause.INVALID_FORMAT)
-
-    if (!lobby.members.hasMember(user))
-      throw new ValidationError('user', validationCause.INVALID)
+    let chat = chats.get(chatID)
+    if (!chat) throw new ValidationError('chat', validationCause.NOT_EXIST)
 
     let message = escort.get('message')
     if (typeof message != 'string')
       throw new ValidationError('message', validationCause.INVALID_FORMAT)
-    await lobby.chat!.send(
+
+    await chat.send(
       JSON.stringify({
-        from: user,
+        from: username,
         message: message,
       }),
     )
@@ -360,13 +356,6 @@ clientServer.on('send_to_chat', send_to_chat)
 
 /**
  * Событие для создания к команде.</br>
- * Используемый пакет:
- *
- * ```ts
- * {
- *  username: string
- * }
- * ```
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  * ```ts
@@ -395,16 +384,16 @@ export async function create_team(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let username = escort.get('username')
-    if (!username || typeof username != 'string')
-      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
     if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
-    let team = Teams.findByUser(username)
+    let team = Teams.findByUserName(username)
     if (team) throw new ValidationError('team', validationCause.ALREADY_EXIST)
 
     team = Teams.spawn()
+    await team.join(username)
     clientServer.control(escort.get('socket_id')! as string).emit('join_team', {
       team_id: team.id,
       chat_id: `team#${team.chat.id}`,
@@ -415,19 +404,19 @@ export async function create_team(escort: IDataEscort) {
       if (e.genericMessage)
         return clientServer
           .control(socketID)
-          .emit('join_team error', { reason: e.genericMessage })
+          .emit('create_team error', { reason: e.genericMessage })
     } else if (e instanceof Error) {
       return clientServer
         .control(socketID)
-        .emit('join_team error', { reason: e.message })
+        .emit('create_team error', { reason: e.message })
     } else {
       clientServer
         .control(escort.get('socket_id') as string)
-        .emit('join_team error', { reason: 'unknown error' })
+        .emit('create_team error', { reason: 'unknown error' })
     }
   }
 }
-clientServer.on('join_team', join_team)
+clientServer.on('create_team', create_team)
 
 /**
  * Событие для присоединения к команде.</br>
@@ -435,7 +424,6 @@ clientServer.on('join_team', join_team)
  *
  * ```ts
  * {
- *  username: string
  *  team_id: string
  * }
  * ```
@@ -467,9 +455,8 @@ export async function join_team(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let username = escort.get('username')
-    if (!username || typeof username != 'string')
-      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
     if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
@@ -480,13 +467,6 @@ export async function join_team(escort: IDataEscort) {
 
     let team = Teams.get(Number(teamID))!
     team.join(username)
-
-    team.chat.send(
-      JSON.stringify({
-        from: 'system',
-        message: `${username} joined`,
-      }),
-    )
 
     clientServer.control(escort.get('socket_id')! as string).emit('join_team', {
       status: true,
@@ -518,7 +498,6 @@ clientServer.on('join_team', join_team)
  *
  * ```ts
  * {
- *  username: string
  *  team_id: string
  * }
  * ```
@@ -537,9 +516,8 @@ export async function leave_team(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let username = escort.get('username')
-    if (!username || typeof username != 'string')
-      throw new ValidationError('user', validationCause.INVALID_FORMAT)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
     if (!(await UserModel.findByName(username)))
       throw new ValidationError('user', validationCause.INVALID)
 
@@ -550,13 +528,6 @@ export async function leave_team(escort: IDataEscort) {
 
     let team = Teams.get(Number(teamID))!
     team.leave(username)
-
-    team.chat.send(
-      JSON.stringify({
-        from: 'system',
-        message: `${username} leaved`,
-      }),
-    )
 
     clientServer
       .control(escort.get('socket_id')! as string)
@@ -584,15 +555,7 @@ export async function leave_team(escort: IDataEscort) {
 clientServer.on('leave_team', leave_team)
 
 /**
- * Событие для проверки членов команды.</br>
- * Используемый пакет:
- *
- * ```ts
- * {
- *  username: string
- *  team_id: string
- * }
- * ```
+ * Событие для проверки членов команды, в которой состоит пользователь.</br>
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  * ```ts
@@ -608,17 +571,17 @@ export async function check_team(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
-    let teamID = escort.get('team_id')
-    if (!teamID) throw new ValidationError('team_id', validationCause.REQUIRED)
-    if (!Teams.has(Number(teamID)))
-      throw new ValidationError('team_id', validationCause.INVALID)
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    if (!(await UserModel.findByName(username)))
+      throw new ValidationError('user', validationCause.INVALID)
 
-    let team = Teams.get(Number(teamID))!
+    let team = Teams.findByUserName(username)
+    if (!team) throw new ValidationError('team', validationCause.NOT_EXIST)
+
     clientServer
-      .control(escort.get('socket_id')! as string)
-      .emit('check_team', {
-        members: JSON.stringify(team.check()),
-      })
+      .control(socketID)
+      .emit('check_team', JSON.stringify({ members: team.check() }))
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
@@ -647,9 +610,21 @@ function isCorrectRegion(
   return false
 }
 
-function createChatForLobby(lobbyID: string) {
-  return LobbyChatManager.spawn('gamesocket.io', {
+async function createChatForLobby(lobbyID: string) {
+  let chat = chats.spawn('gamesocket.io', `lobby#${lobbyID}`, {
     namespace: process.env.CLIENT_NAMESPACE!,
     room: `lobby#${lobbyID}`,
   })
+
+  for (let member of StandOffLobbies.get(lobbyID)!.members.values()) {
+    await chat.addMember({ name: member.name, role: 'user' })
+    await chat.send(
+      JSON.stringify({
+        from: 'system',
+        message: `member ${member.name} joined lobby#${lobbyID}`,
+      }),
+    )
+  }
+
+  return chat
 }

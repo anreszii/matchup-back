@@ -41,6 +41,7 @@ export function authorize(escort: IDataEscort) {
     let name = token.username as string
     let socket = WS_SERVER.sockets.get(socketID)!
     socket.role = token.role
+    socket.username = name
 
     clientServer.Aliases.set(name, socketID)
     return clientServer.control(socketID).emit('authorize', { complete: true })
