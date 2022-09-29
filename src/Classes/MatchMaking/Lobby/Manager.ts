@@ -48,9 +48,9 @@ export class LobbyManager implements Match.Manager.Instance {
     return this._lobbyMap.has(lobbyID)
   }
 
-  public drop(lobbyID: string | Match.Lobby.Instance): boolean {
-    if (typeof lobbyID == 'string') return this._lobbyMap.delete(lobbyID)
-    return this._lobbyMap.delete(lobbyID.id)
+  public drop(lobby: string | Match.Lobby.Instance): boolean {
+    if (typeof lobby == 'string') return this._lobbyMap.delete(lobby)
+    return this._lobbyMap.delete(lobby.id)
   }
 
   public get lobbies(): Array<Match.Lobby.Instance> {
