@@ -47,7 +47,6 @@ export class DiscordClient {
         'command2',
       ),
     )
-    console.log(voiceChannels)
     return voiceChannels
   }
 
