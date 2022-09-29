@@ -13,7 +13,7 @@ export class ByRegionFilter implements Rating.SearchEngine.Filter {
   }
 
   set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
-    this.region = value
+    this._region = value
   }
 
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {
