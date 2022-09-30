@@ -4,8 +4,7 @@ import type { IDataEscort } from 'gamesocket.io'
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
 
 import { WebSocketValidatior } from '../../../validation'
-import { GlobalStatistic, UserModel } from '../../../Models'
-import { TaskListModel } from '../../../Models/Task/TaskList'
+import { GlobalStatistic, UserModel, TaskListModel } from '../../../Models'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 

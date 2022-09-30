@@ -6,6 +6,8 @@ import { Member, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
 export class Guild {
+  @prop({ required: true, default: [] })
+  subscribers!: string[]
   @prop({ required: true, default: [], type: () => Member })
   memberList!: Member[]
   @prop({ required: true })
@@ -93,17 +95,27 @@ export class Guild {
     let User = await UserModel.findByName(memberName)
     if (!User) return
 
-    if (!this.isPrivate) {
-      if (User.GRI < this.info.requiredMPR) throw Error('low MPR')
+    switch (this.isPrivate) {
+      case true: {
+        this.subscribers.push(memberName)
+        break
+      }
 
-      let member = new Member()
-      ;(member.name = memberName), (member.id = User)
-      member.role = roles.member
+      case false: {
+        if (User.GRI < this.info.requiredMPR) throw Error('low MPR')
 
-      this.memberList.push(member)
-      await User.joinGuild(this._id)
-      return this.save()
+        let member = new Member()
+        ;(member.name = memberName), (member.id = User)
+        member.role = roles.member
+
+        this.memberList.push(member)
+
+        User.joinGuild(this._id)
+        await User.save()
+        break
+      }
     }
+    return this.save()
   }
 
   async leave(this: DocumentType<Guild>, memberName: string) {

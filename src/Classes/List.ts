@@ -29,6 +29,16 @@ export class List<T extends Object> {
     }
   }
 
+  /** Возвращает массив всех значений, которые не равны {@link List._undefined} */
+  public get toArray(): T[] {
+    let tmp: Array<T> = []
+    for (let index = 0; index < this._elements.length; index++)
+      if (this._elements[index] != this._undefined)
+        tmp.push(this._elements[index] as T)
+
+    return tmp
+  }
+
   /**
    * Добавляет набор новых элементов типа T.
    * @return false, если один из элементов оказался {@link List._undefined} и добавляет остальные элементы. true в остальных случаях

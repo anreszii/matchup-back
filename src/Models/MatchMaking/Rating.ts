@@ -19,6 +19,10 @@ export class Rating {
   WC!: number //Win Counter
   @prop({ required: true, default: 0 })
   LC!: number //Lose Counter
+  @prop({ required: true, default: 0 })
+  DC!: number //Draw Counter
+  @prop({ required: true, default: 0 })
+  KC!: number //kill Counter
 
   public integrate(
     statistic: Match.Member.Statistic,
@@ -26,6 +30,7 @@ export class Rating {
   ) {
     if (resultOfMatch == Match.Result.WIN) this.WC++
     if (resultOfMatch == Match.Result.LOSE) this.LC++
+    if (resultOfMatch == Match.Result.DRAW) this.DC++
 
     let { kills, deaths, assists } = statistic
 
@@ -34,11 +39,11 @@ export class Rating {
     this._addAssists(assists)
 
     let Calculator = new RatingCalculator()
+
     Calculator.integrateKDA(kills, deaths, assists)
     this.GSI *= Calculator.RatingIndicator
 
     Calculator.calculateMatchResult(resultOfMatch)
-
     this.GRI += Calculator.RatingIndicator
   }
 

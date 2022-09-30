@@ -1,3 +1,4 @@
+import type { ModelType } from '@typegoose/typegoose/lib/types'
 import { getModelForClass } from '@typegoose/typegoose'
 import { User } from './User'
 import { TaskList, Task } from './Task'
@@ -18,3 +19,12 @@ export * from './Guild'
 export * from './MatchMaking'
 export * from './GlobalStatistic'
 export * from './Reward'
+
+export const Models: Map<string, ModelType<any, any>> = new Map()
+Models.set(UserModel.modelName, UserModel)
+Models.set(TaskModel.modelName, TaskModel)
+Models.set(TaskListModel.modelName, TaskListModel)
+Models.set(GuildModel.modelName, GuildModel)
+Models.set(RatingModel.modelName, RatingModel)
+Models.set(ReportListModel.modelName, ReportListModel)
+Models.set(MatchListModel.modelName, MatchListModel)

@@ -28,6 +28,8 @@ export declare namespace Match {
   namespace Team {
     interface Manager extends TeamsManager {
       findByUserName(username: string): Instance | undefined
+      get all(): Instance[]
+      get IDs(): number[]
     }
     interface Instance extends ITeam {
       get GRI(): number

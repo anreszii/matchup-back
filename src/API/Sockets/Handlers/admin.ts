@@ -97,7 +97,7 @@ export async function load_reports(escort: IDataEscort) {
     if (typeof reportID != 'number')
       throw new ValidationError('reportID', validationCause.INVALID_FORMAT)
 
-    let report = await ReportListModel.getByID(reportID)
+    let report = await ReportListModel.findByID(reportID)
     if (!report) throw new ValidationError('reportID', validationCause.INVALID)
 
     return clientServer.control(socketID).emit('get_report', report.toJSON())

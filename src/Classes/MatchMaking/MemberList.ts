@@ -211,13 +211,6 @@ export class MemberList extends List<Match.Member.Instance> {
     return members
   }
 
-  /**
-   * Массив всех участников матча
-   */
-  public get toArray() {
-    return this._elements
-  }
-
   private _increaseMemberTeamCounter(command: Match.Member.command) {
     return command == 'spectator'
       ? this._increaseSpectatorCounter()

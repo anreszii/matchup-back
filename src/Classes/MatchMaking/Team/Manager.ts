@@ -38,6 +38,17 @@ export class TeamManager implements Match.Team.Manager {
     }
   }
 
+  public get all(): Match.Team.Instance[] {
+    return this._teams.toArray
+  }
+
+  public get IDs(): number[] {
+    let tmp = []
+    for (let team of this._teams.toArray) tmp.push(team.id)
+
+    return tmp
+  }
+
   private _createChatForTeam(team: Match.Team.Instance) {
     return TeamManager._chats.spawn('gamesocket.io', `team#${team.id}`, {
       namespace: process.env.CLIENT_NAMESPACE!,

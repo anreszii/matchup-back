@@ -29,10 +29,10 @@ export class ReportList {
     this.game = game
     this.reason = reason
     this.describe = describe
-    return this.save()
+    return this
   }
 
-  public static async getByID(
+  public static async findByID(
     this: ReturnModelType<typeof ReportList>,
     id: number,
   ) {
@@ -49,7 +49,7 @@ export class ReportList {
     proof: string,
     rewrite: boolean = false,
   ) {
-    let report = await this.getByID(id)
+    let report = await this.findByID(id)
     if (!report) throw new ValidationError('reportID', validationCause.INVALID)
 
     if (report.proof && !rewrite)

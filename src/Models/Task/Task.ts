@@ -132,5 +132,3 @@ export class Task {
     return this.expiresIn <= 0
   }
 }
-
-export const TaskModel = getModelForClass(Task)

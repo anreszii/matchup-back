@@ -16,7 +16,8 @@ import { validationCause, ValidationError } from '../../error'
 import { UserModel } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
-import { Task, TaskModel } from './Task'
+import { Task } from './Task'
+import { TaskModel } from '../'
 
 export class TaskList {
   @prop({ required: true, ref: () => User })
@@ -236,5 +237,3 @@ export class TaskList {
     })
   }
 }
-
-export const TaskListModel = getModelForClass(TaskList)

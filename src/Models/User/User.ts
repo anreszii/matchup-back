@@ -1,13 +1,7 @@
 import type { USER_PREFIX, USER_ROLE } from '../../Interfaces'
 import type { Types } from 'mongoose'
 
-import {
-  prop,
-  getModelForClass,
-  ReturnModelType,
-  DocumentType,
-  Ref,
-} from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
 import { Credentials } from './Credentials'
@@ -17,6 +11,7 @@ import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
 import { BPLevelModel, GuildModel } from '../index'
 import { Guild } from '../Guild/Guild'
+import { UserModel } from '../'
 
 export class User {
   @prop({
@@ -71,22 +66,13 @@ export class User {
     }).exec() as unknown as DocumentType<User>
   }
 
-  public static async findByEmai(
-    this: ReturnModelType<typeof User>,
-    email: string,
-  ) {
-    return this.findOne({
-      'credentials.email': email,
-    }).exec() as unknown as DocumentType<User>
-  }
-
   public static async getPublicData(
     this: ReturnModelType<typeof User>,
     name: string,
   ) {
     return this.findOne(
       { 'profile.username': name },
-      'id profile level rating role prefix guild',
+      'id profile level rating role prefix guild credentials.email credentials.region',
     )
   }
 
@@ -165,9 +151,9 @@ export class User {
   }
 
   public deleteFriend(this: DocumentType<User>, name: string) {
-    if (!this.hasSubscriber(name)) return
-    let friends = this.profile.relations.friends
+    if (!this.hasFriend(name)) return
 
+    let friends = this.profile.relations.friends
     let friendIndex = friends.indexOf(name)
 
     if (~friendIndex) friends.splice(friendIndex, 1)
@@ -183,7 +169,8 @@ export class User {
     if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
-      return user.addSubscriber(this.profile.username)
+      user.addSubscriber(this.profile.username)
+      return user.save()
     }
 
     user.addFriend(this.profile.username)
@@ -202,12 +189,11 @@ export class User {
     let user = await UserModel.findByName(name)
     if (!user?.hasFriend(this.profile.username)) return
 
+    user.deleteFriend(this.profile.username)
+    await user.save()
+
     this.deleteFriend(name)
     this.addSubscriber(name)
-
-    user.deleteFriend(this.profile.username)
-
-    await user.save()
     return this.save()
   }
 
@@ -224,7 +210,6 @@ export class User {
   public leaveGuild(this: DocumentType<User>) {
     if (!this.guild) return
     this.guild = undefined
-    return
   }
 
   /* SIMPLE ACTIONS */
@@ -251,6 +236,8 @@ export class User {
   public checkLevel(this: DocumentType<User>) {
     if (this.level.currentEXP >= this.level.currentRequiredEXP)
       this._updateLevel()
+
+    return this.level.currentBPLevel
   }
 
   private _updateLevel(this: DocumentType<User>) {
@@ -282,5 +269,3 @@ export class User {
     this.level.reward = undefined
   }
 }
-
-export const UserModel = getModelForClass(User)
