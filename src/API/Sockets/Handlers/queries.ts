@@ -30,6 +30,10 @@ export async function query(escort: IDataEscort) {
     let model = Models.get(query.model)
     if (!model) throw new ValidationError('model', validationCause.INVALID)
 
+    let label = escort.get('label')
+    if (typeof label != 'string')
+      throw new ValidationError('label', validationCause.INVALID_FORMAT)
+
     switch (query.method) {
       case 'get': {
         let documents = await model.find(query.filter, query.fields)
@@ -38,29 +42,27 @@ export async function query(escort: IDataEscort) {
 
         return clientServer
           .control(socketID)
-          .emit('query', JSON.stringify(documents))
+          .emit('query', JSON.stringify({ label, data: documents }))
       }
 
       case 'set': {
         if (!query.update)
           throw new ValidationError('query.update', validationCause.REQUIRED)
         if (query.update.count == 'one')
-          return clientServer
-            .control(socketID)
-            .emit(
-              'query',
-              JSON.stringify(
-                await model.updateOne(query.filter, query.update.set),
-              ),
-            )
-        return clientServer
-          .control(socketID)
-          .emit(
+          return clientServer.control(socketID).emit(
             'query',
-            JSON.stringify(
-              await model.updateMany(query.filter, query.update.set),
-            ),
+            JSON.stringify({
+              label,
+              data: await model.updateOne(query.filter, query.update.set),
+            }),
           )
+        return clientServer.control(socketID).emit(
+          'query',
+          JSON.stringify({
+            label,
+            data: await model.updateMany(query.filter, query.update.set),
+          }),
+        )
       }
 
       default: {
@@ -107,29 +109,31 @@ export async function syscall(escort: IDataEscort) {
     let model = Models.get(query.model) as any
     if (!model) throw new ValidationError('model', validationCause.INVALID)
 
+    let label = escort.get('label')
+    if (typeof label != 'string')
+      throw new ValidationError('label', validationCause.INVALID_FORMAT)
+
     if (!query.filter)
-      return clientServer
-        .control(socketID)
-        .emit(
-          'syscall',
-          await model[query.execute.function].call(
-            model,
-            ...query.execute.params,
-          ),
-        )
+      return clientServer.control(socketID).emit('syscall', {
+        label,
+        data: await model[query.execute.function].call(
+          model,
+          ...query.execute.params,
+        ),
+      })
 
     let document = await model.findOne(query.filter)
     if (!document)
       throw new ValidationError('document', validationCause.NOT_EXIST)
 
-    await document[query.execute.function].call(
+    let result = await document[query.execute.function].call(
       document,
       ...query.execute.params,
     )
     await document.save()
     return clientServer
       .control(socketID)
-      .emit('syscall', JSON.stringify(document))
+      .emit('syscall', JSON.stringify({ label, data: result }))
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
