@@ -16,31 +16,22 @@ export class ReportList {
   public reason!: string
   @prop({ required: true })
   public describe!: string
-  @prop({ required: true })
-  public proof!: string
+  @prop()
+  public proof?: string
 
   public async log(
     this: DocumentType<ReportList>,
     game: Match.Manager.supportedGames,
     reason: string,
     describe: string,
+    proof?: string,
   ) {
     this.id = Date.now()
     this.game = game
     this.reason = reason
     this.describe = describe
+    this.proof = proof
     return this
-  }
-
-  public static async findByID(
-    this: ReturnModelType<typeof ReportList>,
-    id: number,
-  ) {
-    return this.findOne({ id })
-  }
-
-  public static async getAll(this: ReturnModelType<typeof ReportList>) {
-    return this.find({})
   }
 
   public static async addProof(
@@ -49,7 +40,7 @@ export class ReportList {
     proof: string,
     rewrite: boolean = false,
   ) {
-    let report = await this.findByID(id)
+    let report = await this.findOne({ id })
     if (!report) throw new ValidationError('reportID', validationCause.INVALID)
 
     if (report.proof && !rewrite)

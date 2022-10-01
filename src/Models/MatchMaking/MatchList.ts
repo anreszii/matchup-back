@@ -26,17 +26,6 @@ export class MatchList {
   @prop({ ref: () => Image })
   public screen?: Ref<Image>
 
-  public static async findByID(
-    this: ReturnModelType<typeof MatchList>,
-    id: string,
-  ) {
-    return this.findOne({ id })
-  }
-
-  public static async getAll(this: ReturnModelType<typeof MatchList>) {
-    return this.find()
-  }
-
   public async setScreen(
     this: DocumentType<MatchList>,
     image: Buffer,
