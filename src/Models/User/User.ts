@@ -234,10 +234,11 @@ export class User {
   /* BATTLEPASS */
 
   public checkLevel(this: DocumentType<User>) {
+    let level = this.level
     if (this.level.currentEXP >= this.level.currentRequiredEXP)
       this._updateLevel()
 
-    return this.level
+    return { previous: level, current: this.level }
   }
 
   private _updateLevel(this: DocumentType<User>) {
