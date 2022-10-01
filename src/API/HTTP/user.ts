@@ -174,7 +174,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     let lobby = StandOffLobbies.get(match_id)
     if (!lobby) throw new ValidationError('match_id', cause.INVALID)
 
-    let matchData = await MatchListModel.findByID(match_id)
+    let matchData = await MatchListModel.findOne({ id: match_id })
     if (!matchData) throw new ValidationError('match_id', cause.INVALID)
 
     matchData.setScreen(image.data, image.mimetype)
