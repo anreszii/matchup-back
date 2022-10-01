@@ -24,7 +24,7 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  * @category Admin
  * @event
  */
-export async function load_users(escort: IDataEscort) {
+export async function get_user(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -64,7 +64,7 @@ export async function load_users(escort: IDataEscort) {
     }
   }
 }
-clientServer.on('load_users', load_users)
+clientServer.on('get_user', get_user)
 
 /**
  * Событие для получения репортов. </br>
@@ -81,7 +81,7 @@ clientServer.on('load_users', load_users)
  * @category Admin
  * @event
  */
-export async function load_reports(escort: IDataEscort) {
+export async function get_report(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -93,11 +93,11 @@ export async function load_reports(escort: IDataEscort) {
     if (!reportID)
       return clientServer
         .control(socketID)
-        .emit('get_report', JSON.stringify(await ReportListModel.getAll()))
+        .emit('get_report', JSON.stringify(await ReportListModel.find({})))
     if (typeof reportID != 'number')
       throw new ValidationError('reportID', validationCause.INVALID_FORMAT)
 
-    let report = await ReportListModel.findByID(reportID)
+    let report = await ReportListModel.findOne({ id: reportID })
     if (!report) throw new ValidationError('reportID', validationCause.INVALID)
 
     return clientServer.control(socketID).emit('get_report', report.toJSON())
@@ -119,7 +119,7 @@ export async function load_reports(escort: IDataEscort) {
     }
   }
 }
-clientServer.on('load_reports', load_reports)
+clientServer.on('get_report', get_report)
 
 /**
  * Событие для получения результатов матчей. </br>
@@ -136,7 +136,7 @@ clientServer.on('load_reports', load_reports)
  * @category Admin
  * @event
  */
-export async function load_matchs(escort: IDataEscort) {
+export async function get_match(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
@@ -148,11 +148,11 @@ export async function load_matchs(escort: IDataEscort) {
     if (!matchID)
       return clientServer
         .control(socketID)
-        .emit('get_match', JSON.stringify(await MatchListModel.getAll()))
+        .emit('get_match', JSON.stringify(await MatchListModel.find()))
     if (typeof matchID != 'string')
       throw new ValidationError('matchID', validationCause.INVALID_FORMAT)
 
-    let match = await MatchListModel.findByID(matchID)
+    let match = await MatchListModel.findOne({ id: matchID })
     if (!match) throw new ValidationError('matchID', validationCause.INVALID)
 
     return clientServer.control(socketID).emit('get_match', match.toJSON())
@@ -174,4 +174,4 @@ export async function load_matchs(escort: IDataEscort) {
     }
   }
 }
-clientServer.on('load_matchs', load_matchs)
+clientServer.on('get_match', get_match)
