@@ -145,7 +145,7 @@ export class User {
   }
 
   public addFriend(this: DocumentType<User>, name: string) {
-    if (this.hasSubscriber(name)) return
+    if (this.hasFriend(name)) return
 
     this.profile.relations.friends.push(name)
   }
@@ -162,11 +162,12 @@ export class User {
   /* RELATION ACTIONS */
 
   public async addRelation(this: DocumentType<User>, name: string) {
-    if (!name) throw new ValidationError('name', validationCause.REQUIRED)
-    if (this.hasFriend(name)) return
+    if (!name) throw new ValidationError('username', validationCause.REQUIRED)
+    if (this.hasFriend(name)) return false
 
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!user)
+      throw new ValidationError('anotherUser', validationCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
       user.addSubscriber(this.profile.username)
@@ -174,20 +175,19 @@ export class User {
     }
 
     user.addFriend(this.profile.username)
+    await user.save()
 
     this.deleteSubscriber(name)
     this.addFriend(user.profile.username)
-
-    await user.save()
     return this.save()
   }
 
   public async dropRelation(this: DocumentType<User>, name: string) {
     if (!name) throw new ValidationError('name', validationCause.REQUIRED)
-    if (!this.hasFriend(name)) return
+    if (!this.hasFriend(name)) return false
 
     let user = await UserModel.findByName(name)
-    if (!user?.hasFriend(this.profile.username)) return
+    if (!user?.hasFriend(this.profile.username)) return false
 
     user.deleteFriend(this.profile.username)
     await user.save()
@@ -237,7 +237,7 @@ export class User {
     if (this.level.currentEXP >= this.level.currentRequiredEXP)
       this._updateLevel()
 
-    return this.level.currentBPLevel
+    return this.level
   }
 
   private _updateLevel(this: DocumentType<User>) {
