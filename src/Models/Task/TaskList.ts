@@ -1,10 +1,4 @@
-import {
-  prop,
-  getModelForClass,
-  Ref,
-  DocumentType,
-  ReturnModelType,
-} from '@typegoose/typegoose'
+import { prop, Ref, DocumentType, ReturnModelType } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
 
 import {
@@ -13,7 +7,7 @@ import {
   STATIC_TASK,
 } from '../../configs/task_reward'
 import { validationCause, ValidationError } from '../../error'
-import { UserModel } from '../index'
+import { Reward, UserModel } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
@@ -92,12 +86,28 @@ export class TaskList {
       levels: 0,
     }
 
+    let rewards = []
+    let completedTaskCounter = 0
+    let taskRewards: Reward[] | undefined
+    let completeDailyTask: DocumentType<Task> | undefined
     for (let task of daily) {
       if (!task.isComplete) continue
-      let rewards = await task.complete()
-      if (!rewards) continue
+      if (task.flags.static && task.name == 'completedDaily') {
+        completeDailyTask = task
+        continue
+      }
+      taskRewards = await task.complete()
+      if (!taskRewards) continue
+      completedTaskCounter++
+      rewards.push(taskRewards)
+    }
 
-      for (let reward of rewards) {
+    completeDailyTask!.addProgess(completedTaskCounter)
+    taskRewards = await completeDailyTask!.complete()
+
+    rewards.push(taskRewards)
+    for (let tmp of rewards) {
+      for (let reward of tmp as Reward[]) {
         switch (reward.type) {
           case 'mp': {
             collectedReward.mp += reward.amount
