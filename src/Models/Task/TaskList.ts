@@ -52,7 +52,9 @@ export class TaskList {
     return this.create({ owner: userDocument, tasks: [] })
   }
 
-  public getDaily(this: DocumentType<TaskList>) {
+  public getDaily(
+    this: DocumentType<TaskList>,
+  ): Array<DocumentType<Task>> | Promise<Array<DocumentType<Task>>> {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
 
     for (let i = 0; i < this.tasks.length; i++) {
@@ -87,6 +89,7 @@ export class TaskList {
     let collectedReward = {
       exp: 0,
       mp: 0,
+      levels: 0,
     }
 
     for (let task of daily) {
@@ -111,8 +114,22 @@ export class TaskList {
 
     user.addEXP(collectedReward.exp)
     user.addMP(collectedReward.mp)
-    user.checkLevel()
+    let result = user.checkLevel()
+    if (result.previous.currentBPLevel != result.current.currentBPLevel) {
+      collectedReward.levels +=
+        result.current.currentBPLevel - result.previous.currentBPLevel
+      switch (result.previous.reward?.type) {
+        case 'mp':
+          collectedReward.mp += result.previous.reward.amount
+          break
+        case 'exp':
+          collectedReward.exp += result.previous.reward.amount
+          break
+      }
+    }
     await user.save()
+
+    return collectedReward
   }
 
   public async createTask(this: DocumentType<TaskList>, name: string) {
