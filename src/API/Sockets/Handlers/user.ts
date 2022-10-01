@@ -62,28 +62,31 @@ clientServer.on('get_global_statistic', get_global_statistic)
  * В случае, если соединение работает после удаления пользователя, вернет invalid user
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```ts
+ * ```json
  * {
- *   [
+ *   [Task1, Task2]
+ * }
+ * ```
+ *
+ * Task
+ * ```json
+ * {
+ *    owner: string
+ *    name: string
+ *    flags: {
+ *       complete: boolean
+ *       static: boolean
+ *     },
+ *    rewards: [
  *      {
- *        owner: string
- *        name: string
- *        flags: {
- *          complete: boolean
- *          static: boolean
- *        },
- *        rewards: [
- *          {
- *            amount: number,
- *            type: 'exp' | 'mp'
- *          }
- *        ]
- *        progress: {
- *           current_points: number
- *           required_points: number
- *        }
+ *        amount: number,
+ *        type: 'exp' | 'mp'
  *      }
- *   ]
+ *    ]
+ *   progress: {
+ *     current_points: number
+ *     required_points: number
+ *   }
  * }
  * ```
  * @category User
