@@ -13,7 +13,7 @@ import { WebSocketValidatior } from '../../../validation'
 import * as MatchMaking from '../../../Classes/MatchMaking'
 import { ChatManager, MatchFinder } from '../../../Classes'
 import { UserModel } from '../../../Models/index'
-import { Rating } from '../../../Interfaces/index'
+import { Match, Rating } from '../../../Interfaces/index'
 import { DiscordClient } from '../../../Classes/Discord/Client'
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 let wsValidator = new WebSocketValidatior(WS_SERVER)
@@ -28,7 +28,7 @@ const chats = new ChatManager()
 
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies)
-    if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
+    if (!lobby.chat) await createChatForLobby(lobby.id)
 }, 1000 * 3)
 
 /**
@@ -89,7 +89,7 @@ export async function find_lobby(escort: IDataEscort) {
       let lobby = await Finder.findLobby()
 
       if (!lobby.region) lobby.region = region
-      if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
+      if (!lobby.chat) await createChatForLobby(lobby.id)
 
       for (let member of team.check()) await lobby.addMember(member)
       return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
@@ -104,7 +104,7 @@ export async function find_lobby(escort: IDataEscort) {
     let lobby = await Finder.findLobby()
 
     if (!lobby.region) lobby.region = region
-    if (!lobby.chat) lobby.chat = await createChatForLobby(lobby.id)
+    if (!lobby.chat) await createChatForLobby(lobby.id)
 
     await lobby.addMember({
       name: username,
@@ -135,6 +135,141 @@ export async function find_lobby(escort: IDataEscort) {
   }
 }
 clientServer.on('find_lobby', find_lobby)
+
+/**
+ * Событие для приглашения другого игрока в лобби.</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "username": "anyUserNameToInvite"
+ *  "lobbyID": "myLobby"
+ * }
+ * ```
+ *
+ * В случае успеха отправляет указанному пользователю ивент invite_to_lobby  с пакетом следующего вида:
+ * ```json
+ * {
+ *  "lobbyID": "lobby"
+ * }
+ * ```
+ * А вызвавшему пользователю отправляет тот же ивент с пакетом:
+ * ```json
+ * {
+ *  status: true
+ * }
+ * ```
+ *
+ * @category MatchMaking
+ * @event
+ */
+export async function invite_to_lobby(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobbyID = escort.get('lobbyID')
+    if (!lobbyID) throw new ValidationError('lobbyID', validationCause.REQUIRED)
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobbyID', validationCause.INVALID_FORMAT)
+
+    let lobby = StandOffLobbies.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobbyID', validationCause.INVALID)
+
+    let username = escort.get('username')
+    if (!username)
+      throw new ValidationError('username', validationCause.REQUIRED)
+    if (typeof username != 'string')
+      throw new ValidationError('username', validationCause.INVALID_FORMAT)
+
+    let sockets = clientServer.Aliases.get(username)
+    if (!sockets) throw new ValidationError('username', validationCause.INVALID)
+
+    clientServer.control(socketID).emit('invite_to_lobby', { status: true })
+    clientServer.control(sockets).emit('invite_to_lobby', { lobbyID: lobby.id })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('invite_to_lobby error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('invite_to_lobby error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('invite_to_lobby error', { reason: 'unknown error' })
+    }
+  }
+}
+
+/**
+ * Событие для вступления лобби по ID.</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobbyID": "lobbyIdToJoin"
+ * }
+ * ```
+ *
+ * В случае успеха отправляет указанному пользователю ивент sync_lobby
+ *
+ * @category MatchMaking
+ * @event
+ */
+export async function join_to_lobby(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+    if (!(await UserModel.findByName(username)))
+      throw new ValidationError('user', validationCause.INVALID)
+
+    let lobbyID = escort.get('lobbyID')
+    if (!lobbyID) throw new ValidationError('lobbyID', validationCause.REQUIRED)
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobbyID', validationCause.INVALID_FORMAT)
+
+    let lobby = StandOffLobbies.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobbyID', validationCause.INVALID)
+
+    if (
+      !(await lobby.addMember({
+        name: username,
+        command: 'neutral',
+        readyFlag: false,
+      }))
+    )
+      return
+    clientServer.control(socketID).emit('sync_lobby', {
+      status: lobby.status as string,
+      players: JSON.stringify(lobby.members.players),
+      spectators: JSON.stringify(lobby.members.spectators),
+    })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('join_to_lobby error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('join_to_lobby error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('join_to_lobby error', { reason: 'unknown error' })
+    }
+  }
+}
 
 /**
  * Событие для ручной синхронизации пользователя с лобби.</br>
@@ -170,6 +305,7 @@ export async function sync_lobby(escort: IDataEscort) {
 
     let lobby = StandOffLobbies.get(lobbyID)
     if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+    updateLobbyChatMembers(lobby)
 
     clientServer.control(socketID).emit('sync_lobby', {
       status: lobby.status as string,
@@ -195,6 +331,64 @@ export async function sync_lobby(escort: IDataEscort) {
   }
 }
 clientServer.on('sync_lobby', sync_lobby)
+
+/**
+ * Событие для получения количества игроков, находящихся в лобби.</br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *  "lobby_id": "string" //строка с id существующего лобби
+ * }
+ * ```
+ *
+ * В случае успеха создает ивент lobby_players_count и отправляет на него JSON объект:
+ *
+ * ```json
+ * {
+ *   "lobby_id": "string"
+ *   "playersCount": 0
+ * }
+ * ```
+ * @category MatchMaking
+ * @event
+ */
+export async function get_lobby_players_count(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let lobbyID = escort.get('lobby_id')
+
+    if (typeof lobbyID != 'string')
+      throw new ValidationError('lobby', validationCause.REQUIRED)
+
+    let lobby = StandOffLobbies.get(lobbyID)
+    if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+
+    clientServer.control(socketID).emit('lobby_players_count', {
+      lobby_id: lobbyID,
+      playersCount: lobby.members.quantityOfPlayers,
+    })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('get_lobby_players error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('get_lobby_players_count error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('get_lobby_players_count error', { reason: 'unknown error' })
+    }
+  }
+}
+clientServer.on('get_lobby_players_count', get_lobby_players_count)
 
 /**
  * Событие для обновления статуса пользователя со стороны клиента.</br>
@@ -567,20 +761,24 @@ function isCorrectRegion(
 }
 
 async function createChatForLobby(lobbyID: string) {
-  let chat = chats.spawn('gamesocket.io', `lobby#${lobbyID}`, {
+  let lobby = StandOffLobbies.get(lobbyID)!
+  lobby.chat = chats.spawn('gamesocket.io', `lobby#${lobbyID}`, {
     namespace: process.env.CLIENT_NAMESPACE!,
     room: `lobby#${lobbyID}`,
   })
 
-  for (let member of StandOffLobbies.get(lobbyID)!.members.values()) {
-    await chat.addMember({ name: member.name, role: 'user' })
-    await chat.send(
+  updateLobbyChatMembers(StandOffLobbies.get(lobbyID)!)
+  return lobby.chat
+}
+
+async function updateLobbyChatMembers(lobby: Match.Lobby.Instance) {
+  for (let member of lobby.members.values()) {
+    await lobby.chat!.addMember({ name: member.name, role: 'user' })
+    await lobby.chat!.send(
       JSON.stringify({
         from: 'system',
-        message: `member ${member.name} joined lobby#${lobbyID}`,
+        message: `member ${member.name} joined lobby#${lobby.id}`,
       }),
     )
   }
-
-  return chat
 }
