@@ -203,6 +203,140 @@ export async function create_guild(escort: IDataEscort) {
 clientServer.on('create_guild', create_guild)
 
 /**
+ * Событие для смены названия гильдии. </br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *    "newGuildName": "unique guild name"
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```json
+ * {
+ *    "newGuidldName": "guild name"
+ * }
+ * ```
+ * @category Guild
+ * @event
+ */
+export async function change_guild_name(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+    if (!user.guild)
+      throw new ValidationError('user guild', validationCause.REQUIRED)
+
+    let guildName = escort.get('newGuildName')
+    if (!guildName || typeof guildName != 'string')
+      throw new ValidationError('guild name', validationCause.INVALID_FORMAT)
+
+    let guild = await GuildModel.findById(user.guild)
+    if (!guild) {
+      user.guild = undefined
+      await user.save()
+      throw new ValidationError('guild', validationCause.NOT_EXIST)
+    }
+
+    await guild.changeGuildName(username, guildName)
+    clientServer
+      .control(socketID)
+      .emit('change_guild_name', { newGuildName: guildName })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('create_guild error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('create_guild error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('create_guild error', { reason: 'unknown error' })
+    }
+  }
+}
+clientServer.on('change_guild_name', change_guild_name)
+
+/**
+ * Событие для смены тэга гильдии. </br>
+ * Используемый пакет:
+ *
+ * ```json
+ * {
+ *    "newGuildTag": "UGT"
+ * }
+ * ```
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```json
+ * {
+ *    "newGuildTag": "UGT"
+ * }
+ * ```
+ * @category Guild
+ * @event
+ */
+export async function change_guild_tag(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+    if (!user.guild)
+      throw new ValidationError('user guild', validationCause.REQUIRED)
+
+    let guildTag = escort.get('newGuildTag')
+    if (!guildTag || typeof guildTag != 'string')
+      throw new ValidationError('guild tag', validationCause.INVALID_FORMAT)
+
+    let guild = await GuildModel.findById(user.guild)
+    if (!guild) {
+      user.guild = undefined
+      await user.save()
+      throw new ValidationError('guild', validationCause.NOT_EXIST)
+    }
+
+    await guild.changeTagName(username, guildTag)
+    clientServer
+      .control(socketID)
+      .emit('change_guild_tag', { newGuildTag: guildTag })
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('create_guild error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('create_guild error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('create_guild error', { reason: 'unknown error' })
+    }
+  }
+}
+clientServer.on('change_guild_tag', change_guild_tag)
+
+/**
  * Событие для просмотра гильдии, в которой состоит пользователь </br>
  * Используемый пакет:
  *
