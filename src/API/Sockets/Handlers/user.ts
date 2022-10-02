@@ -110,7 +110,7 @@ export async function get_daily_tasks(escort: IDataEscort) {
     let dailyTasks = await taskList.getDaily()
     clientServer
       .control(clientServer.Aliases.get(username)!)
-      .emit('load_daily_tasks', JSON.stringify(dailyTasks))
+      .emit('get_daily_tasks', JSON.stringify(dailyTasks))
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {
