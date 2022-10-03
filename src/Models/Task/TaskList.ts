@@ -49,6 +49,16 @@ export class TaskList {
   public getDaily(
     this: DocumentType<TaskList>,
   ): Array<DocumentType<Task>> | Promise<Array<DocumentType<Task>>> {
+    let wasCleared = this._clearCurrentDailyTasksIfCountInvalid()
+    if (!wasCleared) return this._findCurrentDailyTasks()
+
+    return this._createDailyTasks().then((tasks) => {
+      if (!tasks) throw new Error(`can't create daily tasks`)
+      return tasks
+    })
+  }
+
+  public getCompletedDailyCount(this: DocumentType<TaskList>) {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
 
     for (let i = 0; i < this.tasks.length; i++) {
@@ -60,19 +70,6 @@ export class TaskList {
         if (this._isDailyTask(task)) dailyTasks.push(task)
       })
     }
-
-    if (dailyTasks.length < 4) {
-      let promises = []
-      for (let task of dailyTasks) promises.push(task.delete())
-      return Promise.all(promises).then(() => {
-        return this._createDailyTasks().then((tasks) => {
-          if (!tasks) throw new Error(`Can't create daity tasks`)
-          return tasks
-        })
-      })
-    }
-
-    return dailyTasks
   }
 
   public async collectRewardsFromDaily(this: DocumentType<TaskList>) {
@@ -167,6 +164,38 @@ export class TaskList {
     }
 
     return task.save()
+  }
+
+  private _findCurrentDailyTasks(this: DocumentType<TaskList>) {
+    let dailyTasks: Array<DocumentType<Task>> = new Array()
+    for (let i = 0; i < this.tasks.length; i++) {
+      let taskID = this.tasks[i]
+      if (!taskID) continue
+
+      TaskModel.findById(taskID).then((task) => {
+        if (!task || task.isExpired || !task.expires) return
+        if (this._isDailyTask(task)) dailyTasks.push(task)
+      })
+    }
+
+    return dailyTasks
+  }
+
+  /** В случае, если количество ежедневных заданий меньше трех, или не было сгенерировано задание на выполнение ежедневных заданий, удаляет их
+   *  @returns true, если задания были удалены, false в противном случае
+   */
+  private _clearCurrentDailyTasksIfCountInvalid(this: DocumentType<TaskList>) {
+    let dailyTasks = this._findCurrentDailyTasks()
+    if (dailyTasks.length == 4) return
+
+    let promises = []
+    for (let task of dailyTasks) promises.push(task.delete())
+    if (promises.length != 0) {
+      Promise.all(promises).then()
+      return true
+    }
+
+    return false
   }
 
   private async _createDailyTasks(this: DocumentType<TaskList>) {
