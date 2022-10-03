@@ -14,7 +14,7 @@ export class TaskData {
       reward.mp = (pointsCount / taskData.stepForPoints) * taskData.reward.mp
     }
     if (taskData.reward.exp && taskData.reward.exp > 0) {
-      reward.exp = (pointsCount / taskData.stepForPoints) * taskData.reward.exp
+      reward.exp = taskData.reward.exp
     }
 
     return {
