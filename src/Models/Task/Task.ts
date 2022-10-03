@@ -34,7 +34,7 @@ export class Task {
   }
 
   public async complete(this: DocumentType<Task>) {
-    if (!this.isComplete || this.flags.complete) return
+    if (!this._hasRequiredPointsCount || this.flags.complete) return
 
     this.flags.complete = true
     await this.save()
@@ -43,7 +43,7 @@ export class Task {
   }
 
   public get isComplete() {
-    return this.progress.currentPoints < this.progress.requiredPoints
+    return this.flags.complete
   }
 
   public get expiresIn() {
@@ -130,5 +130,9 @@ export class Task {
   public get isExpired() {
     if (!this.expiresIn) return false
     return this.expiresIn <= 0
+  }
+
+  private get _hasRequiredPointsCount() {
+    return this.progress.currentPoints < this.progress.requiredPoints
   }
 }
