@@ -5,6 +5,7 @@ export type DYNAMIC_TASK = {
   maxPoints: number
   stepForPoints: number
   expirationType?: expType
+  customCoefficient?: number
   reward: {
     mp?: number
     exp?: number
@@ -30,46 +31,99 @@ export class MAP_FOR_DYNAMIC_TASKS extends Map<string, DYNAMIC_TASK> {
         }
     }
   }
+
+  public getRandomWeekly(usedTasksNames?: Array<string>) {
+    for (let [name, task] of this.entries()) {
+      if (task.expirationType == 'week' && !usedTasksNames?.includes(name))
+        return {
+          name,
+          data: task as DYNAMIC_TASK & { expirationType: 'week' },
+        }
+    }
+  }
 }
 
 export const DYNAMIC_DATA = new MAP_FOR_DYNAMIC_TASKS()
-DYNAMIC_DATA.set('killCount', {
+DYNAMIC_DATA.set('kills', {
   minPoints: 10,
   maxPoints: 30,
   stepForPoints: 10,
   expirationType: 'day',
   reward: {
-    mp: 100,
+    mp: 50,
+    exp: 300,
+  },
+})
+
+DYNAMIC_DATA.set('kills', {
+  minPoints: 100,
+  maxPoints: 150,
+  stepForPoints: 50,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
   },
 })
 
 DYNAMIC_DATA.set('assists', {
-  minPoints: 5,
+  minPoints: 10,
   maxPoints: 20,
-  stepForPoints: 2,
+  stepForPoints: 5,
   expirationType: 'day',
   reward: {
     mp: 50,
   },
 })
 
-DYNAMIC_DATA.set('victories', {
-  minPoints: 5,
-  maxPoints: 30,
-  stepForPoints: 2,
-  expirationType: 'day',
+DYNAMIC_DATA.set('assists', {
+  minPoints: 30,
+  maxPoints: 40,
+  stepForPoints: 10,
+  expirationType: 'week',
   reward: {
-    mp: 100,
+    exp: 1000,
   },
 })
 
-DYNAMIC_DATA.set('played', {
-  minPoints: 5,
-  maxPoints: 30,
+DYNAMIC_DATA.set('victories', {
+  minPoints: 1,
+  maxPoints: 3,
   stepForPoints: 1,
   expirationType: 'day',
   reward: {
-    mp: 30,
+    mp: 100,
+    exp: 300,
+  },
+})
+
+DYNAMIC_DATA.set('victories', {
+  minPoints: 10,
+  maxPoints: 15,
+  stepForPoints: 5,
+  expirationType: 'day',
+  reward: {
+    exp: 1000,
+  },
+})
+
+DYNAMIC_DATA.set('points', {
+  minPoints: 50,
+  maxPoints: 150,
+  stepForPoints: 50,
+  expirationType: 'day',
+  reward: {
+    mp: 100,
+    exp: 300,
+  },
+})
+
+DYNAMIC_DATA.set('ponts', {
+  minPoints: 500,
+  maxPoints: 800,
+  stepForPoints: 150,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
   },
 })
 
@@ -78,6 +132,54 @@ STATIC_DATA.set('completedDaily', {
   points: 3,
   expirationType: 'day',
   reward: {
-    mp: 100,
+    exp: 300,
+  },
+})
+
+STATIC_DATA.set('completedWeekly', {
+  points: 2,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
+  },
+})
+
+STATIC_DATA.set('win_Sandstone', {
+  points: 1,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
+  },
+})
+
+STATIC_DATA.set('win_Rust', {
+  points: 1,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
+  },
+})
+
+STATIC_DATA.set('win_Sakura', {
+  points: 1,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
+  },
+})
+
+STATIC_DATA.set('win_Zone9', {
+  points: 1,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
+  },
+})
+
+STATIC_DATA.set('win_Province', {
+  points: 1,
+  expirationType: 'week',
+  reward: {
+    exp: 1000,
   },
 })
