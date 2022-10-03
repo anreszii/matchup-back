@@ -9,7 +9,7 @@ import { GlobalStatistic, UserModel, TaskListModel } from '../../../Models'
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
 /**
- * Событие для получения глоьальной статистики. </br>
+ * Событие для получения глобальной статистики зарегистрировавшихся за месяц пользователей.</br>
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  * ```ts
@@ -111,6 +111,58 @@ export async function get_daily_tasks(escort: IDataEscort) {
     clientServer
       .control(clientServer.Aliases.get(username)!)
       .emit('get_daily_tasks', JSON.stringify(dailyTasks))
+  } catch (e) {
+    let socketID = escort.get('socket_id') as string
+    if (e instanceof MatchUpError) {
+      if (e.genericMessage)
+        return clientServer
+          .control(socketID)
+          .emit('load_daily_tasks error', { reason: e.genericMessage })
+    } else if (e instanceof Error) {
+      return clientServer
+        .control(socketID)
+        .emit('load_daily_tasks error', { reason: e.message })
+    } else {
+      clientServer
+        .control(escort.get('socket_id') as string)
+        .emit('load_daily_tasks error', { reason: 'unknown error' })
+    }
+  }
+}
+clientServer.on('get_daily_tasks', get_daily_tasks)
+
+/**
+ * Событие для количества выполненных ежедневных заданий пользователя. </br>
+ * В случае, если соединение работает после удаления пользователя, вернет invalid user
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```json
+ * {
+ *   count: 3
+ * }
+ * ```
+ * @category User
+ * @event
+ */
+export async function get_completed_daily_tasks_count(escort: IDataEscort) {
+  try {
+    let socketID = escort.get('socket_id') as string
+    wsValidator.validateSocket(socketID)
+    let socket = WS_SERVER.sockets.get(socketID)!
+
+    let role = socket!.role
+    if (!role) throw new ValidationError('user role', validationCause.REQUIRED)
+
+    let username = socket.username as string
+    let user = await UserModel.findByName(username)
+    if (!user) throw new ValidationError('user', validationCause.INVALID)
+
+    let taskList = await TaskListModel.findListByUser(user)
+    if (!taskList) taskList = await TaskListModel.createListForUser(user)
+    let count = await taskList.getCompletedDailyTasksCount()
+    clientServer
+      .control(socketID)
+      .emit('get_completed_daily_tasks_count', JSON.stringify({ count }))
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof MatchUpError) {

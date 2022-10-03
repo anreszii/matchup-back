@@ -58,18 +58,14 @@ export class TaskList {
     })
   }
 
-  public getCompletedDailyCount(this: DocumentType<TaskList>) {
-    let dailyTasks: Array<DocumentType<Task>> = new Array()
+  public async getCompletedDailyTasksCount(this: DocumentType<TaskList>) {
+    let daily = await this.getDaily()
+    let counter = 0
 
-    for (let i = 0; i < this.tasks.length; i++) {
-      let taskID = this.tasks[i]
-      if (!taskID) continue
+    for (let task of daily)
+      if (task.isComplete && task.name != 'completedDaily') counter++
 
-      TaskModel.findById(taskID).then((task) => {
-        if (!task || task.isExpired || !task.expires) return
-        if (this._isDailyTask(task)) dailyTasks.push(task)
-      })
-    }
+    return counter
   }
 
   public async collectRewardsFromDaily(this: DocumentType<TaskList>) {
