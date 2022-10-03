@@ -5,7 +5,7 @@ import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
 import { Credentials } from './Credentials'
-import { Level } from './Level'
+import { BattlePassLevel } from './BattlePassLevel'
 import { Profile } from './Profile'
 import { generateHash } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
@@ -34,7 +34,7 @@ export class User {
     default: { currentBPLevel: 0, currentRequiredEXP: 0, currentEXP: 0 },
     _id: false,
   })
-  level!: Level
+  level!: BattlePassLevel
   @prop({
     required: true,
     default: new Rating(),

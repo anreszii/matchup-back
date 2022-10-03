@@ -1,7 +1,7 @@
 import { prop } from '@typegoose/typegoose'
 import { Reward } from '../Reward'
 
-export class Level {
+export class BattlePassLevel {
   @prop({ required: true, default: 0 })
   currentBPLevel!: number
   @prop({ required: true, default: 0 })
