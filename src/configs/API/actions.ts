@@ -8,6 +8,7 @@ export type API_ACTION_LIST =
   | 'create_team'
   | 'join_team'
   | 'leave_team'
+  | 'check_team'
   | 'get_teams'
   | 'chat'
   | 'get_global_statistic'
