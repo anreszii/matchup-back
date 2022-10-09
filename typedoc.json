@@ -1,7 +1,7 @@
 {
     "$schema": "https://typedoc.org/schema.json",
     "sort": ["source-order"],
-    "entryPoints": ["./src/Classes", "./src/API", "src/Interfaces", "./src/Models"],
+    "entryPoints": ["./src/Classes", "./src/API", "./src/Models"],
     "name": "MatchUp",
     "out": "docs",
     "exclude": ["**/*+(index|.spec|.e2e|.test).ts"],
