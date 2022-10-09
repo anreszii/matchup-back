@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from '../../../error.js'
 import { ChatManager } from '../../../Classes/index'
+import { UserModel } from '../../../Models/index'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 const chats = new ChatManager()
@@ -66,68 +67,6 @@ export function authorize(escort: IDataEscort) {
   }
 }
 clientServer.on('authorize', authorize)
-
-/**
- * Событие для смены роли сокета пользователя. </br>
- * Используемый пакет:
- *
- * ```ts
- * {
- *  newRole: string //"default" | "privileged" | "admin" //новая роль пользователя
- * }
- * ```
- *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- *
- * ```ts
- * {
- *  role: string //"default" | "privileged" | "admin". текущая роль пользователя
- * }
- * ```
- *
- * В случае, если новая роль не была указана - возвращает в ответном событии текущую
- * @category Authorization
- * @event
- */
-export function change_role(escort: IDataEscort) {
-  try {
-    let socketID = escort.get('socket_id') as string
-    wsValidator.validateSocket(socketID)
-
-    let socket = WS_SERVER.sockets.get(socketID)!
-    let role = escort.get('newRole')
-    if (!role)
-      return clientServer
-        .control(socketID)
-        .emit('change_role', { role: socket.role })
-    if (
-      typeof role != 'string' ||
-      (role != 'default' && role != 'privileged' && role != 'admin')
-    )
-      throw new ValidationError('newRole', validationCause.INVALID)
-
-    socket.role = role
-    return clientServer.control(socketID).emit('change_role', { role })
-  } catch (e) {
-    let socketID = escort.get('socket_id') as string
-    if (e instanceof MatchUpError) {
-      if (e.genericMessage)
-        return clientServer
-          .control(socketID)
-          .emit('change_role error', { reason: e.genericMessage })
-    } else if (e instanceof Error) {
-      return clientServer
-        .control(socketID)
-        .emit('change_role error', { reason: e.message })
-    } else {
-      clientServer
-        .control(escort.get('socket_id') as string)
-        .emit('change_role error', { reason: 'unknown error' })
-    }
-  }
-}
-clientServer.on('change_role', change_role)
-
 /**
  * Событие для отправки сообщения в лобби.</br>
  * Используемый пакет:

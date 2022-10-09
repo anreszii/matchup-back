@@ -417,9 +417,6 @@ clientServer.on('get_user_data', get_user_data)
  *   username: 'username of person you subscribed to'
  * }
  * ```
- *
- * @category User
- * @event
  */
 export async function add_relation(escort: IDataEscort) {
   try {
@@ -526,9 +523,6 @@ clientServer.on('add_relation', add_relation)
  *   username: 'username of person you subscribed to'
  * }
  * ```
- *
- * @category User
- * @event
  */
 export async function drop_relation(escort: IDataEscort) {
   try {

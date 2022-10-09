@@ -13,12 +13,13 @@ const wsValidator = new WebSocketValidatior(WS_SERVER)
 let RoleManager = new APIManager()
 
 /**
- * Обработчик для события dark-side
+ * Обработчик для события dark-side.
  * В качестве пакета принимает:
  * ```json
  * {
- *  "function": "имя обработчика, имеющийся в {@link API_ACTION_LIST}"
- *  "params": [] - массив параметров, которые будут переданы в вызванную функцию
+ *  "function": "имя обработчика, имеющийся в списке доступных",
+ *  "params": [],
+ *  "__comment_params": "это массив параметров, которые будут переданы в вызванную функцию"
  * }
  * ```
  *
@@ -37,7 +38,7 @@ let RoleManager = new APIManager()
  * ```
  *
  * @category Basic
- * @event
+ * @event dark-side
  */
 export function darkSideHandler(escort: IDataEscort) {
   try {
