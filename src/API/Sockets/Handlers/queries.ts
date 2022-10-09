@@ -5,6 +5,10 @@ import { WS_SERVER } from '../../../app'
 
 import { WebSocketValidatior } from '../../../validation/index'
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
+import { ModelsManager } from '../../../Classes/RoleManager/ModelsRolesManager'
+import { isValidModelAction } from '../../../configs/Models/actions'
+
+let ModelsRoleManager = new ModelsManager()
 
 interface Query {
   method: 'get' | 'set'
@@ -16,7 +20,6 @@ interface Query {
     set: Object | Array<unknown>
   }
 }
-
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 export async function query(escort: IDataEscort) {
   try {
@@ -102,6 +105,9 @@ export async function syscall(escort: IDataEscort) {
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
+    let socket = WS_SERVER.sockets.get(socketID)!
+    let username = socket.username as string
+
     let query = escort.get('query') as SyscallQuery | string | undefined
     if (typeof query != 'object')
       throw new ValidationError('query', validationCause.INVALID_FORMAT)
@@ -112,6 +118,13 @@ export async function syscall(escort: IDataEscort) {
     let label = escort.get('label')
     if (typeof label != 'string')
       throw new ValidationError('label', validationCause.INVALID_FORMAT)
+
+    let action = `${query.model}/${query.execute.function}`
+    if (!isValidModelAction(action))
+      throw new ValidationError('action', validationCause.INVALID)
+
+    let hasAccess = ModelsRoleManager.hasAccess(username, action)
+    if (!hasAccess) throw new Error('Low access level')
 
     if (!query.filter)
       return clientServer.control(socketID).emit('syscall', {
