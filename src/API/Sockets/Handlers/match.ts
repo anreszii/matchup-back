@@ -16,7 +16,7 @@ import { HANDLERS } from './dark-side'
 import { WebSocket } from 'uWebSockets.js'
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
-const Teams = new MatchMaking.TeamManager()
+export const Teams = new MatchMaking.TeamManager()
 export const StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
   dsClient,
