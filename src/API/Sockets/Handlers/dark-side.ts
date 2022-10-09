@@ -6,18 +6,39 @@ import { WebSocketValidatior } from '../../../validation/websocket'
 import { APIManager } from '../../../Classes/RoleManager/APIRolesManager'
 import { API_ACTION_LIST, isValidAPIAction } from '../../../configs/API/actions'
 
-import {
-  matchCause,
-  MatchError,
-  MatchUpError,
-  validationCause,
-  ValidationError,
-} from '../../../error'
+import { MatchUpError, validationCause, ValidationError } from '../../../error'
 import { WebSocket } from 'uWebSockets.js'
 
 const wsValidator = new WebSocketValidatior(WS_SERVER)
 let RoleManager = new APIManager()
 
+/**
+ * Обработчик для события dark-side
+ * В качестве пакета принимает:
+ * ```json
+ * {
+ *  "function": "имя обработчика, имеющийся в {@link API_ACTION_LIST}"
+ *  "params": [] - массив параметров, которые будут переданы в вызванную функцию
+ * }
+ * ```
+ *
+ * В случае ошибки, если function был найден, вернет событие ошибки с названием формата `${function} error` и следующим пакетом:
+ * ```json
+ * {
+ *  "reason": "error reason message"
+ * }
+ * ```
+ *
+ * Если же function не существует, то вернет событие ошибки с названием dark-side error и следующим пакетом:
+ * ```json
+ * {
+ *  "reason": "error reason message"
+ * }
+ * ```
+ *
+ * @category Basic
+ * @event
+ */
 export function darkSideHandler(escort: IDataEscort) {
   try {
     let socketID = escort.get('socket_id') as string
@@ -82,6 +103,7 @@ export function darkSideHandler(escort: IDataEscort) {
     }
   }
 }
+clientServer.on('dark-side', darkSideHandler)
 
 export const HANDLERS: Map<
   API_ACTION_LIST,
