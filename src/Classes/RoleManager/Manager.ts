@@ -4,9 +4,9 @@ import { RoleManager } from '../../Interfaces/RoleManager/index'
 export abstract class Manager<R extends string, A extends string>
   implements RoleManager.Instance
 {
-  /**Список ролей и их уровня доступа*/
+  /**Список ролей и их уровня доступа, должен быть установлен наследником*/
   protected _roles!: Map<R, number>
-  /**Список требуемого уровня доступа для выполнения конкретного действия*/
+  /**Список требуемого уровня доступа для выполнения конкретного действия, должен быть установлен наследником*/
   protected _actions!: Map<A, number>
   /**Функция, которая будет использована в {@link hasAccess} для проверки доступа*/
   protected abstract _getAccessLevel(name: string): number | Promise<number>
@@ -41,14 +41,14 @@ export abstract class Manager<R extends string, A extends string>
 
   /**Проверяет, есть ли в ролях повторяющиеся значения уровня доступа*/
   private _validateRoles(roles: Map<R, number>) {
-    let tmp: Array<string[]> = []
+    let tmp: Array<string> = []
     for (let [role, level] of roles) {
       if (tmp[level])
         throw new Error(
           `Access level ${level} has several binded roles: [${tmp[level]}, ${role}}]`,
         )
 
-      tmp[level] = [role]
+      tmp[level] = role
     }
   }
 
