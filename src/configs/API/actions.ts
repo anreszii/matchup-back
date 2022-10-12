@@ -11,7 +11,9 @@ export type API_ACTION_LIST =
   | 'check_team'
   | 'get_teams'
   | 'chat'
-  | 'get_global_statistic'
+  | 'add_relation'
+  | 'drop_relation'
+
 export const API_ACTIONS: Map<API_ACTION_LIST, number> = new Map()
 API_ACTIONS.set('find_lobby', 0)
 API_ACTIONS.set('invite_to_lobby', 0)
@@ -24,7 +26,8 @@ API_ACTIONS.set('join_team', 0)
 API_ACTIONS.set('leave_team', 0)
 API_ACTIONS.set('get_teams', 0)
 API_ACTIONS.set('chat', 0)
-API_ACTIONS.set('get_global_statistic', 0)
+API_ACTIONS.set('add_relation', 0)
+API_ACTIONS.set('drop_relation', 0)
 
 export function isValidAPIAction(action: string): action is API_ACTION_LIST {
   return API_ACTIONS.has(action as API_ACTION_LIST)

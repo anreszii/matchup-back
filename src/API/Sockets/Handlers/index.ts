@@ -4,8 +4,8 @@
  */
 export * from './basic'
 export * from './user'
-export * from './guild'
 export * from './match'
 export * from './queries'
 export * from './dark-side'
 export * from './team'
+export * from './chat'

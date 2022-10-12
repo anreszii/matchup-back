@@ -1,10 +1,7 @@
 import { clientServer } from '../clientSocketServer'
-import { WS_SERVER } from '../../../app'
-import type { IDataEscort } from 'gamesocket.io'
 import {
   matchCause,
   MatchError,
-  MatchUpError,
   validationCause,
   ValidationError,
 } from '../../../error'
