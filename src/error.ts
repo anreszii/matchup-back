@@ -1,3 +1,5 @@
+import { DTOError } from './Classes/DTO/error'
+
 export const enum validationCause {
   INVALID_FORMAT = 'invalid format',
   REQUIRED = 'required',
@@ -17,15 +19,20 @@ export const enum wsManageCause {
   NOT_FOUND = 'not found',
 }
 
-interface genericMessage {
+interface hasGenericMessage {
   get genericMessage(): string
 }
 
-export abstract class MatchUpError extends Error implements genericMessage {
+interface canBeDTO {}
+
+export abstract class MatchUpError extends Error implements hasGenericMessage {
   abstract get genericMessage(): string
+  get toDto() {
+    return new DTOError(this.genericMessage)
+  }
 }
 
-export class ValidationError extends MatchUpError {
+export class ValidationError extends MatchUpError implements canBeDTO {
   name: 'ValidationError' = 'ValidationError'
   constructor(private _key: string, public errorCause: validationCause) {
     super(`${_key} ${errorCause}`)

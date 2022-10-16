@@ -12,6 +12,12 @@ export class ModelsManager extends Manager<USER_ROLE, MODELS_ACTION_LIST> {
   _roles = MODELS_ROLES
   _actions = MODELS_ACTIONS
 
+  constructor() {
+    super()
+    this._validateRoles()
+    this._validateActions()
+  }
+
   protected async _getAccessLevel(name: string): Promise<number> {
     let user = await UserModel.findByName(name)
     if (!user) throw new ValidationError('user', validationCause.INVALID)

@@ -12,6 +12,11 @@ import { validationCause, ValidationError } from '../../error'
 export class APIManager extends Manager<ROLE_LIST, API_ACTION_LIST> {
   _roles = API_ROLES
   _actions = API_ACTIONS
+  constructor() {
+    super()
+    this._validateRoles()
+    this._validateActions()
+  }
   protected async _getAccessLevel(name: string) {
     let user = await UserModel.findByName(name)
     if (!user) throw new ValidationError('user', validationCause.INVALID)

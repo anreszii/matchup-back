@@ -4,9 +4,10 @@ import { UserModel, GuildModel } from '../index'
 import { Info } from './GuildInfo'
 import { Member, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
+import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
 
 export class Guild {
-  @prop({ required: true, default: [] })
+  @prop({ required: true, default: [], type: () => String })
   subscribers!: string[]
   @prop({ required: true, default: [], type: () => Member })
   memberList!: Member[]
@@ -22,14 +23,15 @@ export class Guild {
     ownerName: string,
   ) {
     let user = await UserModel.findByName(ownerName)
-    if (!user) throw new ValidationError('user', validationCause.INVALID)
-    await user.buy(PRICE_OF_GUILD_CREATION)
+    if (!user) throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
+    user.buy(PRICE_OF_GUILD_CREATION)
 
     let guild = new this({
       info: { name: guildName, tag: tag },
       memberlist: [{ role: 'owner', name: ownerName }],
     })
 
+    await user.save()
     await guild.validate()
     return guild.save()
   }
@@ -81,7 +83,7 @@ export class Guild {
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('addMember'))
-      throw new Error('No rights to execute order')
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
 
     let member = new Member()
     ;(member.name = memberName),
@@ -102,7 +104,8 @@ export class Guild {
       }
 
       case false: {
-        if (User.GRI < this.info.requiredMPR) throw Error('low MPR')
+        if (User.GRI < this.info.requiredMPR)
+          throw new DTOError(PERFORMANCE_ERRORS['low mpr'])
 
         let member = new Member()
         ;(member.name = memberName), (member.id = User)
@@ -137,7 +140,7 @@ export class Guild {
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('removeMember'))
-      throw new Error('No rights to execute order')
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
     this.deleteMemberByName(memberName)
     return this.save()
   }
@@ -151,13 +154,13 @@ export class Guild {
     let executor = this.getMemberByName(executorName)
     let member = this.getMemberByName(memberName)
     if (!executor || !member)
-      throw new ValidationError('member', validationCause.NOT_EXIST)
+      throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
 
     if (!executor.hasRightToExecute('changeRole'))
-      throw new Error('No rights to execute order')
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
 
     if (executor.role <= newRole || member.role == newRole)
-      throw new ValidationError('role', validationCause.INVALID)
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
     member.role = newRole
     return this.save()
   }
@@ -172,7 +175,7 @@ export class Guild {
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('changeName'))
-      throw new Error('No rights to execute order')
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
 
     if (newName == this.info.name) return false
     if (await GuildModel.findByName(newName))
@@ -193,7 +196,7 @@ export class Guild {
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('changeTag'))
-      throw new Error('No rights to execute order')
+      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
 
     if (newTag == this.info.tag) return false
     if (await GuildModel.findByTag(newTag))

@@ -11,11 +11,6 @@ export abstract class Manager<R extends string, A extends string>
   /**Функция, которая будет использована в {@link hasAccess} для проверки доступа*/
   protected abstract _getAccessLevel(name: string): number | Promise<number>
 
-  constructor() {
-    this._validateRoles(this._roles)
-    this._validateActions(this._actions)
-  }
-
   /** @returns true, если операция для данного пользователя доступна и false  в противном случае*/
   hasAccess(name: string, action: A) {
     let requiredAccessLevel = this._getAccessLevelForAction(action)
@@ -40,9 +35,9 @@ export abstract class Manager<R extends string, A extends string>
   }
 
   /**Проверяет, есть ли в ролях повторяющиеся значения уровня доступа*/
-  private _validateRoles(roles: Map<R, number>) {
+  protected _validateRoles() {
     let tmp: Array<string> = []
-    for (let [role, level] of roles) {
+    for (let [role, level] of this._roles) {
       if (tmp[level])
         throw new Error(
           `Access level ${level} has several binded roles: [${tmp[level]}, ${role}}]`,
@@ -53,7 +48,7 @@ export abstract class Manager<R extends string, A extends string>
   }
 
   /**Проверяет, есть ли в уровнях доступа отрицательные значения*/
-  private _validateActions(actions: Map<A, number>) {
+  protected _validateActions() {
     for (let [action, level] of this._actions) {
       if (level < 0)
         throw new Error(`Access level for action ${action} is negative`)

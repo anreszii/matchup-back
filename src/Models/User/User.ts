@@ -12,6 +12,7 @@ import { Rating } from '../MatchMaking/Rating'
 import { BPLevelModel, GuildModel } from '../index'
 import { Guild } from '../Guild/Guild'
 import { UserModel } from '../'
+import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
 
 export class User {
   @prop({
@@ -163,11 +164,11 @@ export class User {
 
   public async addRelation(this: DocumentType<User>, name: string) {
     if (!name) throw new ValidationError('username', validationCause.REQUIRED)
-    if (this.hasFriend(name)) return false
+    if (this.hasFriend(name))
+      throw new DTOError(PERFORMANCE_ERRORS["can't add relation"])
 
     let user = await UserModel.findByName(name)
-    if (!user)
-      throw new ValidationError('anotherUser', validationCause.NOT_EXIST)
+    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
       user.addSubscriber(this.profile.username)
@@ -184,10 +185,13 @@ export class User {
 
   public async dropRelation(this: DocumentType<User>, name: string) {
     if (!name) throw new ValidationError('name', validationCause.REQUIRED)
-    if (!this.hasFriend(name)) return false
+    if (!this.hasFriend(name))
+      throw new DTOError(PERFORMANCE_ERRORS["can't drop relation"])
 
     let user = await UserModel.findByName(name)
-    if (!user?.hasFriend(this.profile.username)) return false
+    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!user.hasFriend(this.profile.username))
+      throw new DTOError(PERFORMANCE_ERRORS["can't drop relation"])
 
     user.deleteFriend(this.profile.username)
     await user.save()
@@ -201,14 +205,16 @@ export class User {
 
   public joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
     GuildModel.findById(guildID).then((Guild) => {
-      if (!Guild || !Guild.hasMember(this.profile.username)) return
+      if (!Guild || !Guild.hasMember(this.profile.username))
+        throw new ValidationError('guild', validationCause.NOT_EXIST)
 
       this.guild = guildID
     })
   }
 
   public leaveGuild(this: DocumentType<User>) {
-    if (!this.guild) return
+    if (!this.guild)
+      throw new ValidationError('guild', validationCause.REQUIRED)
     this.guild = undefined
   }
 
@@ -219,7 +225,7 @@ export class User {
   }
 
   public buy(this: DocumentType<User>, itemPrice: number) {
-    if (itemPrice < 0) throw new Error('Need more money')
+    if (itemPrice < 0) throw new DTOError(PERFORMANCE_ERRORS['low balance'])
     this.profile.balance -= itemPrice
   }
 

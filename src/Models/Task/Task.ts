@@ -49,7 +49,7 @@ export class Task {
   public get expiresIn() {
     if (!this.expires) return
     if (!this.expires.expirationDate)
-      throw Error(`Expiration time isn't setted`)
+      throw new ValidationError('expiration time', validationCause.REQUIRED)
 
     let timePassed =
       this.expires.expirationDate.getTime() - new Date().getTime()
