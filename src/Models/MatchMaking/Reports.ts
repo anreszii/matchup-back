@@ -1,11 +1,8 @@
-import {
-  prop,
-  getModelForClass,
-  ReturnModelType,
-  DocumentType,
-} from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import type { Match } from '../../Interfaces'
 import { validationCause, ValidationError } from '../../error'
+import { v4 } from 'uuid'
+import { ReportListModel } from '../index'
 
 export class ReportList {
   @prop({ required: true, unique: true })
@@ -19,19 +16,21 @@ export class ReportList {
   @prop()
   public proof?: string
 
-  public async log(
-    this: DocumentType<ReportList>,
+  public static async log(
+    this: ReturnModelType<typeof ReportList>,
     game: Match.Manager.supportedGames,
     reason: string,
     describe: string,
     proof?: string,
   ) {
-    this.id = Date.now()
-    this.game = game
-    this.reason = reason
-    this.describe = describe
-    this.proof = proof
-    return this
+    let document = new this({
+      id: await this.getUniqueID(),
+      game,
+      reason,
+      describe,
+      proof,
+    })
+    return document
   }
 
   public static async addProof(
@@ -48,5 +47,41 @@ export class ReportList {
 
     report.proof = proof
     return report.save()
+  }
+
+  public static async generateTestData(
+    this: ReturnModelType<typeof ReportList>,
+    testDocumentsCount = 4,
+  ) {
+    let generatedDocuments: DocumentType<ReportList>[] = []
+    for (let i = 1; i < testDocumentsCount + 1; i++) {
+      let report = await this.log(
+        'test_game' as unknown as Match.Manager.supportedGames,
+        `reason#${v4()}`,
+        `describe#${v4()}`,
+      )
+      report.save()
+      generatedDocuments.push(report)
+    }
+
+    return generatedDocuments
+  }
+
+  public static async getTestData(this: ReturnModelType<typeof ReportList>) {
+    return this.find({
+      game: { $regex: 'test_game' },
+    })
+  }
+
+  public static async deleteTestData(this: ReturnModelType<typeof ReportList>) {
+    let documents = await this.getTestData()
+    for (let document of documents) await document.delete()
+  }
+
+  private static async getUniqueID() {
+    let id = Date.now()
+    while (await ReportListModel.findOne({ id })) id = Date.now()
+
+    return id
   }
 }

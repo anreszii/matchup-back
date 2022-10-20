@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@discordjs/rest": "^1.1.0",
+    "cors": "^2.8.5",
     "discord.js": "^14.3.0",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
@@ -16,6 +17,7 @@
     "mongoose": "^6.4.3",
     "mongoose-unique-validator": "^3.1.0",
     "nodemailer": "^6.7.7",
+    "unique-names-generator": "^4.7.1",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.7.0",
     "validator": "^13.7.0"
   },

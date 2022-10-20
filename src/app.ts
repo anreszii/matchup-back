@@ -5,12 +5,19 @@ import io from 'gamesocket.io'
 
 import express = require('express')
 import fileUploader = require('express-fileupload')
+const cors = require('cors')
+const corsOptions = {
+  origin: '*',
+  credentials: true,
+  optionSuccessStatus: 200,
+}
 
 import mongoose from 'mongoose'
 
 export const WS_SERVER = io()
 
 const app = express()
+app.use(cors(corsOptions))
 app.use(fileUploader())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

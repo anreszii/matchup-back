@@ -40,3 +40,9 @@ export function inRange(
   if (typeof toCheck != 'number' || typeof standart != 'number') return false
   return standart - range <= toCheck && toCheck <= standart + range
 }
+
+export function getRandom(min: number, max: number) {
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}

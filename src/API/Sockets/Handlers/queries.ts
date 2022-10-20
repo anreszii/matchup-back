@@ -16,6 +16,7 @@ interface Query {
   method: 'get' | 'set'
   model: string
   filter: Object
+  needFeedback: boolean
   fields?: string
   update?: {
     count: 'one' | 'many'
@@ -54,20 +55,35 @@ export async function query(escort: IDataEscort) {
       case 'set': {
         if (!query.update)
           throw new ValidationError('query.update', validationCause.REQUIRED)
-        if (query.update.count == 'one') {
-          let dto = new DTO({
-            label,
-            updateResult: await model.updateOne(query.filter, query.update.set),
-          })
-          return clientServer
-            .control(socketID)
-            .emit('query', DTO_FORMATTER.JSON.toDTO(dto))
+        let dto: DTO | undefined
+        switch (query.update.count) {
+          case 'one': {
+            dto = new DTO({
+              label,
+              updateResult: await model.updateOne(
+                query.filter,
+                query.update.set,
+              ),
+            })
+
+            break
+          }
+
+          case 'many':
+            dto = new DTO({
+              label,
+              updateResult: await model.updateMany(
+                query.filter,
+                query.update.set,
+              ),
+            })
+
+            break
         }
 
-        let dto = new DTO({
-          label,
-          updateResult: await model.updateMany(query.filter, query.update.set),
-        })
+        if (query.needFeedback != true)
+          dto = new DTO({ label, status: 'success' })
+
         return clientServer
           .control(socketID)
           .emit('query', DTO_FORMATTER.JSON.toDTO(dto))
@@ -107,8 +123,9 @@ export async function query(escort: IDataEscort) {
 clientServer.on('query', query)
 
 interface SyscallQuery {
-  model: string
+  model?: string
   filter?: Object
+  needFeedback: true | undefined
   execute: {
     function: string
     params: Array<string>
@@ -126,50 +143,96 @@ export async function syscall(escort: IDataEscort) {
     if (typeof query != 'object')
       throw new ValidationError('query', validationCause.REQUIRED)
 
-    let model = Models.get(query.model) as any
-    if (!model) throw new ValidationError('model', validationCause.INVALID)
-
     let label = escort.get('label')
     if (typeof label != 'string')
       throw new ValidationError('label', validationCause.INVALID_FORMAT)
 
-    let action = `${query.model}/${query.execute.function}`
-    if (!isValidModelAction(action))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong action'], label)
+    if (!query.execute.params) query.execute.params = []
 
-    let hasAccess = ModelsRoleManager.hasAccess(username, action)
-    if (!hasAccess)
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'], label)
+    switch (typeof query.model) {
+      case 'undefined': {
+        let result: Array<string> = []
+        let dto: DTO | undefined
+        for (let [name, model] of Models) {
+          let val = model as any
+          if (typeof val[query.execute.function] != 'function') continue
+          let dto = new DTO({
+            label,
+            database: name,
+            callResult: await val[query.execute.function].call(
+              model,
+              ...query.execute.params,
+            ),
+          })
 
-    if (!query.filter) {
-      const dto = new DTO({
-        label,
-        callResult: {
-          ...(await model[query.execute.function].call(
-            model,
-            ...query.execute.params,
-          )),
-        },
-      })
-      return clientServer
-        .control(socketID)
-        .emit('syscall', DTO_FORMATTER.JSON.toDTO(dto))
+          result.push(DTO_FORMATTER.JSON.toDTO(dto))
+        }
+
+        if (query.needFeedback)
+          dto = new DTO({ label, callResult: JSON.stringify(result) })
+        else dto = new DTO({ label, status: 'success' })
+
+        return clientServer
+          .control(socketID)
+          .emit('syscall', DTO_FORMATTER.JSON.toDTO(dto))
+      }
+
+      case 'string': {
+        let model = Models.get(query.model) as any
+        if (!model) throw new ValidationError('model', validationCause.INVALID)
+
+        let action = `${query.model}/${query.execute.function}`
+        if (!isValidModelAction(action))
+          throw new DTOError(PERFORMANCE_ERRORS['wrong action'], label)
+
+        let hasAccess = ModelsRoleManager.hasAccess(username, action)
+        if (!hasAccess)
+          throw new DTOError(PERFORMANCE_ERRORS['wrong access level'], label)
+
+        switch (typeof query.filter) {
+          case 'undefined': {
+            let dto: DTO | undefined
+            let queryResult = await model[query.execute.function].call(
+              model,
+              ...query.execute.params,
+            )
+            if (query.needFeedback === true)
+              dto = new DTO({
+                label,
+                callResult: {
+                  ...queryResult,
+                },
+              })
+            else dto = new DTO({ label, status: 'success' })
+
+            return clientServer
+              .control(socketID)
+              .emit('syscall', DTO_FORMATTER.JSON.toDTO(dto))
+          }
+
+          case 'object': {
+            let dto: DTO | undefined
+            let document = await model.findOne(query.filter)
+            if (!document)
+              throw new DTOError(PERFORMANCE_ERRORS['wrong document'], label)
+
+            let queryResult = await document[query.execute.function].call(
+              document,
+              ...query.execute.params,
+            )
+            await document.save()
+
+            if (query.needFeedback === true)
+              dto = new DTO({ label, callResult: { ...queryResult } })
+            else dto = new DTO({ label, status: 'success' })
+
+            return clientServer
+              .control(socketID)
+              .emit('syscall', DTO_FORMATTER.JSON.toDTO(dto))
+          }
+        }
+      }
     }
-
-    let document = await model.findOne(query.filter)
-    if (!document)
-      throw new DTOError(PERFORMANCE_ERRORS['wrong document'], label)
-
-    let result = await document[query.execute.function].call(
-      document,
-      ...query.execute.params,
-    )
-    await document.save()
-
-    const dto = new DTO({ label, callResult: { ...result } })
-    return clientServer
-      .control(socketID)
-      .emit('syscall', DTO_FORMATTER.JSON.toDTO(dto))
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     if (e instanceof DTOError) {

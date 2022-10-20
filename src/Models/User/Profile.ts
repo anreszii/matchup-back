@@ -30,7 +30,7 @@ export class Profile {
   balance!: number
   @prop()
   avatar?: string
-  @prop({ required: true, default: new Relations() })
+  @prop({ required: true, default: new Relations(), _id: false })
   relations!: Relations
   @prop()
   tag?: string

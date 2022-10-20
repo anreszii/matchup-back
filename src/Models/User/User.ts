@@ -5,14 +5,15 @@ import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 
 import { ValidationError, validationCause } from '../../error'
 import { Credentials } from './Credentials'
-import { BattlePassLevel } from './BattlePassLevel'
+import { UserLevel as Level } from './BattlePassLevel'
 import { Profile } from './Profile'
-import { generateHash } from '../../Utils'
+import { generateHash, generatePassword, getRandom } from '../../Utils'
 import { Rating } from '../MatchMaking/Rating'
-import { BPLevelModel, GuildModel } from '../index'
+import { BPLevelModel, GuildModel, TaskListModel } from '../index'
 import { Guild } from '../Guild/Guild'
 import { UserModel } from '../'
 import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
+import { generateName } from '../../Utils/nameGenerator'
 
 export class User {
   @prop({
@@ -32,10 +33,10 @@ export class User {
   profile!: Profile
   @prop({
     required: true,
-    default: { currentBPLevel: 0, currentRequiredEXP: 0, currentEXP: 0 },
+    default: new Level(),
     _id: false,
   })
-  level!: BattlePassLevel
+  level!: Level
   @prop({
     required: true,
     default: new Rating(),
@@ -75,6 +76,46 @@ export class User {
       { 'profile.username': name },
       'id profile level rating role prefix guild credentials.email credentials.region',
     )
+  }
+
+  public static async generateTestData(
+    this: ReturnModelType<typeof User>,
+    testDocumentsCount: number = 4,
+  ) {
+    let generatedUsers: DocumentType<User>[] = []
+    for (let i = 1; i < testDocumentsCount + 1; i++) {
+      let document = new this({
+        id: await this.getRandomID(),
+        credentials: {
+          email: await this.getRandomEmail(),
+          region: 'Europe',
+        },
+        profile: {
+          nickname: await this.getRandomNickname(),
+          username: await this.getRandomUsername(),
+        },
+      })
+      document.setPassword(generatePassword())
+      await document.save()
+
+      let Tasks = await TaskListModel.createListForUser(document)
+      await Tasks.save()
+      generatedUsers.push(document)
+    }
+
+    return generatedUsers
+  }
+
+  public static async getTestData(this: ReturnModelType<typeof User>) {
+    return this.find({
+      'profile.username': { $regex: 'test_' },
+      'credentials.email': { $regex: 'test_' },
+    })
+  }
+
+  public static async deleteTestData(this: ReturnModelType<typeof User>) {
+    let documents = await this.getTestData()
+    for (let document of documents) await document.delete()
   }
 
   public static async getGRI(
@@ -274,5 +315,38 @@ export class User {
     }
 
     this.level.reward = undefined
+  }
+
+  private static async getRandomID() {
+    let id = getRandom(5000000, 100000000000000)
+    while (await UserModel.findOne({ id }))
+      id = getRandom(5000000, 100000000000000)
+
+    return id
+  }
+
+  private static async getRandomNickname() {
+    let name: string = `${generateName(1)}_${getRandom(1, 99)}`
+
+    while (await UserModel.findOne({ 'profile.nickname': name }))
+      name = `${generateName(1)}_${getRandom(1, 99)}`
+
+    return name
+  }
+
+  private static async getRandomUsername() {
+    let name: string = `test_${generateName(1)}_${getRandom(1, 99)}`
+    while (await UserModel.findOne({ 'profile.username': name }))
+      name = `test_${generateName(1)}_${getRandom(1, 99)}`
+
+    return name
+  }
+
+  private static async getRandomEmail() {
+    let email: string = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
+    while (await UserModel.findOne({ 'credentials.email': email }))
+      email = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
+
+    return email
   }
 }

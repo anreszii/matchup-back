@@ -5,6 +5,8 @@ import { Info } from './GuildInfo'
 import { Member, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
+import { generateGuildName } from '../../Utils/nameGenerator'
+import { getRandom } from '../../Utils/math'
 
 export class Guild {
   @prop({ required: true, default: [], type: () => String })
@@ -15,6 +17,43 @@ export class Guild {
   info!: Info
   @prop({ required: false })
   isPrivate!: boolean
+
+  static async generateTestData(
+    this: ReturnModelType<typeof Guild>,
+    testDocumentsCount: number = 2,
+  ) {
+    let generatedDocuments: DocumentType<Guild>[] = []
+    for (let i = 1; i < testDocumentsCount + 1; i++) {
+      let users = await UserModel.generateTestData(5)
+      let owner = users[0]
+      owner.profile.balance = 10000
+      owner.save()
+      users.splice(0, 1)
+
+      let newGuild = await this.new(
+        await this.getRandomGuildTag(),
+        await this.getRandomGuildName(),
+        owner.profile.username,
+      )
+
+      for (let user of users) await newGuild.join(user.profile.username)
+      generatedDocuments.push(newGuild)
+    }
+
+    return generatedDocuments
+  }
+
+  static async getTestData(this: ReturnModelType<typeof Guild>) {
+    return this.find({
+      'info.name': { $regex: 'test_' },
+      'info.tag': { $regex: 'T' },
+    })
+  }
+
+  static async deleteTestData(this: ReturnModelType<typeof Guild>) {
+    let documents = await this.getTestData()
+    for (let document of documents) await document.delete()
+  }
 
   static async new(
     this: ReturnModelType<typeof Guild>,
@@ -215,5 +254,19 @@ export class Guild {
   async makePublic(this: DocumentType<Guild>) {
     this.isPrivate = false
     return this.save()
+  }
+
+  private static async getRandomGuildTag() {
+    let tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
+    while (await GuildModel.findByTag(tag))
+      tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
+    return tag
+  }
+
+  private static async getRandomGuildName() {
+    let name = `test_${generateGuildName()}#${getRandom(1, 99)}`
+    while (await GuildModel.findByName(name))
+      name = `test_${generateGuildName()}#${getRandom(1, 99)}`
+    return name
   }
 }
