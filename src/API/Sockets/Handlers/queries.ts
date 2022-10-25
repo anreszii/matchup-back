@@ -6,7 +6,10 @@ import { WS_SERVER } from '../../../app'
 import { WebSocketValidatior } from '../../../validation/index'
 import { MatchUpError, validationCause, ValidationError } from '../../../error'
 import { ModelsManager } from '../../../Classes/RoleManager/ModelsRolesManager'
-import { isValidModelAction } from '../../../configs/Models/actions'
+import {
+  isValidModelAction,
+  MODELS_ACTION_LIST,
+} from '../../../configs/Models/actions'
 import { DTOError, PERFORMANCE_ERRORS } from '../../../Classes/DTO/error'
 import { DTO, DTO_FORMATTER } from '../../../Classes/DTO/DTO'
 
@@ -185,7 +188,10 @@ export async function syscall(escort: IDataEscort) {
         if (!isValidModelAction(action))
           throw new DTOError(PERFORMANCE_ERRORS['wrong action'], label)
 
-        let hasAccess = ModelsRoleManager.hasAccess(username, action)
+        let hasAccess = ModelsRoleManager.hasAccess(
+          username,
+          action as MODELS_ACTION_LIST,
+        )
         if (!hasAccess)
           throw new DTOError(PERFORMANCE_ERRORS['wrong access level'], label)
 

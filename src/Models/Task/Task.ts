@@ -1,4 +1,4 @@
-import { prop, getModelForClass, DocumentType } from '@typegoose/typegoose'
+import { prop, DocumentType, Ref } from '@typegoose/typegoose'
 
 import {
   DAY_IN_MS,
@@ -13,10 +13,11 @@ import { expirationTime, ExpirationTime } from './ExpirationTime'
 import { Flags } from './Flags'
 import { Progress } from './Progress'
 import { Reward } from '../Reward'
+import { User } from '../User/User'
 
 export class Task {
-  @prop({ required: true })
-  owner!: string
+  @prop({ required: true, ref: () => User })
+  owner!: Ref<User>
   @prop({ required: true })
   name!: string
   @prop({ required: true, default: new Flags(), _id: false })

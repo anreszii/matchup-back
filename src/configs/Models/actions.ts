@@ -12,8 +12,7 @@ export type MODELS_ACTION_LIST =
   | 'TaskList/collectRewardFromDaily'
   | 'TaskList/getWeekly'
   | 'TaskList/collectRewardFromWeekly'
-  | 'TaskList/findListByUser'
-  | 'TaskList/findListByUserName'
+  | 'TaskList/getForUser'
 
   /* Guild Model */
   | 'Guild/join'
@@ -55,8 +54,7 @@ MODELS_ACTIONS.set('User/deleteTestData', 2)
 /* Task List Model Actions */
 MODELS_ACTIONS.set('TaskList/collectRewardFromDaily', 0)
 MODELS_ACTIONS.set('TaskList/collectRewardFromWeekly', 0)
-MODELS_ACTIONS.set('TaskList/findListByUser', 0)
-MODELS_ACTIONS.set('TaskList/findListByUserName', 0)
+MODELS_ACTIONS.set('TaskList/getForUser', 0)
 MODELS_ACTIONS.set('TaskList/getDaily', 0)
 MODELS_ACTIONS.set('TaskList/getWeekly', 0)
 
@@ -87,9 +85,10 @@ MODELS_ACTIONS.set('OrderList/generateTestData', 2)
 MODELS_ACTIONS.set('OrderList/getTestData', 2)
 MODELS_ACTIONS.set('OrderList/deleteTestData', 2)
 
-export function isValidModelAction(
+export const isValidModelAction = function isValidModelAction(
+  this: Map<MODELS_ACTION_LIST, number>,
   action: string,
 ): action is MODELS_ACTION_LIST {
   if (!action.includes('/')) return false
   return MODELS_ACTIONS.has(action as MODELS_ACTION_LIST)
-}
+}.bind(MODELS_ACTIONS)

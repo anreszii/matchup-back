@@ -97,9 +97,8 @@ export class User {
       })
       document.setPassword(generatePassword())
       await document.save()
+      await TaskListModel.getForUser(document)
 
-      let Tasks = await TaskListModel.createListForUser(document)
-      await Tasks.save()
       generatedUsers.push(document)
     }
 
@@ -115,7 +114,10 @@ export class User {
 
   public static async deleteTestData(this: ReturnModelType<typeof User>) {
     let documents = await this.getTestData()
-    for (let document of documents) await document.delete()
+    for (let document of documents) {
+      await TaskListModel.deleteForUser(document)
+      await document.delete()
+    }
   }
 
   public static async getGRI(

@@ -14,7 +14,7 @@ export abstract class Manager<R extends string, A extends string>
   /** @returns true, если операция для данного пользователя доступна и false  в противном случае*/
   hasAccess(name: string, action: A) {
     let requiredAccessLevel = this._getAccessLevelForAction(action)
-    if (~requiredAccessLevel)
+    if (!~requiredAccessLevel)
       throw new ValidationError('action', validationCause.INVALID)
     let roleAccessLevel = this._getAccessLevel(name)
 

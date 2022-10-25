@@ -2,15 +2,16 @@ import type { DTO as DTO_NAMESPACE } from '../../Interfaces/index'
 import { DTO } from './DTO'
 
 export const enum PERFORMANCE_ERRORS {
-  'wrong action' = 'запрашиваемая модель или метод не существуют',
-  'wrong access level' = 'низкий уровень доступа для выполнения действия',
-  'wrong parameters' = 'переданные параметры неверны',
-  'wrong document' = 'указанный документ не найден',
-  'no data' = 'нет полезных данных',
-  'low balance' = 'недостаточный баланс для выполнения операции',
-  "can't drop relation" = 'вы с этим пользователем не состоите в друзьях и не подписаны на него',
-  "can't add relation" = 'вы уже подписаны на пользователя',
-  'low mpr' = 'сликшом мало очков рейтинга для выполнения действия',
+  'wrong action' = `requested model or model method does not exist`,
+  'wrong access level' = 'requested action require greater access level',
+  'wrong parameters' = 'provided method params wrong',
+  'wrong document' = 'requested document do not exist',
+  'file read' = 'can not read file',
+  'no data' = 'can not found content',
+  'low balance' = 'insufficient funds for the operation',
+  "can't drop relation" = 'can not delete relaiton with specified user',
+  "can't add relation" = 'you are already friend or subscriber of specified user',
+  'low mpr' = 'this action require more mpr to use it',
 }
 
 export class DTOError {

@@ -12,62 +12,80 @@ import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
 import { TaskModel } from '../'
+import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
 
 export class TaskList {
   @prop({ required: true, ref: () => User })
-  owner: Ref<User>
+  owner!: Ref<User>
   @prop({ required: true, ref: () => Task, default: [] })
   tasks!: Ref<Task>[]
 
-  public static async findListByUserName(
-    this: ReturnModelType<typeof TaskList>,
-    name: string,
-  ) {
-    const user = await UserModel.findByName(name)
-    if (user) return this.findOne({ owner: user._id })
-  }
-
-  public static async findListByUser(
-    this: ReturnModelType<typeof TaskList>,
-    user: User | Types.ObjectId,
-  ) {
-    return this.findOne({ owner: user })
-  }
-
-  public static async createListForUser(
+  public static async getForUser(
     this: ReturnModelType<typeof TaskList>,
     user: User | Types.ObjectId | string,
   ) {
+    const promises: Promise<unknown>[] = []
     let userDocument: DocumentType<User> | null
     if (typeof user == 'string')
       userDocument = await UserModel.findByName(user)!
     else userDocument = await UserModel.findById(user)!
+    if (!userDocument) throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
 
-    return this.create({ owner: userDocument, tasks: [] })
+    return this._checkUserList(userDocument).then((result) => {
+      if (result) return result
+
+      return this.create({ owner: userDocument, tasks: [] }).then((tasks) => {
+        promises.push(tasks.getDaily())
+        promises.push(tasks.getWeekly())
+        return Promise.all(promises).then(() => tasks.save())
+      })
+    })
   }
 
-  public getDaily(
-    this: DocumentType<TaskList>,
-  ): Array<DocumentType<Task>> | Promise<Array<DocumentType<Task>>> {
+  public static async deleteForUser(
+    this: ReturnModelType<typeof TaskList>,
+    owner: User | Types.ObjectId,
+  ) {
+    return this.findOne({ owner }).then((tasks) => {
+      if (!tasks) return
+
+      return tasks.clear().then(() => {
+        return tasks.delete()
+      })
+    })
+  }
+
+  public async getDaily(this: DocumentType<TaskList>) {
     let wasCleared = this._clearCurrentDailyTasksIfCountInvalid()
     if (!wasCleared) return this._findCurrentDailyTasks()
 
-    return this._createDailyTasks().then((tasks) => {
-      if (!tasks) throw new Error(`can't create daily tasks`)
-      return tasks
-    })
+    let tasks = await this._createDailyTasks()
+    if (!tasks) throw new Error(`can't create daily tasks`)
+
+    return tasks
   }
 
-  public getWeekly(
-    this: DocumentType<TaskList>,
-  ): Array<DocumentType<Task>> | Promise<Array<DocumentType<Task>>> {
+  public async getWeekly(this: DocumentType<TaskList>) {
     let wasCleared = this._clearCurrentWeeklyTasksIfCountInvalid()
     if (!wasCleared) return this._findCurrentWeeklyTasks()
 
-    return this._createWeeklyTasks().then((tasks) => {
-      if (!tasks) throw new Error(`can't create daily tasks`)
-      return tasks
-    })
+    let tasks = await this._createWeeklyTasks()
+    if (!tasks) throw new Error(`can't create daily tasks`)
+
+    return tasks
+  }
+
+  public async clear(this: DocumentType<TaskList>): Promise<unknown> {
+    const promises = []
+    for (let taskID of this.tasks) {
+      let task = await TaskModel.findById(taskID)
+      if (!task) continue
+      promises.push(task.delete())
+    }
+    this.tasks = []
+
+    Promise.all(promises)
+    return this.save()
   }
 
   public async getCompletedDailyTasksCount(this: DocumentType<TaskList>) {
@@ -82,7 +100,11 @@ export class TaskList {
 
   public async collectRewardsFromDaily(this: DocumentType<TaskList>) {
     let user = await UserModel.findById(this.owner)
-    if (!user) return
+    if (!user) {
+      await this.clear()
+      await this.delete()
+      throw new ValidationError('user', validationCause.NOT_EXIST)
+    }
 
     let daily = await this.getDaily()
     let collectedReward = {
@@ -91,7 +113,8 @@ export class TaskList {
       levels: 0,
     }
 
-    let rewards = []
+    const promises = []
+    const rewards = []
     let completedTaskCounter = 0
     let taskRewards: Reward[] | undefined
     let completeDailyTask: DocumentType<Task> | undefined
@@ -101,10 +124,15 @@ export class TaskList {
         completeDailyTask = task
         continue
       }
-      taskRewards = await task.complete()
-      if (!taskRewards) continue
+      promises.push(task.complete())
+    }
+
+    let results = await Promise.all(promises)
+    for (let reward of results) {
+      if (!rewards) continue
+
       completedTaskCounter++
-      rewards.push(taskRewards)
+      rewards.push(reward)
     }
 
     completeDailyTask!.addProgess(completedTaskCounter)
@@ -149,7 +177,11 @@ export class TaskList {
 
   public async collectRewardsFromWeekly(this: DocumentType<TaskList>) {
     let user = await UserModel.findById(this.owner)
-    if (!user) return
+    if (!user) {
+      await this.clear()
+      await this.delete()
+      throw new ValidationError('user', validationCause.NOT_EXIST)
+    }
 
     let daily = await this.getWeekly()
     let collectedReward = {
@@ -215,8 +247,6 @@ export class TaskList {
   }
 
   public async createTask(this: DocumentType<TaskList>, name: string) {
-    let user = await UserModel.findById(this.owner)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
     let data: STATIC_TASK | undefined
 
     if (DYNAMIC_DATA.has(name)) {
@@ -227,7 +257,7 @@ export class TaskList {
     }
     if (!data) return
 
-    let task = await this._create(user.profile.username, name, data.points)
+    let task = await this._create(name, data.points)
     if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
@@ -239,6 +269,15 @@ export class TaskList {
     }
 
     return task.save()
+  }
+
+  private static _checkUserList(
+    this: ReturnModelType<typeof TaskList>,
+    owner: DocumentType<User> | Types.ObjectId,
+  ) {
+    return this.findOne({ owner }).then((user) => {
+      return user ?? false
+    })
   }
 
   private _findCurrentDailyTasks(this: DocumentType<TaskList>) {
@@ -261,16 +300,12 @@ export class TaskList {
    */
   private _clearCurrentDailyTasksIfCountInvalid(this: DocumentType<TaskList>) {
     let dailyTasks = this._findCurrentDailyTasks()
-    if (dailyTasks.length == 4) return
+    if (dailyTasks.length == 4) return false
 
     let promises = []
     for (let task of dailyTasks) promises.push(task.delete())
-    if (promises.length != 0) {
-      Promise.all(promises).then()
-      return true
-    }
-
-    return false
+    if (promises.length != 0) Promise.all(promises).then()
+    return true
   }
 
   private _findCurrentWeeklyTasks(this: DocumentType<TaskList>) {
@@ -293,16 +328,12 @@ export class TaskList {
    */
   private _clearCurrentWeeklyTasksIfCountInvalid(this: DocumentType<TaskList>) {
     let weeklyTasks = this._findCurrentWeeklyTasks()
-    if (weeklyTasks.length == 3) return
+    if (weeklyTasks.length == 3) return false
 
     let promises = []
     for (let task of weeklyTasks) promises.push(task.delete())
-    if (promises.length != 0) {
-      Promise.all(promises).then()
-      return true
-    }
-
-    return false
+    if (promises.length != 0) Promise.all(promises).then()
+    return true
   }
 
   private async _createDailyTasks(this: DocumentType<TaskList>) {
@@ -333,19 +364,12 @@ export class TaskList {
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
   ) {
-    let user = await UserModel.findById(this.owner)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
-
     let task = DYNAMIC_DATA.getRandomDaily(usedTasksNames)
     if (!task) return
 
     let data = TaskData.getDataFrom(task.data)
 
-    let createdTask = await this._create(
-      user.profile.username,
-      task.name,
-      data.points,
-    )
+    let createdTask = await this._create(task.name, data.points)
     if (data.reward.mp && data.reward.mp > 0) createdTask.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0)
       createdTask.exp = data.reward.exp
@@ -386,19 +410,12 @@ export class TaskList {
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
   ) {
-    let user = await UserModel.findById(this.owner)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
-
     let task = DYNAMIC_DATA.getRandomWeekly(usedTasksNames)
     if (!task) return
 
     let data = TaskData.getDataFrom(task.data)
 
-    let createdTask = await this._create(
-      user.profile.username,
-      task.name,
-      data.points,
-    )
+    let createdTask = await this._create(task.name, data.points)
     if (data.reward.mp && data.reward.mp > 0) createdTask.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0)
       createdTask.exp = data.reward.exp
@@ -414,50 +431,47 @@ export class TaskList {
   private get _createTaskToCompleteAllDaily() {
     let data = STATIC_DATA.get('completedDaily')!
     return this._ownerName.then((username) => {
-      return this._create(username, 'completedDaily', data.points).then(
-        (task) => {
-          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+      return this._create('completedDaily', data.points).then((task) => {
+        if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+        if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
-          task.expirationTime = {
-            amount: 1,
-            format: data.expirationType!,
-          }
+        task.expirationTime = {
+          amount: 1,
+          format: data.expirationType!,
+        }
 
-          return task
-        },
-      )
+        return task
+      })
     })
   }
 
   private get _createTaskToCompleteAllWeekly() {
     let data = STATIC_DATA.get('completedDaily')!
     return this._ownerName.then((username) => {
-      return this._create(username, 'completedWeeky', data.points).then(
-        (task) => {
-          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+      return this._create('completedWeeky', data.points).then((task) => {
+        if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+        if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
-          task.expirationTime = {
-            amount: 1,
-            format: data.expirationType!,
-          }
-
-          return task
-        },
-      )
+        task.expirationTime = {
+          amount: 1,
+          format: data.expirationType!,
+        }
+        return task
+      })
     })
   }
 
-  private _create(userName: string, taskName: string, requiredPoints: number) {
-    return TaskModel.create({
-      owner: userName,
+  private async _create(taskName: string, requiredPoints: number) {
+    let task = await TaskModel.create({
+      owner: this.owner,
       name: taskName,
       progress: {
         currentPoints: 0,
         requiredPoints,
       },
     })
+    this.tasks.push(task._id)
+    return task
   }
 
   private _isDailyTask(task: DocumentType<Task>) {

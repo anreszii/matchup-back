@@ -1,8 +1,11 @@
 import type { DYNAMIC_TASK } from '../../configs/task_reward'
+import type { DocumentType } from '@typegoose/typegoose'
 import { getRounded, minMax } from '../../Utils'
 
 export class TaskData {
-  public static getDataFrom(taskData: DYNAMIC_TASK) {
+  public static getDataFrom(
+    taskData: DocumentType<DYNAMIC_TASK> | DYNAMIC_TASK,
+  ) {
     let reward = { mp: 0, exp: 0 }
 
     let pointsCount = getRounded(
