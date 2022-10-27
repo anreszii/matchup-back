@@ -31,8 +31,8 @@ export class Guild {
       users.splice(0, 1)
 
       let newGuild = await this.new(
-        await this.getRandomGuildTag(),
-        await this.getRandomGuildName(),
+        this._randomGuildTag,
+        this._randomGuildName,
         owner.profile.username,
       )
 
@@ -86,14 +86,9 @@ export class Guild {
     return this.findOne({ 'info.tag': tag })
   }
 
-  getMemberByName(name: string) {
+  findMemberByName(name: string) {
     for (let i = 0; i < this.memberList.length; i++)
       if (this.memberList[i].name == name) return this.memberList[i]
-  }
-
-  getMemberIndexByName(name: string) {
-    for (let i = 0; i < this.memberList.length; i++)
-      if (this.memberList[i].name == name) return i
   }
 
   deleteMemberByName(name: string): boolean {
@@ -110,26 +105,6 @@ export class Guild {
       if (this.memberList[i].name == name) return true
 
     return false
-  }
-
-  async addMember(
-    this: DocumentType<Guild>,
-    executorName: string,
-    memberName: string,
-  ) {
-    let executor = this.getMemberByName(executorName)
-    if (!executor)
-      throw new ValidationError('member', validationCause.NOT_EXIST)
-
-    if (!executor.hasRightToExecute('addMember'))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
-
-    let member = new Member()
-    ;(member.name = memberName),
-      (member.id = await UserModel.findByName(memberName))
-    member.role = roles.member
-    this.memberList.push()
-    return this.save()
   }
 
   async join(this: DocumentType<Guild>, memberName: string) {
@@ -169,29 +144,14 @@ export class Guild {
     }
   }
 
-  async removeMember(
-    this: DocumentType<Guild>,
-    executorName: string,
-    memberName: string,
-  ) {
-    let executor = this.getMemberByName(executorName)
-    if (!executor)
-      throw new ValidationError('member', validationCause.NOT_EXIST)
-
-    if (!executor.hasRightToExecute('removeMember'))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
-    this.deleteMemberByName(memberName)
-    return this.save()
-  }
-
   async changeMemberRole(
     this: DocumentType<Guild>,
     executorName: string,
     memberName: string,
     newRole: roles,
   ) {
-    let executor = this.getMemberByName(executorName)
-    let member = this.getMemberByName(memberName)
+    let executor = this.findMemberByName(executorName)
+    let member = this.findMemberByName(memberName)
     if (!executor || !member)
       throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
 
@@ -209,7 +169,7 @@ export class Guild {
     executorName: string,
     newName: string,
   ) {
-    let executor = this.getMemberByName(executorName)
+    let executor = this.findMemberByName(executorName)
     if (!executor)
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
@@ -230,7 +190,7 @@ export class Guild {
     executorName: string,
     newTag: string,
   ) {
-    let executor = this.getMemberByName(executorName)
+    let executor = this.findMemberByName(executorName)
     if (!executor)
       throw new ValidationError('member', validationCause.NOT_EXIST)
 
@@ -256,16 +216,16 @@ export class Guild {
     return this.save()
   }
 
-  private static async getRandomGuildTag() {
+  private static get _randomGuildTag() {
     let tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
-    while (await GuildModel.findByTag(tag))
+    while (GuildModel.findByTag(tag).then((guild) => guild))
       tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
     return tag
   }
 
-  private static async getRandomGuildName() {
+  private static get _randomGuildName() {
     let name = `test_${generateGuildName()}#${getRandom(1, 99)}`
-    while (await GuildModel.findByName(name))
+    while (GuildModel.findByName(name).then((guild) => guild))
       name = `test_${generateGuildName()}#${getRandom(1, 99)}`
     return name
   }

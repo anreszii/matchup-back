@@ -25,7 +25,8 @@ export class Info {
     },
   })
   tag!: string
-
+  @prop({ required: true, default: 0 })
+  MPT!: number
   @prop({ default: 0 })
   requiredMPR!: number
 }

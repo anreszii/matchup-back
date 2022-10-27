@@ -1,7 +1,5 @@
 import { getModelForClass, prop } from '@typegoose/typegoose'
 
-type owner = 'user' | 'guild'
-
 export class RatingRecord {
   @prop({ required: true })
   owner!: string
@@ -13,7 +11,5 @@ export class RatingRecord {
       message: 'mpr must be greater than 0',
     },
   })
-  mpr!: number
+  ratingPoints!: number
 }
-
-export const RecordModel = getModelForClass(RatingRecord)
