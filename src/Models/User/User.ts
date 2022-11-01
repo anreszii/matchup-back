@@ -1,4 +1,4 @@
-import type { USER_PREFIX, USER_ROLE } from '../../Interfaces'
+import type { USER_ROLE } from '../../Interfaces'
 import type { Types } from 'mongoose'
 
 import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
@@ -14,6 +14,7 @@ import { Guild } from '../Guild/Guild'
 import { UserModel } from '../'
 import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
 import { generateName } from '../../Utils/nameGenerator'
+import { PREFIXES } from '../../configs/prefixes'
 
 export class User {
   @prop({
@@ -46,7 +47,7 @@ export class User {
   @prop({ required: true, default: 'default' })
   role!: USER_ROLE
   @prop()
-  prefix?: USER_PREFIX
+  prefix?: string
   @prop({ ref: () => Guild })
   guild?: Ref<Guild>
 
@@ -76,6 +77,24 @@ export class User {
       { 'profile.username': name },
       'id profile level rating role prefix guild credentials.email credentials.region',
     )
+  }
+
+  public static async getPrefixes() {
+    return PREFIXES
+  }
+
+  public static setPrefix(
+    this: ReturnModelType<typeof User>,
+    name: string,
+    prefix: string,
+  ) {
+    if (!PREFIXES.includes(prefix))
+      throw new ValidationError('prefix', validationCause.NOT_EXIST)
+    return this.findByName(name).then((user) => {
+      if (!user) throw new ValidationError('user', validationCause.INVALID)
+      user.prefix = prefix
+      return user.save().then(() => user)
+    })
   }
 
   public static async generateTestData(
