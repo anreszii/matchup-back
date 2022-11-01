@@ -2,13 +2,12 @@ import { clientServer } from '../clientSocketServer'
 import {
   matchCause,
   MatchError,
-  MatchUpError,
   validationCause,
   ValidationError,
 } from '../../../error'
 
 import * as MatchMaking from '../../../Classes/MatchMaking'
-import { ChatManager, MatchFinder } from '../../../Classes'
+import { CHATS, MatchFinder, TEAMS } from '../../../Classes'
 import { UserModel } from '../../../Models/index'
 import { Match, Rating } from '../../../Interfaces/index'
 import { DiscordClient } from '../../../Classes/Discord/Client'
@@ -16,13 +15,10 @@ import { HANDLERS } from './dark-side'
 import { WebSocket } from 'uWebSockets.js'
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
-export const Teams = new MatchMaking.TeamManager()
 export const StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
   dsClient,
 )
-
-const chats = new ChatManager()
 
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies)
@@ -65,16 +61,16 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
 
   Finder.filterByRegion(region)
   let teamID = params[1]
-  if (teamID && Teams.has(Number(teamID))) {
-    let team = Teams.get(Number(teamID))!
+  if (teamID && TEAMS.has(Number(teamID))) {
+    let team = TEAMS.get(Number(teamID))!
     Finder.filterByGRI(team.GRI)
-    Finder.filterByTeamSize(team.membersCount)
+    Finder.filterByTeamSize(team.size)
     let lobby = await Finder.findLobby()
 
     if (!lobby.region) lobby.region = region
     if (!lobby.chat) await createChatForLobby(lobby.id)
 
-    for (let member of team.check()) await lobby.addMember(member)
+    for (let member of team.,) await lobby.join(member)
     return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
       lobby_id: lobby.id,
       chat_id: lobby.chat!.id,
@@ -89,11 +85,7 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   if (!lobby.region) lobby.region = region
   if (!lobby.chat) await createChatForLobby(lobby.id)
 
-  await lobby.addMember({
-    name: username,
-    readyFlag: false,
-    command: 'neutral',
-  })
+  await lobby.join(username)
 
   return clientServer.control(socket.id as string).emit('find_lobby', {
     lobby_id: lobby.id,
@@ -164,14 +156,7 @@ export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
   let lobby = StandOffLobbies.get(lobbyID)
   if (!lobby) throw new ValidationError('lobbyID', validationCause.INVALID)
 
-  if (
-    !(await lobby.addMember({
-      name: socket.username,
-      command: 'neutral',
-      readyFlag: false,
-    }))
-  )
-    return
+  if (!(await lobby.join(socket.username))) return
   clientServer.control(socket.id).emit('sync_lobby', {
     status: lobby.status as string,
     players: JSON.stringify(lobby.members.players),
@@ -304,7 +289,7 @@ function isCorrectRegion(
 
 async function createChatForLobby(lobbyID: string) {
   let lobby = StandOffLobbies.get(lobbyID)!
-  lobby.chat = chats.spawn('gamesocket.io', `lobby#${lobbyID}`, {
+  lobby.chat = CHATS.spawn('gamesocket.io', `lobby#${lobbyID}`, {
     namespace: process.env.CLIENT_NAMESPACE!,
     room: `lobby#${lobbyID}`,
   })
@@ -315,12 +300,12 @@ async function createChatForLobby(lobbyID: string) {
 
 async function updateLobbyChatMembers(lobby: Match.Lobby.Instance) {
   for (let member of lobby.members.values()) {
-    await lobby.chat!.addMember({ name: member.name, role: 'user' })
-    await lobby.chat!.send(
-      JSON.stringify({
-        from: 'system',
-        message: `member ${member.name} joined lobby#${lobby.id}`,
-      }),
-    )
+    lobby.chat!.addMember({ name: member.name }).then(async (status) => {
+      if (status)
+        await lobby.chat!.send({
+          from: 'system',
+          content: `member ${member.name} joined lobby#${lobby.id}`,
+        })
+    })
   }
 }
