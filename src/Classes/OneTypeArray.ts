@@ -1,8 +1,8 @@
 /**
- * Простой класс листа, который содержит объекты одного типа
+ * Простой класс массива, который содержит объекты одного типа
  * @template {Object}T тип хранимых объектов
  */
-export class List<T extends Object> {
+export class OneTypeArray<T extends Object> {
   /** Массив внутренних элементов, которые доступны только наследникам */
   protected _elements: Array<T | undefined> = new Array()
   /**
@@ -12,14 +12,14 @@ export class List<T extends Object> {
   protected _undefined: undefined | T
 
   /**
-   * Задает массиву начальный размер и запаолняет его {@link List._undefined | 'List._undefined'}
+   * Задает массиву начальный размер и запаолняет его {@link OneTypeArray._undefined | 'List._undefined'}
    */
   constructor(arraySize?: number, undefinedValue?: T) {
     if (undefinedValue) this._undefined = undefinedValue
     if (arraySize) this._elements = new Array(arraySize).fill(this._undefined)
   }
 
-  /** Генератор значений элементов. Возвращает любые значения, которые не равны {@link List._undefined | 'List._undefined'} */
+  /** Генератор значений элементов. Возвращает любые значения, которые не равны {@link OneTypeArray._undefined | 'List._undefined'} */
   public *values(): Generator<T> {
     let index = 0
     while (index < this._elements.length) {
@@ -29,7 +29,7 @@ export class List<T extends Object> {
     }
   }
 
-  /** Возвращает массив всех значений, которые не равны {@link List._undefined} */
+  /** Возвращает массив всех значений, которые не равны {@link OneTypeArray._undefined} */
   public get toArray(): T[] {
     let tmp: Array<T> = []
     for (let index = 0; index < this._elements.length; index++)
@@ -41,21 +41,23 @@ export class List<T extends Object> {
 
   /**
    * Добавляет набор новых элементов типа T.
-   * @return false, если один из элементов оказался {@link List._undefined} и добавляет остальные элементы. true в остальных случаях
+   * @return количество добавленных элементов
    */
   public add(...elements: Array<T>) {
-    let status = true
+    let counter = 0
 
     for (let index = 0; index < elements.length; index++) {
-      if (elements[index] == this._undefined) status = false
+      if (!elements[index] || elements[index] == this._undefined) continue
+
       this._elements[this.freeSpace] = elements[index]
+      counter++
     }
-    return status
+    return counter
   }
 
   /**
-   * Добавляет элеммент типа T.
-   * @return -1, если один из элементов оказался {@link List._undefined} или index вставленного объекта в случае успеха.
+   * Добавляет элемент типа T.
+   * @return -1, если элемент оказался {@link OneTypeArray._undefined} или index вставленного объекта в случае успеха.
    */
   public addOne(element: T) {
     if (element == this._undefined) return -1
@@ -68,19 +70,34 @@ export class List<T extends Object> {
 
   /**
    * Удаляет набор элемментов типа T.
-   * @returns false, если один из элементов оказался {@link List._undefined} или он не был найден в {@link List._elements} и удаляет остальные элементы. true в остальных случаях
+   * @returns количество удаленных элементов
    */
   public delete(...elements: Array<T>) {
-    let status = true
+    let counter = 0
     for (let index = 0; index < elements.length; index++) {
-      if (elements[index] == this._undefined) status = false
+      if (!elements[index] || elements[index] == this._undefined) continue
 
-      let tmp = this._getElement(elements[index])
-      if (!~tmp) status = false
-
-      this._elements[tmp] = this._undefined
+      let tmp: number
+      while (~(tmp = this._getElement(elements[index]))) {
+        this._elements[tmp] = this._undefined
+        counter++
+      }
     }
-    return status
+    return counter
+  }
+
+  /**
+   * Удаляет один указанный элемент
+   *
+   * @param element элемент, которое нужно удалить
+   * @returns индекс удаленного элемента или -1, если его не существовало
+   */
+  public deleteOne(element: T) {
+    let index = this._elements.indexOf(element)
+    if (!~index) return -1
+
+    this._elements[index] = this._undefined
+    return index
   }
 
   public indexOf(element: T) {
@@ -89,6 +106,13 @@ export class List<T extends Object> {
 
   public valueOf(index: number) {
     return this._elements[index] ?? this._undefined
+  }
+
+  public has(element: T) {
+    if (element == this._undefined || !element) return false
+    for (let i = 0; i < this._elements.length; i++)
+      if (this._elements[i] == element) return true
+    return false
   }
 
   public isUndefined(index: number) {
@@ -108,7 +132,7 @@ export class List<T extends Object> {
   }
 
   /**
-   * @returns true, если внутри {@link List._elements} есть хотя бы один элемент вида {@link List._undefined}
+   * @returns true, если внутри {@link OneTypeArray._elements} есть хотя бы один элемент вида {@link OneTypeArray._undefined}
    */
   protected get _hasFreeSpace() {
     return this._elements.indexOf(this._undefined)
