@@ -1,13 +1,15 @@
 import type { Match } from '../../../Interfaces'
-import { List } from '../../List'
+import { OneTypeArray } from '../../OneTypeArray'
 import { Team } from './Team'
-import { ChatManager } from '../../index'
+import { CHATS } from '../../index'
+import { PLAYERS } from '../MemberManager'
 
-export class TeamManager implements Match.Team.Manager {
-  private static _chats = new ChatManager()
-  private _teams: List<Match.Team.Instance> = new List()
-  public spawn(): Match.Team.Instance {
+class TeamManager implements Match.Member.Team.Manager {
+  private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()
+
+  public spawn(): Match.Member.Team.Instance {
     let team = new Team(this._teams.freeSpace)
+
     this._teams.addOne(team)
     team.chat = this._createChatForTeam(team)
 
@@ -18,10 +20,10 @@ export class TeamManager implements Match.Team.Manager {
     let team = this._teams.valueOf(teamID)
     if (!team) return true
 
-    return this._teams.delete(team)
+    return Boolean(this._teams.delete(team))
   }
 
-  public get(teamID: number): Match.Team.Instance | undefined {
+  public get(teamID: number): Match.Member.Team.Instance | undefined {
     return this._teams.valueOf(teamID)
   }
 
@@ -29,16 +31,19 @@ export class TeamManager implements Match.Team.Manager {
     return !this._teams.isUndefined(teamID)
   }
 
-  public findByUserName(username: string): Match.Team.Instance | undefined {
-    for (let team of this._teams.values()) {
-      if (!team) continue
-      for (let member of team.check()) {
-        if (member.name == username) return team
-      }
-    }
+  public findByUserName(name: string): Match.Member.Team.Instance | undefined {
+    let user = PLAYERS.get(name)
+    if (!user) return
+
+    if (!user.teamID) return
+    return this.findById(user.teamID)
   }
 
-  public get all(): Match.Team.Instance[] {
+  findById(id: number): Match.Member.Team.Instance | undefined {
+    return this.get(id)
+  }
+
+  public get toArray(): Match.Member.Team.Instance[] {
     return this._teams.toArray
   }
 
@@ -49,10 +54,13 @@ export class TeamManager implements Match.Team.Manager {
     return tmp
   }
 
-  private _createChatForTeam(team: Match.Team.Instance) {
-    return TeamManager._chats.spawn('gamesocket.io', `team#${team.id}`, {
+  private _createChatForTeam(team: Match.Member.Team.Instance) {
+    return CHATS.spawn('gamesocket.io', `team#${team.id}`, {
       namespace: process.env.CLIENT_NAMESPACE!,
       room: `team#${team.id}`,
     })
   }
 }
+
+/** комманды, сформированные игроками */
+export const TEAMS = new TeamManager()

@@ -1,15 +1,20 @@
-import type { Match, Chat } from '../../../Interfaces'
+import type { Match, Chat } from '../../../Interfaces/index'
+import { GuildModel, UserModel } from '../../../Models/index'
 import { getMedian } from '../../../Utils/math'
 import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
 
-export class Team implements Match.Member.Team.Instance {
+export class Command implements Match.Lobby.Command.Instance {
   private _members: MemberList = new MemberList()
+  private _commandChat!: Chat.Instance
   private _captain!: string
-  private _teamChat!: Chat.Instance
-  private _maxTeamSize = 5
+  private _maxSize = 5
 
-  constructor(private _id: number) {}
+  constructor(
+    private _commandID: number,
+    private _lobbyID: string,
+    private _commandType: Match.Lobby.Command.Types,
+  ) {}
 
   async join(name: string): Promise<boolean> {
     if (this.members.count >= 5) return false
@@ -53,22 +58,26 @@ export class Team implements Match.Member.Team.Instance {
     return name == this._captain
   }
 
-  hasSpaceFor(size: number): boolean {
-    return this._maxTeamSize - size > 0
+  get id() {
+    return this._commandID
   }
 
-  get id() {
-    return this._id
+  get lobbyID(): string {
+    return this._lobbyID
+  }
+
+  hasSpaceFor(size: number) {
+    return this._maxSize - size > 0
+  }
+
+  get type() {
+    return this._commandType
   }
 
   get GRI(): number {
     const GRIArray: number[] = []
     for (let member of this._members.toArray) GRIArray.push(member.GRI)
     return getMedian(...GRIArray)
-  }
-
-  get isGuild(): boolean {
-    return this._members.isGuild
   }
 
   get members(): Match.Member.List {
@@ -79,19 +88,19 @@ export class Team implements Match.Member.Team.Instance {
     return this._members.count
   }
 
+  set chat(chat: Chat.Instance) {
+    this._commandChat = chat
+  }
+
+  get chat() {
+    return this._commandChat
+  }
+
   set captain(name: string) {
     this._captain = name
   }
 
   get captain() {
     return this._captain
-  }
-
-  set chat(chat: Chat.Instance) {
-    this._teamChat = chat
-  }
-
-  get chat() {
-    return this._teamChat
   }
 }
