@@ -1,36 +1,38 @@
 import type { Match } from '../index'
 import type { IEntity, Chat, Rating } from '../../index'
-import type { MemberList } from '../../../Classes/index'
 export declare interface ILobby extends IEntity<string> {
-  get id(): string
-  get status(): Match.Lobby.status | undefined
-  get game(): Match.Manager.supportedGames
-  get members(): MemberList
+  join(name: string): Promise<boolean>
+  leave(name: string): Promise<boolean>
 
-  get chat(): Chat.Instance | undefined
-  set chat(instance: Chat.Instance | undefined)
+  joinWithTeam(name: string): Promise<boolean>
+  leaveWithTeam(name: string): Promise<boolean>
+
+  get id(): string
+  get status(): Match.Lobby.Status | undefined
+  get game(): Match.Manager.supportedGames
+  get members(): Match.Member.List
+
+  get chat(): Chat.Instance
+  set chat(instance: Chat.Instance)
 
   get region(): Rating.SearchEngine.SUPPORTED_REGIONS
   set region(region: Rating.SearchEngine.SUPPORTED_REGIONS)
 
-  get averageGRI(): number
+  get GRI(): number
+  get isForGuild(): boolean
+
+  get firstCommand(): Match.Lobby.Command.Instance
+
+  get secondCommand(): Match.Lobby.Command.Instance
+
+  get neutrals(): Match.Lobby.Command.Instance
+
+  get spectators(): Match.Lobby.Command.Instance
 
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
   canAddTeamWithSize(size: number): boolean
 
-  hasSpace(
-    memberCount: number,
-  ): Exclude<Match.Member.command, 'spectator' | 'neutral'> | false
-
-  addMember(member: Omit<Match.Member.Instance, 'GRI'>): Promise<boolean>
-  removeMember(member: Omit<Match.Member.Instance, 'GRI'>): Promise<boolean>
-  updateMember(
-    member: Required<Pick<Match.Member.Instance, 'name'>> & {
-      [Key in Exclude<keyof Match.Member.Instance, 'name'>]?:
-        | Match.Member.Instance[Key]
-        | string
-    },
-  ): Promise<boolean>
+  hasSpace(memberCount: number): boolean
 }

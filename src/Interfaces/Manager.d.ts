@@ -3,10 +3,10 @@
  */
 export declare interface IManager<T extends IEntity<ID>, ID> {
   /** Генерирует сущность T */
-  spawn(...params: unknown[]): T
+  spawn(...params: unknown[]): T | Promise<T>
   get(entityID: T['id']): T | undefined
   has(entityID: T['id']): boolean
-  drop(entityID: T['id']): boolean
+  drop(entityID: T['id']): boolean | Promise<boolean>
 }
 
 export declare interface IEntity<ID> {

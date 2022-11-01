@@ -1,9 +1,14 @@
-import type { ILobby, IMatchMember } from './Lobby'
-import type { MatchController } from './Controller'
 import type { IManager } from '../'
+import type { Group } from './Group'
+
+import type { ILobby } from './Lobby/Lobby'
+import type { MatchController } from './Controller'
+
+import type { IMatchMember } from './Member'
 import type { IStatistic } from './Statistic'
-import type { TeamsManager, ITeam } from './Team'
-import { DiscordClient } from '../../Classes/Discord/Client'
+
+import type { OneTypeArray } from '../../Classes/OneTypeArray'
+import type { DiscordClient } from '../../Classes/Discord/Client'
 
 export declare namespace Match {
   namespace Manager {
@@ -13,28 +18,69 @@ export declare namespace Match {
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
+    interface Manager extends IManager<Lobby.Instance, string> {}
     interface Instance extends ILobby {
-      set dsClient(client: DiscordClient | undefined)
-      get dsClient(): DiscordClient | undefined
+      set discord(client: DiscordClient)
+      get discord(): DiscordClient
     }
-    type status = 'searching' | 'filled' | 'started'
-  }
-  namespace Member {
-    interface Instance extends IMatchMember {}
-    type command = 'spectator' | 'neutral' | 'command1' | 'command2'
-    interface Statistic extends IStatistic {}
+
+    type Status = 'searching' | 'filled' | 'started'
+
+    namespace Command {
+      type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'
+      interface Manager extends IManager<Command.Instance, number> {
+        findByUserName(username: string): Command.Instance | undefined
+        findById(id: number): Command.Instance | undefined
+        move(name: string, from: number, to: number): boolean
+        get toArray(): Command.Instance[]
+        get IDs(): number[]
+      }
+      interface Instance extends Group<number> {
+        get lobbyID(): string
+        get type(): Types
+        isCaptain(member: string | Member.Instance): boolean
+        set captain(value: string)
+        get captain(): string
+      }
+    }
   }
 
-  namespace Team {
-    interface Manager extends TeamsManager {
-      findByUserName(username: string): Instance | undefined
-      get all(): Instance[]
-      get IDs(): number[]
+  namespace Member {
+    interface Manager extends IManager<Member.Instance, string> {}
+    interface Instance extends IMatchMember {}
+
+    namespace Team {
+      interface Manager extends IManager<Team.Instance, number> {
+        findByUserName(username: string): Team.Instance | undefined
+        findById(id: number): Team.Instance | undefined
+        get toArray(): Team.Instance[]
+        get IDs(): number[]
+      }
+      interface Instance extends Group<number> {
+        isCaptain(member: string | Member.Instance): boolean
+        set captain(value: string)
+        get captain(): string
+      }
     }
-    interface Instance extends ITeam {
-      get GRI(): number
-      get membersCount(): number
+
+    interface List extends OneTypeArray<Instance> {
+      isMember(entity: unknown): entity is Instance
+
+      hasMember(name: string): boolean
+
+      addMember(member: Instance): boolean
+
+      deleteMember(name: string): boolean
+
+      getByName(name: string): Member.Instance | null
+
+      get count(): number
+
+      get isGuild(): boolean
+
+      get inCommandSide(): number
     }
+    interface Statistic extends IStatistic {}
   }
 
   interface Controller extends MatchController {}

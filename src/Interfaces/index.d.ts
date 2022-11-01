@@ -5,4 +5,3 @@ export * from './RoleManager'
 export * from './DTO'
 
 export declare type USER_ROLE = 'default' | 'privileged' | 'admin'
-export declare type USER_PREFIX = 'YouTube'
