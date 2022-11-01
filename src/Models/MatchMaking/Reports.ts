@@ -30,7 +30,7 @@ export class ReportList {
       describe,
       proof,
     })
-    return document
+    return document.save()
   }
 
   public static async addProof(

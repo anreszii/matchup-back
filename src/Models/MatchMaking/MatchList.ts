@@ -6,6 +6,8 @@ import { MapScore } from './MapScore'
 import { v4 } from 'uuid'
 import { getRandom } from '../../Utils/math'
 import { MatchListModel, UserModel } from '../index'
+import { Statistic } from './Statistic'
+import { validationCause, ValidationError } from '../../error'
 
 export class MatchList {
   @prop({ required: true, unique: true })
@@ -18,6 +20,54 @@ export class MatchList {
   public score!: MapScore
   @prop({ ref: () => Image })
   public screen?: Ref<Image>
+
+  public static log(
+    this: ReturnModelType<typeof MatchList>,
+    id: string,
+    game: string,
+    members: MemberRecord[],
+    score: MapScore,
+    image?: Image,
+  ) {
+    let document = new this({ id, game, members, score, image })
+    return document.save()
+  }
+
+  public async addRecords(
+    this: DocumentType<MatchList>,
+    ...records: MemberRecord[]
+  ) {
+    this.members = [...this.members, ...records]
+    return this.save()
+  }
+
+  public async changeRecord(
+    this: DocumentType<MatchList>,
+    username: string,
+    command?: Match.Member.command,
+    statistic?: Statistic,
+  ) {
+    let member = this.members.find((member) => member.name == username)
+    if (!member)
+      throw new ValidationError('member record', validationCause.NOT_EXIST)
+
+    if (command) member.command = command
+
+    if (statistic) member.statistic = statistic
+
+    return this.save()
+  }
+
+  public async setScreen(
+    this: DocumentType<MatchList>,
+    image: Buffer,
+    contentType: string,
+  ) {
+    this.screen = await ImageModel.create({
+      buffer: image,
+      contentType,
+    })
+  }
 
   public static async generateTestData(
     this: ReturnModelType<typeof MatchList>,
@@ -83,17 +133,6 @@ export class MatchList {
   public static async deleteTestData(this: ReturnModelType<typeof MatchList>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
-  }
-
-  public async setScreen(
-    this: DocumentType<MatchList>,
-    image: Buffer,
-    contentType: string,
-  ) {
-    this.screen = await ImageModel.create({
-      buffer: image,
-      contentType,
-    })
   }
 
   private static async getRandomID() {

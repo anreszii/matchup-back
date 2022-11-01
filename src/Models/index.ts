@@ -5,6 +5,8 @@ import { TaskList, Task } from './Task'
 import { Guild } from './Guild'
 import { Rating, MatchList, ReportList } from './MatchMaking'
 import { OrderList } from './Orders/Orders'
+import { StaticTask } from './Task/Types/Static'
+import { DynamicTask } from './Task/Types/Dynamic'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -14,6 +16,8 @@ export const RatingModel = getModelForClass(Rating)
 export const ReportListModel = getModelForClass(ReportList)
 export const MatchListModel = getModelForClass(MatchList)
 export const OrderListModel = getModelForClass(OrderList)
+export const StaticTaskModel = getModelForClass(StaticTask)
+export const DynamicTaskModel = getModelForClass(DynamicTask)
 
 export * from './User'
 export * from './Task'
@@ -31,3 +35,5 @@ Models.set(RatingModel.modelName, RatingModel)
 Models.set(ReportListModel.modelName, ReportListModel)
 Models.set(MatchListModel.modelName, MatchListModel)
 Models.set(OrderListModel.modelName, OrderListModel)
+Models.set(StaticTaskModel.modelName, StaticTaskModel)
+Models.set(DynamicTaskModel.modelName, DynamicTaskModel)
