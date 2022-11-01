@@ -41,3 +41,5 @@ export class ChatManager implements Chat.Manager {
     return ChatManager._chatMap.delete(ID)
   }
 }
+
+export const CHATS = new ChatManager()
