@@ -7,8 +7,8 @@ export const enum lobbyStatus {
 }
 
 export const UNDEFINED_MEMBER: Match.Member.Instance = {
+  id: 'undefined',
   name: 'undefined',
-  command: 'neutral',
   readyFlag: false,
   GRI: 0,
 }
