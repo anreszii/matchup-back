@@ -1,7 +1,8 @@
 import type { Chat } from '../../Interfaces'
-import { List } from '../List'
+import { ChatMessage } from '../../Interfaces/Chat/Chat'
+import { OneTypeArray } from '../OneTypeArray'
 export class ChatInstance implements Chat.Instance {
-  private _memberNames: List<string> = new List(32)
+  private _memberNames: OneTypeArray<string> = new OneTypeArray(32)
   constructor(
     private _id: string,
     private _controller: Chat.Controller.Instance,
@@ -27,8 +28,8 @@ export class ChatInstance implements Chat.Instance {
     return true
   }
 
-  public async send(message: string) {
-    return this._controller.send(message)
+  public async send(message: ChatMessage) {
+    return this._controller.send(JSON.stringify(message))
   }
 
   public has(memberName: string) {
