@@ -79,11 +79,11 @@ export class Team implements Match.Member.Team.Instance {
     return this._members.count
   }
 
-  set captain(name: string) {
+  set captainName(name: string) {
     this._captain = name
   }
 
-  get captain() {
+  get captainName() {
     return this._captain
   }
 

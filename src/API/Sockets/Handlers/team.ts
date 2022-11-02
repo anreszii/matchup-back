@@ -8,7 +8,7 @@ import {
 import { UserModel } from '../../../Models/index'
 import { HANDLERS } from './dark-side'
 import { WebSocket } from 'uWebSockets.js'
-import { Teams } from './match'
+import { TEAMS } from '../../../Classes/index'
 
 /**
  * Обработчик для создания временной команды.</br>
@@ -38,10 +38,10 @@ import { Teams } from './match'
 export async function create_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
-  let team = Teams.findByUserName(username)
+  let team = TEAMS.findByUserName(username)
   if (team) throw new ValidationError('team', validationCause.ALREADY_EXIST)
 
-  team = Teams.spawn()
+  team = TEAMS.spawn()
   await team.join(username)
   clientServer.control(socket.id).emit('join_team', {
     team_id: team.id,
@@ -81,10 +81,10 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
 
   let teamID = params[0]
   if (!teamID) throw new ValidationError('team_id', validationCause.REQUIRED)
-  if (!Teams.has(Number(teamID)))
+  if (!TEAMS.has(Number(teamID)))
     throw new ValidationError('team_id', validationCause.INVALID)
 
-  let team = Teams.get(Number(teamID))!
+  let team = TEAMS.get(Number(teamID))!
   team.join(username)
 
   clientServer.control(socket.id).emit('join_team', {
@@ -109,7 +109,7 @@ HANDLERS.set('join_team', join_team)
 export async function leave_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
-  let team = Teams.findByUserName(username)
+  let team = TEAMS.findByUserName(username)
   if (!team) throw new ValidationError('team', validationCause.NOT_EXIST)
   if (!(await team.leave(username)))
     throw new MatchError('team', matchCause.REMOVE_MEMBER)
@@ -127,6 +127,8 @@ HANDLERS.set('leave_team', leave_team)
  * ```ts
  * {
  *  members: Members[]
+ *  captain: string
+ *  GRI: number
  * }
  * ```
  * @category MatchMaking
@@ -135,12 +137,19 @@ HANDLERS.set('leave_team', leave_team)
 export async function check_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
-  let team = Teams.findByUserName(username)
+  let team = TEAMS.findByUserName(username)
   if (!team) throw new ValidationError('team', validationCause.NOT_EXIST)
 
   clientServer
     .control(socket.id)
-    .emit('check_team', JSON.stringify({ members: team.check() }))
+    .emit(
+      'check_team',
+      JSON.stringify({
+        members: team.members.toArray,
+        captain: team.captainName,
+        GRI: team.GRI,
+      }),
+    )
 }
 HANDLERS.set('check_team', check_team)
 
@@ -163,6 +172,6 @@ export async function get_teams(socket: WebSocket, params: unknown[]) {
 
   clientServer
     .control(socket.id)
-    .emit('load_teams', JSON.stringify({ id_list: Teams.IDs }))
+    .emit('load_teams', JSON.stringify({ id_list: TEAMS.IDs }))
 }
 HANDLERS.set('get_teams', get_teams)
