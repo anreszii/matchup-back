@@ -2,7 +2,7 @@ import type { Rating, Match } from '../../../Interfaces'
 import { Filters } from './Filters/Filters'
 import { Finder } from './Finder'
 
-export class MatchFinder implements Rating.SearchEngine.Instance {
+export class SearchEngine implements Rating.SearchEngine.Instance {
   constructor(private _manager: Match.Manager.Instance) {}
 
   findLobby(
