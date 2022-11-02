@@ -29,7 +29,7 @@ export declare interface ILobby extends IEntity<string> {
   start(): Promise<boolean>
   stop(): Promise<boolean>
 
-  canAddTeamWithSize(size: number): boolean
+  canAddTeam(id: number): boolean
 
   hasSpace(memberCount: number): boolean
 }
