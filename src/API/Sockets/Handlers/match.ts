@@ -1,24 +1,23 @@
-import { clientServer } from '../clientSocketServer'
-import {
-  matchCause,
-  MatchError,
-  validationCause,
-  ValidationError,
-} from '../../../error'
-
 import * as MatchMaking from '../../../Classes/MatchMaking'
-import { CHATS, MatchFinder, TEAMS } from '../../../Classes'
-import { UserModel } from '../../../Models/index'
 import { Match, Rating } from '../../../Interfaces/index'
-import { DiscordClient } from '../../../Classes/Discord/Client'
+import { PLAYERS } from '../../../Classes/MatchMaking/MemberManager'
+import { CHATS, SearchEngine, TEAMS } from '../../../Classes'
+
+import type { WebSocket } from 'uWebSockets.js'
+import { clientServer } from '../clientSocketServer'
 import { HANDLERS } from './dark-side'
-import { WebSocket } from 'uWebSockets.js'
+
+import { DiscordClient } from '../../../Classes/Discord/Client'
+import { validationCause, ValidationError } from '../../../error'
+
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
 export const StandOffLobbies = new MatchMaking.LobbyManager(
   new MatchMaking.StandOffController(),
   dsClient,
 )
+
+const Searcher = new SearchEngine(StandOffLobbies)
 
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies)
@@ -27,7 +26,7 @@ setInterval(async () => {
 
 /**
  * Обработчик для поиска лобби.
- * @param params - ["region", "teamID"]
+ * @param params - ["region"]
  *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект(если в команде, то данный ивент придет всем игрокам команды):
  * ```ts
@@ -53,41 +52,24 @@ setInterval(async () => {
  * @event
  */
 export async function find_lobby(socket: WebSocket, params: unknown[]) {
+  let Filters: Rating.SearchEngine.Filters
   let username = socket.username as string
-  let Finder = new MatchFinder(StandOffLobbies)
+  let member = await PLAYERS.get(username)
+
   let region = params[0]
   if (typeof region != 'string' || !isCorrectRegion(region))
     throw new ValidationError('region', validationCause.INVALID)
 
-  Finder.filterByRegion(region)
-  let teamID = params[1]
-  if (teamID && TEAMS.has(Number(teamID))) {
-    let team = TEAMS.get(Number(teamID))!
-    Finder.filterByGRI(team.GRI)
-    Finder.filterByTeamSize(team.size)
-    let lobby = await Finder.findLobby()
+  let team = member.teamID ? TEAMS.get(member.teamID) : undefined
+  if (team) Filters = createFilterForTeamSearch(team, region)
+  else Filters = createFiltersForSoloSearch(member, region)
 
-    if (!lobby.region) lobby.region = region
-    if (!lobby.chat) await createChatForLobby(lobby.id)
-
-    for (let member of team.,) await lobby.join(member)
-    return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
-      lobby_id: lobby.id,
-      chat_id: lobby.chat!.id,
-    })
-  }
-
-  Finder.filterByTeamSize(1)
-  Finder.filterByGRI(await UserModel.getGRI(username))
-
-  let lobby = await Finder.findLobby()
-
+  let lobby = await Searcher.findLobby(Filters)
   if (!lobby.region) lobby.region = region
   if (!lobby.chat) await createChatForLobby(lobby.id)
 
   await lobby.join(username)
-
-  return clientServer.control(socket.id as string).emit('find_lobby', {
+  return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
     lobby_id: lobby.id,
     chat_id: lobby.chat!.id,
   })
@@ -96,18 +78,18 @@ HANDLERS.set('find_lobby', find_lobby)
 
 /**
  * Обработчик для приглашения игрока в лобби.
- * @param params - ["myLobbyID", "userNameToInvite"]
+ * @param params - ["userNameToInvite"]
  *
  * В случае успеха отправляет указанному пользователю ивент invite_to_lobby  с пакетом следующего вида:
- * ```json
+ * ```ts
  * {
- *  "lobbyID": "lobby"
+ *  lobbyID: string
  * }
  * ```
  * А вызвавшему пользователю отправляет тот же ивент с пакетом:
- * ```json
+ * ```ts
  * {
- *  "username": "invitedUserName"
+ *  status: true
  * }
  * ```
  *
@@ -115,20 +97,25 @@ HANDLERS.set('find_lobby', find_lobby)
  * @event
  */
 export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
-  let lobbyID = params[0]
-  if (!lobbyID) throw new ValidationError('lobbyID', validationCause.REQUIRED)
-  if (typeof lobbyID != 'string')
-    throw new ValidationError('lobbyID', validationCause.INVALID_FORMAT)
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
 
-  let lobby = StandOffLobbies.get(lobbyID)
-  if (!lobby) throw new ValidationError('lobbyID', validationCause.INVALID)
+  if (!member.lobbyID)
+    throw new ValidationError('lobby', validationCause.REQUIRED)
 
-  let username = params[1]
-  if (!username) throw new ValidationError('username', validationCause.REQUIRED)
-  if (typeof username != 'string')
+  let lobby = StandOffLobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new ValidationError('lobby', validationCause.INVALID)
+  }
+
+  let invitedUser = params[1]
+  if (!invitedUser)
+    throw new ValidationError('username', validationCause.REQUIRED)
+  if (typeof invitedUser != 'string')
     throw new ValidationError('username', validationCause.INVALID_FORMAT)
 
-  let sockets = clientServer.Aliases.get(username)
+  let sockets = clientServer.Aliases.get(invitedUser)
   if (!sockets) throw new ValidationError('username', validationCause.INVALID)
 
   clientServer
@@ -160,15 +147,12 @@ export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
   clientServer.control(socket.id).emit('sync_lobby', {
     status: lobby.status as string,
     players: JSON.stringify(lobby.members.players),
-    spectators: JSON.stringify(lobby.members.spectators),
   })
 }
 HANDLERS.set('join_to_lobby', join_to_lobby)
 
 /**
  * Обработчик для ручной синхронизации пользователя с лобби.</br>
- * @param params - ["myLobbyID"]
- *
  * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
  *
  * ```ts
@@ -182,18 +166,21 @@ HANDLERS.set('join_to_lobby', join_to_lobby)
  * @event
  */
 export async function sync_lobby(socket: WebSocket, params: unknown[]) {
-  let lobbyID = params[0]
-  if (typeof lobbyID != 'string')
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
     throw new ValidationError('lobby', validationCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(lobbyID)
-  if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
-  updateLobbyChatMembers(lobby)
+  let lobby = StandOffLobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new ValidationError('lobby', validationCause.INVALID)
+  }
 
   clientServer.control(socket.id).emit('sync_lobby', {
-    status: lobby.status as string,
+    status: lobby.status,
     players: JSON.stringify(lobby.members.players),
-    spectators: JSON.stringify(lobby.members.spectators),
   })
 }
 HANDLERS.set('sync_lobby', sync_lobby)
@@ -203,10 +190,10 @@ HANDLERS.set('sync_lobby', sync_lobby)
  * @param params - ["myLobbyID"]
  *
  * В случае успеха создает ивент lobby_players_count и отправляет на него JSON объект:
- * ```json
+ * ```ts
  * {
- *   "lobby_id": "string"
- *   "playersCount": 0
+ *   lobby_id: string
+ *   playersCount: number
  * }
  * ```
  * @category MatchMaking
@@ -225,59 +212,10 @@ export async function get_lobby_players_count(
 
   clientServer.control(socket.id).emit('lobby_players_count', {
     lobby_id: lobbyID,
-    playersCount: lobby.members.quantityOfPlayers,
+    playersCount: lobby.members.playersCount,
   })
 }
 HANDLERS.set('get_lobby_players_count', get_lobby_players_count)
-
-/**
- * Событие для обновления статуса пользователя со стороны клиента.</br>
- * @param params - [
- * "myLobbyID: {string}",
- * "commandToJoin: {"spectator" | "neutral" | "command1" | "command2"}",
- * "readyFlag: {boolean}",
- * "teamID: {string | undefined}"
- * ]
- *
- * В случае успеха создает ивент sync_lobby и отправляет на него JSON объект:
- *
- * ```ts
- * {
- *  status: 'searching' | 'filled' | 'started',
- *  players: Array<Member>,
- *  spectators: Array<Member>
- * }
- * ```
- * @category MatchMaking
- * @event
- */
-export async function update_member(socket: WebSocket, params: unknown[]) {
-  let username = socket.username as string
-  let lobbyID = params[0]
-  if (typeof lobbyID != 'string')
-    throw new ValidationError('lobby', validationCause.REQUIRED)
-
-  let lobby = StandOffLobbies.get(lobbyID)
-  if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
-
-  if (!lobby.members.hasMember(username))
-    throw new ValidationError('member', validationCause.NOT_EXIST)
-
-  let status = await lobby.updateMember({
-    name: username,
-    command: params[2] as string | undefined,
-    readyFlag: params[3] as string | undefined,
-    teamID: params[4] as string | undefined,
-  })
-  if (!status) throw new MatchError(lobbyID, matchCause.UPDATE_MEMBER)
-
-  clientServer.control(socket.id).emit('sync_lobby', {
-    status: lobby.status as string,
-    players: JSON.stringify(lobby.members.players),
-    spectators: JSON.stringify(lobby.members.spectators),
-  })
-}
-HANDLERS.set('update_member', update_member)
 
 function isCorrectRegion(
   region: string,
@@ -285,6 +223,29 @@ function isCorrectRegion(
   if (region == 'Europe') return true
   if (region == 'Asia') return true
   return false
+}
+
+function createFilterForTeamSearch(
+  team: Match.Member.Team.Instance,
+  region: Rating.SearchEngine.SUPPORTED_REGIONS,
+) {
+  const Filters = Searcher.Filters
+  Filters.byRegion(region)
+  Filters.byGRI(team.GRI)
+  Filters.byTeam(team.id)
+
+  return Filters
+}
+
+function createFiltersForSoloSearch(
+  member: Match.Member.Instance,
+  region: Rating.SearchEngine.SUPPORTED_REGIONS,
+) {
+  const Filters = Searcher.Filters
+  Filters.byRegion(region)
+  Filters.byGRI(member.GRI)
+
+  return Filters
 }
 
 async function createChatForLobby(lobbyID: string) {
