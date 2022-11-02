@@ -1,14 +1,10 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
 
-export class ByGuildFilter implements Rating.SearchEngine.Filter {
+export class GuildFilter implements Rating.SearchEngine.Filter {
   constructor() {}
 
-  getResults(lobbies: Array<Match.Lobby.Instance>): Array<string> {
-    let tmp: Array<string> = new Array()
-    for (let index = 0; index < lobbies.length; index++)
-      if (lobbies[index].isForGuild) tmp.push(lobbies[index].id)
-
-    return tmp
+  isValid(lobby: Match.Lobby.Instance) {
+    return lobby.isForGuild
   }
 
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {

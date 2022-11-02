@@ -1,13 +1,26 @@
 import { Match } from '../index'
 import type { RatingCalculator } from './Calculator'
-import type { MatchFinder } from './SearchEngine'
+import type { SearchEngine } from './SearchEngine'
 
 export declare namespace Rating {
   namespace Calculator {
     interface Instance extends RatingCalculator {}
   }
   namespace SearchEngine {
-    interface Instance extends MatchFinder {}
+    interface Instance extends SearchEngine {}
+    interface Filters {
+      byRegion(region: Rating.SearchEngine.SUPPORTED_REGIONS): Filters
+      byGRI(GRI: number): Filters
+      byTeam(id: number): Filters
+      byGuild(): Filters
+
+      use(lobby: Match.Lobby.Instance): { [key: string]: number }
+      get count(): { [key: string]: number }
+    }
+
+    interface Finder {
+      find(): Promise<Match.Lobby.Instance | null>
+    }
     type SUPPORTED_REGIONS = 'Europe' | 'Asia'
 
     const enum SEARCH_ZONE {
@@ -19,7 +32,7 @@ export declare namespace Rating {
     type FILTER_PRIORITY = 'optional' | 'required'
 
     interface Filter {
-      getResults(lobbies: Array<Match.Lobby.Instance>): Array<string>
+      isValid(lobby: Match.Lobby.Instance): boolean
       get priority(): FILTER_PRIORITY
     }
   }

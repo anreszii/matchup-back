@@ -18,7 +18,6 @@ export declare namespace Match {
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
-    interface Manager extends IManager<Lobby.Instance, string> {}
     interface Instance extends ILobby {
       set discord(client: DiscordClient)
       get discord(): DiscordClient
@@ -29,9 +28,9 @@ export declare namespace Match {
     namespace Command {
       type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'
       interface Manager extends IManager<Command.Instance, number> {
-        findByUserName(username: string): Command.Instance | undefined
+        findByUserName(username: string): Promise<Command.Instance | undefined>
         findById(id: number): Command.Instance | undefined
-        move(name: string, from: number, to: number): boolean
+        move(name: string, from: number, to: number): Promise<boolean>
         get toArray(): Command.Instance[]
         get IDs(): number[]
       }
@@ -60,7 +59,7 @@ export declare namespace Match {
 
     namespace Team {
       interface Manager extends IManager<Team.Instance, number> {
-        findByUserName(username: string): Team.Instance | undefined
+        findByUserName(username: string): Promise<Team.Instance | undefined>
         findById(id: number): Team.Instance | undefined
         get toArray(): Team.Instance[]
         get IDs(): number[]
