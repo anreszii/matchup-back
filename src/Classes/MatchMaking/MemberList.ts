@@ -1,3 +1,4 @@
+import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import type { Match } from '../../Interfaces/index'
 import { OneTypeArray } from '../OneTypeArray'
 import { COMMANDS } from './Command/Manager'
@@ -6,6 +7,10 @@ export class MemberList
   extends OneTypeArray<Match.Member.Instance>
   implements Match.Member.List
 {
+  constructor() {
+    super(20, UNDEFINED_MEMBER)
+  }
+
   private _membersCount = 0
   private _keyGuild?: string
 
