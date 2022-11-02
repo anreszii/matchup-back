@@ -6,5 +6,6 @@ export interface IMatchMember extends IEntity<string> {
   GRI: number
   commandID?: number //team id внутри лобби
   teamID?: number //глобальный team id
+  lobbyID?: string
   guildName?: string
 }

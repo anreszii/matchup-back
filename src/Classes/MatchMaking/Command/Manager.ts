@@ -11,8 +11,9 @@ class CommandManager implements Match.Lobby.Command.Manager {
   spawn(
     lobbyID: string,
     type: Match.Lobby.Command.Types,
+    maxSize?: number,
   ): Match.Lobby.Command.Instance {
-    let command = new Command(this._commands.freeSpace, lobbyID, type)
+    let command = new Command(this._commands.freeSpace, lobbyID, type, maxSize)
 
     this._commands.addOne(command)
     command.chat = this._createChatForCommand(command)

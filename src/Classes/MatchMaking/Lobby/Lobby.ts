@@ -1,244 +1,246 @@
-import type { Chat, Match, Rating } from '../../../Interfaces'
-import type { DiscordClient } from '../../Discord/Client'
-import type { ChatInstance } from '../../index'
-import { matchCause, MatchError } from '../../../error'
-import { MemberList } from '../MemberList'
-import { toBoolean, getMedian } from '../../../Utils'
-import { UserModel } from '../../../Models/index'
-import { UNDEFINED_MEMBER } from '../../../configs/match_manager'
+import { validationCause, ValidationError } from '../../../error'
+import type { Chat, Match, Rating } from '../../../Interfaces/index'
+import { getMedian } from '../../../Utils/math'
+import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
+import { COMMANDS } from '../Command/Manager'
+import { TEAMS } from '../index'
+import { MemberList } from '../MemberList'
+import { PLAYERS } from '../MemberManager'
 
 export class Lobby implements Match.Lobby.Instance {
-  public members = new MemberList()
-  private _game: Match.Manager.supportedGames
-  private _chat?: Chat.Instance
-  private _region!: Rating.SearchEngine.SUPPORTED_REGIONS
-  private _membersGRI: Map<string, number> = new Map()
-  private _maxTeamSize: number = 1
-  private _teamsSize: Map<number, number> = new Map()
-  private _dsClient?: DiscordClient
+  public region!: Rating.SearchEngine.SUPPORTED_REGIONS
+  private _game!: Match.Manager.supportedGames
+  private _members = new MemberList()
+  private _commands: Map<
+    Match.Lobby.Command.Types,
+    Match.Lobby.Command.Instance
+  > = new Map()
+  private _chat!: Chat.Instance
+  private _discordClient!: DiscordClient
 
   constructor(
     private _id: string,
-    private _matchController: Match.Controller,
-    ...members: Array<Match.Member.Instance>
+    private _maxCommandSize: number,
+    private _controller: Match.Controller,
   ) {
-    if (members) {
-      _matchController.addMembers(...members).then((status) => {
-        if (!status) throw new MatchError(_id, matchCause.ADD_MEMBER)
-        this.members.add(...members)
-      })
-    }
-    this._game = _matchController.gameName
+    this._game = _controller.gameName
+    this._commands.set('spectators', COMMANDS.spawn(this.id, 'spectators'))
+    this._commands.set('neutrals', COMMANDS.spawn(this.id, 'neutrals'))
+    this._commands.set('command1', COMMANDS.spawn(this.id, 'command1'))
+    this._commands.set('command2', COMMANDS.spawn(this.id, 'command2'))
   }
 
-  public async start() {
-    return this._matchController.start()
+  async start() {
+    return this._controller.start()
   }
 
-  public async stop() {
-    return this._matchController.stop()
+  async stop() {
+    return this._controller.stop()
   }
 
-  public async addMember(member: Omit<Match.Member.Instance, 'GRI'>) {
-    let memberGRI = await UserModel.getGRI(member.name)
-    if (typeof memberGRI != 'number') return false
+  changeCommand(name: string, command: Match.Lobby.Command.Types): boolean {
+    return COMMANDS.move(name, this._commands.get(command)!.id)
+  }
 
-    let memberWithGRI = { ...member, GRI: memberGRI }
-    if (!(await this._matchController.addMembers(memberWithGRI))) return false
-    if (!this.members.add(memberWithGRI)) return false
+  async join(name: string) {
+    let member = PLAYERS.get(name)
+    if (!member) member = await PLAYERS.spawn(name)
 
-    if (this._chat) {
-      await this._chat.addMember({ name: member!.name, role: 'user' })
-      await this._chat.send(
-        JSON.stringify({
-          from: member!.name,
-          message: `member ${member.name} joined lobby#${this.id}`,
-        }),
-      )
+    if (member.teamID) return this._joinWithTeam(name)
+    if (!(await this._controller.addMembers(member))) return false
+    if (!this.members.addMember(member)) return false
+
+    await this._joinChat(member.name)
+    await this._joinDiscrod(member.name)
+    return true
+  }
+
+  async leave(name: string) {
+    let member = this.members.getByName(name)
+    if (!member) return false
+
+    if (member.teamID) return this._leaveWithTeam(name)
+    if (!(await this._controller.removeMembers(name))) return false
+    if (!this.members.deleteMember(name)) return false
+
+    await this._leaveChat(member.name)
+    await this._leaveDiscord(member.name)
+
+    return true
+  }
+
+  canAddTeamWithSize(size: number): boolean {
+    if (size <= 0) return false
+    if (this._maxTeamSize >= size) return false
+    if (!this.hasSpace(size)) return false
+    return true
+  }
+
+  hasSpace(memberCount: number): boolean {
+    if (this._maxCommandSize - this.firstCommand.size >= memberCount)
+      return true
+    if (this._maxCommandSize - this.secondCommand.size >= memberCount)
+      return true
+    return false
+  }
+
+  get id(): string {
+    return this._id
+  }
+
+  get game() {
+    return this._game
+  }
+
+  get members() {
+    return this._members
+  }
+
+  get GRI(): number {
+    return getMedian(
+      this._commands.get('command1')!.GRI,
+      this._commands.get('command2')!.GRI,
+    )
+  }
+
+  get isForGuild(): boolean {
+    return (
+      this.firstCommand.members.isGuild && this.secondCommand.members.isGuild
+    )
+  }
+
+  get firstCommand() {
+    return this._commands.get('command1')!
+  }
+
+  get secondCommand() {
+    return this._commands.get('command2')!
+  }
+
+  get neutrals() {
+    return this._commands.get('neutrals')!
+  }
+
+  get spectators() {
+    return this._commands.get('spectators')!
+  }
+
+  get status(): Match.Lobby.Status | undefined {
+    if (this.members.count == 0) return undefined
+    if (this.members.playersCount < 10) return 'searching'
+    else return this._controller.status
+  }
+
+  set discord(client: DiscordClient) {
+    this._discordClient = client
+  }
+
+  get discord(): DiscordClient {
+    return this._discordClient
+  }
+
+  get chat(): Chat.Instance {
+    return this._chat
+  }
+
+  set chat(instance: Chat.Instance) {
+    this._chat = instance
+  }
+
+  private async _joinWithTeam(name: string): Promise<boolean> {
+    let member = PLAYERS.get(name)
+    if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
+
+    if (!member.teamID) return this.join(member.name)
+    let team = TEAMS.findById(member.teamID)
+
+    if (!team) {
+      member.teamID = undefined
+      return false
     }
-    this._membersGRI.set(member.name, memberGRI)
 
-    if (member.teamID) {
-      if (!this._teamsSize.has(member.teamID))
-        this._teamsSize.set(member.teamID, 1)
-      else {
-        let tmp = this._teamsSize.get(member.teamID)!
-        this._teamsSize.set(member.teamID, tmp + 1)
-        this._checkMaxTeamSize()
-      }
-    }
+    if (!this.canAddTeamWithSize(team.size)) return false
 
-    if (this._dsClient) {
-      let guild = await this._dsClient.guildWithFreeChannelsForVoice
-      if (!guild) return true
+    let promises = []
+    for (let member of team.members.toArray)
+      promises.push(this.join(member.name))
+
+    await Promise.all(promises)
+    return true
+  }
+
+  private _joinChat(name: string) {
+    return this._chat.addMember({ name }).then(async (status) => {
+      if (status)
+        await this._chat.send({
+          from: 'system',
+          content: `member ${name} joined lobby#${this._id}`,
+        })
+    })
+  }
+
+  private _joinDiscrod(name: string) {
+    return this.discord.guildWithFreeChannelsForVoice.then(async (guild) => {
+      if (!guild) return
 
       let commandRole = await DiscordRoleManager.findRoleByName(
         guild,
         'mm_command1',
       )
-      if (!commandRole) return true
+      if (!commandRole) return
 
       let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
       if (!teamRole)
         teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
 
-      this._dsClient.addRolesToMember(guild, member.name, teamRole, commandRole)
-      this._dsClient.addUserToTeamVoiceChannel(member.name)
+      this.discord.addRolesToMember(guild, name, teamRole, commandRole)
+      this.discord.addUserToTeamVoiceChannel(name)
+    })
+  }
+
+  private async _leaveWithTeam(name: string): Promise<boolean> {
+    let member = PLAYERS.get(name)
+    if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
+    if (!member.teamID) return this.leave(member.name)
+
+    let team = TEAMS.findById(member.teamID)
+    if (!team) {
+      return this.leave(member.name)
     }
+
+    let promises = []
+    for (let member of team.members.toArray)
+      promises.push(this.leave(member.name))
+
+    await Promise.all(promises)
     return true
   }
 
-  public async removeMember(member: Omit<Match.Member.Instance, 'GRI'>) {
-    if (!(await this._matchController.removeMembers(member.name))) return false
-    if (!this.members.delete(member)) return false
-
-    if (member.teamID) {
-      let tmp = this._teamsSize.get(member.teamID)
-      if (tmp) this._teamsSize.set(member.teamID, tmp - 1)
-
-      this._checkMaxTeamSize()
-    }
-    if (this._chat) {
-      await this._chat.deleteMember({ name: member!.name, role: 'user' })
-      await this._chat.send(
-        JSON.stringify({
-          from: member!.name,
-          message: `member ${member.name} leaved lobby#${this.id}`,
-        }),
-      )
-    }
-
-    if (this._dsClient) {
-      let guild = await this._dsClient.findGuildWithCustomTeamIdRole(this.id)
-      if (!guild) return this._membersGRI.delete(member.name)
-
-      this._dsClient.removeMatchMakingRolesFromUser(guild, member.name)
-    }
-    return this._membersGRI.delete(member.name)
+  private _leaveChat(name: string) {
+    return this._chat.deleteMember({ name }).then(async (status) => {
+      if (!status) return
+      await this._chat.send({
+        from: name,
+        content: `member ${name} leaved lobby#${this.id}`,
+      })
+    })
   }
 
-  /**
-   *
-   * @param объект, в котором обязательно должно быть поле name, а также опциональные поля readyFlag, command
-   * @returns
-   */
-  public async updateMember(
-    member: Required<Pick<Match.Member.Instance, 'name'>> & {
-      [Key in Exclude<keyof Match.Member.Instance, 'name' | 'statistic'>]?:
-        | Match.Member.Instance[Key]
-        | string
-    },
-  ) {
-    let tmp = this.members.getMember(member.name)
-    if (tmp == this.members.currentUndefined) return false
-
-    if (!member.name) return false
-    if (!MemberList.isMember(member)) {
-      if (!member.command || !MemberList.isCommand(member.command))
-        member.command = tmp.command
-      if (!member.readyFlag) member.readyFlag = tmp.readyFlag
-      else member.readyFlag = toBoolean(member.readyFlag)
-
-      if (
-        !this._matchController.updateMember(
-          member as unknown as Match.Member.Instance,
-        )
-      )
-        return false
-
-      //т.к. tmp является ссылкой на объект, меняя его элементы - меняются и элементы объекта в MemberList
-      let tmpCommand = tmp.command
-      tmp.command = member.command! as Match.Member.command
-      tmp.readyFlag = member.readyFlag! as boolean
-
-      if (
-        tmpCommand != member.command &&
-        (member.command == 'command1' || member.command == 'command2') &&
-        this._dsClient
-      ) {
-        let guild = await this._dsClient.findGuildWithCustomTeamIdRole(this.id)
-        if (!guild) return true
-        this._dsClient.changeCommandRoleOfMember(
-          guild,
-          member.name,
-          member.command,
-        )
-      }
-      return true
-    }
-
-    if (!this._matchController.updateMember(member)) return false
-    if (tmp == this.members.currentUndefined) return false
-
-    tmp.command = member.command
-    tmp.readyFlag = member.readyFlag
-
-    return true
+  private _leaveDiscord(name: string) {
+    return this.discord
+      ?.findGuildWithCustomTeamIdRole(this._id)
+      .then((guild) => {
+        if (guild) this.discord?.removeMatchMakingRolesFromUser(guild, name)
+      })
   }
 
-  public canAddTeamWithSize(size: number): boolean {
-    if (!this.hasSpace(size)) return false
-    if (size > this._maxTeamSize) return false
-    return true
-  }
-
-  public hasSpace(memberCount: number): false | 'command1' | 'command2' {
-    if (5 - this.members.quantityOfFirstCommandMembers >= memberCount)
-      return 'command1'
-    if (5 - this.members.quantityOfSecondCommandMembers >= memberCount)
-      return 'command1'
-    return false
-  }
-
-  public get game() {
-    return this._game
-  }
-
-  public get id() {
-    return this._id
-  }
-
-  public get status() {
-    if (this.members.quantityOfMembers == 0) return undefined
-    if (this.members.quantityOfPlayers < 10) return 'searching'
-    else return this._matchController.status
-  }
-
-  public get chat() {
-    return this._chat
-  }
-
-  public get region() {
-    return this._region
-  }
-
-  public get averageGRI() {
-    return getMedian(...this._membersGRI.values())
-  }
-
-  public get dsClient(): DiscordClient | undefined {
-    return this._dsClient
-  }
-
-  public set chat(instance: Chat.Instance | undefined) {
-    this._chat = instance as ChatInstance
-    for (let member of this.members.toArray) {
-      if (member != UNDEFINED_MEMBER)
-        this._chat!.addMember({ name: member!.name, role: 'user' })
-    }
-  }
-
-  public set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {
-    this._region = value
-  }
-
-  public set dsClient(client: DiscordClient | undefined) {
-    this._dsClient = client
-  }
-
-  private _checkMaxTeamSize() {
-    for (let [id, teamSize] of this._teamsSize)
-      if (teamSize > this._maxTeamSize) this._maxTeamSize = teamSize
+  private get _maxTeamSize() {
+    let maxTeamSizeToJoin =
+      this.firstCommand.maxTeamSizeToJoin >=
+      this.secondCommand.maxTeamSizeToJoin
+        ? this.firstCommand.maxTeamSizeToJoin
+        : this.secondCommand.maxTeamSizeToJoin
+    return maxTeamSizeToJoin
   }
 }

@@ -36,9 +36,18 @@ export declare namespace Match {
         get IDs(): number[]
       }
       interface Instance extends Group<number> {
+        isCaptain(member: string | Member.Instance): boolean
+
         get lobbyID(): string
         get type(): Types
-        isCaptain(member: string | Member.Instance): boolean
+
+        get isForTeam(): boolean
+        get maxTeamSizeToJoin(): number
+
+        get playersCount(): number
+        get teamPlayersCount(): number
+        get soloPlayersCount(): number
+
         set captain(value: string)
         get captain(): string
       }
@@ -78,7 +87,7 @@ export declare namespace Match {
 
       get isGuild(): boolean
 
-      get inCommandSide(): number
+      get playersCount(): number
     }
     interface Statistic extends IStatistic {}
   }

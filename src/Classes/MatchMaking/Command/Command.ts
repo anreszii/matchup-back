@@ -1,6 +1,6 @@
 import type { Match, Chat } from '../../../Interfaces/index'
-import { GuildModel, UserModel } from '../../../Models/index'
 import { getMedian } from '../../../Utils/math'
+import { TEAMS } from '../index'
 import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
 
@@ -8,12 +8,13 @@ export class Command implements Match.Lobby.Command.Instance {
   private _members: MemberList = new MemberList()
   private _commandChat!: Chat.Instance
   private _captain!: string
-  private _maxSize = 5
+  private _teamIDs: Set<number> = new Set()
 
   constructor(
     private _commandID: number,
     private _lobbyID: string,
     private _commandType: Match.Lobby.Command.Types,
+    private _maxSize: number = 5,
   ) {}
 
   async join(name: string): Promise<boolean> {
@@ -31,6 +32,7 @@ export class Command implements Match.Lobby.Command.Instance {
     })
 
     if (!this._captain) this._captain = member.name
+    if (member.teamID) this._addTeamOfMember(member.teamID)
     return true
   }
 
@@ -48,14 +50,20 @@ export class Command implements Match.Lobby.Command.Instance {
       })
     })
 
+    if (member.teamID) this._deleteTeamOfMember(member.teamID)
+
     member.readyFlag = false
-    member.teamID = undefined
+    member.commandID = undefined
     return this.members.deleteMember(name)
   }
 
   isCaptain(member: string | Match.Member.Instance): boolean {
     let name = typeof member == 'string' ? member : member.name
     return name == this._captain
+  }
+
+  hasSpaceFor(size: number) {
+    return this._maxSize - size > 0
   }
 
   get id() {
@@ -66,10 +74,6 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._lobbyID
   }
 
-  hasSpaceFor(size: number) {
-    return this._maxSize - size > 0
-  }
-
   get type() {
     return this._commandType
   }
@@ -78,6 +82,14 @@ export class Command implements Match.Lobby.Command.Instance {
     const GRIArray: number[] = []
     for (let member of this._members.toArray) GRIArray.push(member.GRI)
     return getMedian(...GRIArray)
+  }
+
+  get isForTeam(): boolean {
+    return this.soloPlayersCount == 0
+  }
+
+  get maxTeamSizeToJoin() {
+    return this.playersCount - (this.teamPlayersCount + this.soloPlayersCount)
   }
 
   get members(): Match.Member.List {
@@ -102,5 +114,40 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get captain() {
     return this._captain
+  }
+
+  get playersCount() {
+    return this._members.count
+  }
+
+  get teamPlayersCount() {
+    let currentTeamMembersInCommand = 0
+    for (let id of this._teamIDs.values())
+      currentTeamMembersInCommand += this._countOfTeamMembersInCommand(id)
+
+    return currentTeamMembersInCommand
+  }
+
+  get soloPlayersCount() {
+    return this.playersCount - this.teamPlayersCount
+  }
+
+  private _addTeamOfMember(id: number) {
+    if (TEAMS.has(id)) this._teamIDs.add(id)
+  }
+
+  private _deleteTeamOfMember(id: number) {
+    if (this._teamIDs.has(id) && this._countOfTeamMembersInCommand(id) == 1)
+      this._teamIDs.delete(id)
+  }
+
+  private _countOfTeamMembersInCommand(id: number) {
+    let team = TEAMS.get(id)!
+    let count = 0
+
+    for (let member of team.members.toArray)
+      if (member.commandID == this.id) count++
+
+    return count
   }
 }

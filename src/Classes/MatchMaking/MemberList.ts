@@ -1,6 +1,6 @@
 import type { Match } from '../../Interfaces/index'
 import { OneTypeArray } from '../OneTypeArray'
-import { COMMANDS } from './index'
+import { COMMANDS } from './Command/Manager'
 
 export class MemberList
   extends OneTypeArray<Match.Member.Instance>
@@ -66,7 +66,7 @@ export class MemberList
     return Boolean(this._keyGuild)
   }
 
-  get inCommandSide(): number {
+  get playersCount(): number {
     let count = 0
     for (let i = 0; i < this._elements.length; i++) {
       const ID = this._elements[i]?.commandID

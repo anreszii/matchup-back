@@ -4,9 +4,6 @@ export declare interface ILobby extends IEntity<string> {
   join(name: string): Promise<boolean>
   leave(name: string): Promise<boolean>
 
-  joinWithTeam(name: string): Promise<boolean>
-  leaveWithTeam(name: string): Promise<boolean>
-
   get id(): string
   get status(): Match.Lobby.Status | undefined
   get game(): Match.Manager.supportedGames

@@ -23,10 +23,10 @@ export class LobbyManager implements Match.Manager.Instance {
       if (!status) throw new MatchError('lobby', matchCause.CREATE)
     })
 
-    let lobby = new Lobby(ID, this._controller)
-    this._lobbyMap.set(ID, lobby)
-    lobby.dsClient = this._dsClient
+    let lobby = new Lobby(ID, 5, this._controller)
+    lobby.discord = this._dsClient
 
+    this._lobbyMap.set(ID, lobby)
     return lobby
   }
 
