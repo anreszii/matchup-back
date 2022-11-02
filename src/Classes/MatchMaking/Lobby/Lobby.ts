@@ -55,8 +55,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async join(name: string) {
-    let member = PLAYERS.get(name)
-    if (!member) member = await PLAYERS.spawn(name)
+    let member = await PLAYERS.get(name)
 
     if (member.teamID) return this._joinWithTeam(name)
     if (!(await this._controller.addMembers(member))) return false
@@ -166,7 +165,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _joinWithTeam(name: string): Promise<boolean> {
-    let member = PLAYERS.get(name)
+    let member = await PLAYERS.get(name)
     if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
     if (!member.teamID) return this.join(member.name)
 
@@ -225,7 +224,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _leaveWithTeam(name: string): Promise<boolean> {
-    let member = PLAYERS.get(name)
+    let member = await PLAYERS.get(name)
     if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
     if (!member.teamID) return this.leave(member.name)
 

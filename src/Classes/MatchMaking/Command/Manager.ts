@@ -21,8 +21,8 @@ class CommandManager implements Match.Lobby.Command.Manager {
     return command
   }
 
-  move(name: string, to: number): boolean {
-    let player = PLAYERS.get(name)
+  async move(name: string, to: number) {
+    let player = await PLAYERS.get(name)
     if (!player || !player.commandID) return false
 
     let fromCommand = this.get(player.commandID)
@@ -53,8 +53,8 @@ class CommandManager implements Match.Lobby.Command.Manager {
     return !this._commands.isUndefined(teamID)
   }
 
-  findByUserName(name: string) {
-    let user = PLAYERS.get(name)
+  async findByUserName(name: string) {
+    let user = await PLAYERS.get(name)
     if (!user) return
 
     if (!user.commandID) return

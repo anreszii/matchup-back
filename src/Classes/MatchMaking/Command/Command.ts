@@ -20,7 +20,7 @@ export class Command implements Match.Lobby.Command.Instance {
   async join(name: string): Promise<boolean> {
     if (this.members.count >= 5) return false
 
-    let member = await PLAYERS.spawn(name)
+    let member = await PLAYERS.get(name)
     if (!this.members.addMember(member)) return false
 
     this.chat.addMember({ name }).then(async (status) => {

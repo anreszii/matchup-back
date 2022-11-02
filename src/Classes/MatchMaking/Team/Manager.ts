@@ -31,8 +31,8 @@ class TeamManager implements Match.Member.Team.Manager {
     return !this._teams.isUndefined(teamID)
   }
 
-  public findByUserName(name: string): Match.Member.Team.Instance | undefined {
-    let user = PLAYERS.get(name)
+  async findByUserName(name: string) {
+    let user = await PLAYERS.get(name)
     if (!user) return
 
     if (!user.teamID) return

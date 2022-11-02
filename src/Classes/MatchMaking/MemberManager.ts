@@ -31,9 +31,10 @@ class PlayersManager implements Match.Member.Manager {
    * @param entityID имя пользователя или его ID
    * @returns объект пользователя или undefined, если он не был найден
    */
-  get(entityID: string): Match.Member.Instance | undefined {
+  async get(entityID: string): Promise<Match.Member.Instance> {
     for (let member of this._players.toArray)
       if (member.id == entityID || member.name == entityID) return member
+    return this.spawn(entityID)
   }
 
   /**
