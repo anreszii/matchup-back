@@ -233,6 +233,7 @@ function createFilterForTeamSearch(
   Filters.byRegion(region)
   Filters.byGRI(team.GRI)
   Filters.byTeam(team.id)
+  if (team.members.isGuild) Filters.byGuild()
 
   return Filters
 }
