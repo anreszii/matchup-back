@@ -71,11 +71,53 @@ export class MemberList
     return Boolean(this._keyGuild)
   }
 
+  get players(): Match.Member.Instance[] {
+    let members: Match.Member.Instance[] = []
+    for (let member of this.toArray) {
+      const ID = member?.commandID
+      if (!ID) continue
+
+      let command = COMMANDS.get(ID)
+      if (command && command.type.includes('command')) members.push(member)
+    }
+
+    return members
+  }
+
+  get spectators(): Match.Member.Instance[] {
+    let members: Match.Member.Instance[] = []
+    for (let member of this.toArray) {
+      const ID = member?.commandID
+      if (!ID) continue
+
+      let command = COMMANDS.get(ID)
+      if (command && command.type == 'spectators') members.push(member)
+    }
+
+    return members
+  }
+
+  get spectatorsCount(): number {
+    let count = 0
+    for (let member of this.toArray) {
+      const ID = member?.commandID
+      if (!ID) continue
+
+      let command = COMMANDS.get(ID)
+      if (command && command.type == 'spectators') count++
+    }
+
+    return count
+  }
+
   get playersCount(): number {
     let count = 0
-    for (let i = 0; i < this._elements.length; i++) {
-      const ID = this._elements[i]?.commandID
-      if (ID && COMMANDS.get(ID)) count++
+    for (let member of this.toArray) {
+      const ID = member?.commandID
+      if (!ID) continue
+
+      let command = COMMANDS.get(ID)
+      if (command && command.type.includes('command')) count++
     }
 
     return count

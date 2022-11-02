@@ -67,8 +67,8 @@ export declare namespace Match {
       }
       interface Instance extends Group<number> {
         isCaptain(member: string | Member.Instance): boolean
-        set captain(value: string)
-        get captain(): string
+        set captainName(value: string)
+        get captainName(): string
       }
     }
 
@@ -88,6 +88,10 @@ export declare namespace Match {
       get isGuild(): boolean
 
       get playersCount(): number
+      get spectatorsCount(): number
+
+      get players(): Member.Instance[]
+      get spectators(): Member.Instance[]
     }
     interface Statistic extends IStatistic {}
   }
