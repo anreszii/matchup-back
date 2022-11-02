@@ -33,6 +33,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
     if (!this._captain) this._captain = member.name
     if (member.teamID) this._addTeamOfMember(member.teamID)
+    member.commandID = this.id
     return true
   }
 
