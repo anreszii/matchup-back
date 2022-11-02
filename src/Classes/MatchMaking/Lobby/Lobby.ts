@@ -139,8 +139,7 @@ export class Lobby implements Match.Lobby.Instance {
     return this._commands.get('spectators')!
   }
 
-  get status(): Match.Lobby.Status | undefined {
-    if (this.members.count == 0) return undefined
+  get status() {
     if (this.members.playersCount < 10) return 'searching'
     else return this._controller.status
   }

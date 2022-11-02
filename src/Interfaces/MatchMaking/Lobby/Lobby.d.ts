@@ -5,7 +5,7 @@ export declare interface ILobby extends IEntity<string> {
   leave(name: string): Promise<boolean>
 
   get id(): string
-  get status(): Match.Lobby.Status | undefined
+  get status(): Match.Lobby.Status
   get game(): Match.Manager.supportedGames
   get members(): Match.Member.List
 
