@@ -8,7 +8,7 @@ export class ByGRIFilter implements Rating.SearchEngine.Filter {
   getResults(lobbies: Array<Match.Lobby.Instance>): Array<string> {
     let tmp: Array<string> = new Array()
     for (let index = 0; index < lobbies.length; index++) {
-      if (inRange(this._GRI, lobbies[index].averageGRI, 100))
+      if (inRange(this._GRI, lobbies[index].GRI, 100))
         tmp.push(lobbies[index].id)
     }
     return tmp

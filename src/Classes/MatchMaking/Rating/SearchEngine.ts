@@ -1,6 +1,7 @@
 import { Rating, Match } from '../../../Interfaces'
 import { inRange } from '../../../Utils/math'
 import { ByGRIFilter, ByRegionFilter, ByTeamFilter } from './Filters'
+import { ByGuildFilter } from './Filters/ByGuild'
 
 /**
  * @TODO
@@ -21,7 +22,7 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
     )
   }
 
-  public filterByGRI(GRI: number) {
+  filterByGRI(GRI: number) {
     let filter = new ByGRIFilter()
     filter.GRI = GRI
 
@@ -29,7 +30,7 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
     return this
   }
 
-  public filterByRegion(region: Rating.SearchEngine.SUPPORTED_REGIONS) {
+  filterByRegion(region: Rating.SearchEngine.SUPPORTED_REGIONS) {
     let filter = new ByRegionFilter()
     filter.region = region
 
@@ -37,11 +38,16 @@ export class MatchFinder implements Rating.SearchEngine.Instance {
     return this
   }
 
-  public filterByTeamSize(size: number) {
+  filterByTeam(id: number) {
     let filter = new ByTeamFilter()
-    filter.teamSize = size
-    this._addFilter(filter)
+    filter.id = id
 
+    this._addFilter(filter)
+    return this
+  }
+
+  filterByGuild(): MatchFinder {
+    this._addFilter(new ByGuildFilter())
     return this
   }
 

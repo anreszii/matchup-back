@@ -1,17 +1,20 @@
-import { validationCause, ValidationError } from '../../../error'
 import type { Chat, Match, Rating } from '../../../Interfaces/index'
-import { getMedian } from '../../../Utils/math'
-import { DiscordClient } from '../../Discord/Client'
-import { DiscordRoleManager } from '../../Discord/RoleManager'
+
 import { COMMANDS } from '../Command/Manager'
 import { TEAMS } from '../index'
-import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
+
+import { MemberList } from '../MemberList'
+import { validationCause, ValidationError } from '../../../error'
+import { getMedian } from '../../../Utils/math'
+
+import { DiscordClient } from '../../Discord/Client'
+import { DiscordRoleManager } from '../../Discord/RoleManager'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _game!: Match.Manager.supportedGames
-  private _members = new MemberList()
+  private _members: MemberList = new MemberList()
   private _commands: Map<
     Match.Lobby.Command.Types,
     Match.Lobby.Command.Instance
@@ -25,10 +28,22 @@ export class Lobby implements Match.Lobby.Instance {
     private _controller: Match.Controller,
   ) {
     this._game = _controller.gameName
-    this._commands.set('spectators', COMMANDS.spawn(this.id, 'spectators'))
-    this._commands.set('neutrals', COMMANDS.spawn(this.id, 'neutrals'))
-    this._commands.set('command1', COMMANDS.spawn(this.id, 'command1'))
-    this._commands.set('command2', COMMANDS.spawn(this.id, 'command2'))
+    this._commands.set(
+      'spectators',
+      COMMANDS.spawn(this.id, 'spectators', _maxCommandSize),
+    )
+    this._commands.set(
+      'neutrals',
+      COMMANDS.spawn(this.id, 'neutrals', _maxCommandSize),
+    )
+    this._commands.set(
+      'command1',
+      COMMANDS.spawn(this.id, 'command1', _maxCommandSize),
+    )
+    this._commands.set(
+      'command2',
+      COMMANDS.spawn(this.id, 'command2', _maxCommandSize),
+    )
   }
 
   async start() {
@@ -39,17 +54,13 @@ export class Lobby implements Match.Lobby.Instance {
     return this._controller.stop()
   }
 
-  changeCommand(name: string, command: Match.Lobby.Command.Types): boolean {
-    return COMMANDS.move(name, this._commands.get(command)!.id)
-  }
-
   async join(name: string) {
     let member = PLAYERS.get(name)
     if (!member) member = await PLAYERS.spawn(name)
 
     if (member.teamID) return this._joinWithTeam(name)
     if (!(await this._controller.addMembers(member))) return false
-    if (!this.members.addMember(member)) return false
+    if (!this._joinCommand(member)) return false
 
     await this._joinChat(member.name)
     await this._joinDiscrod(member.name)
@@ -58,29 +69,31 @@ export class Lobby implements Match.Lobby.Instance {
 
   async leave(name: string) {
     let member = this.members.getByName(name)
-    if (!member) return false
+    if (!member || member.lobbyID != this.id) return false
 
     if (member.teamID) return this._leaveWithTeam(name)
     if (!(await this._controller.removeMembers(name))) return false
-    if (!this.members.deleteMember(name)) return false
+    if (!this._leaveCommand(member)) return false
 
     await this._leaveChat(member.name)
     await this._leaveDiscord(member.name)
-
     return true
   }
 
-  canAddTeamWithSize(size: number): boolean {
-    if (size <= 0) return false
-    if (this._maxTeamSize >= size) return false
-    if (!this.hasSpace(size)) return false
+  canAddTeam(id: number): boolean {
+    let team = TEAMS.get(id)
+    if (!team) return false
+
+    if (this._maxTeamSize >= team.size) return false
+    if (!this.hasSpace(team.size)) return false
     return true
   }
 
   hasSpace(memberCount: number): boolean {
-    if (this._maxCommandSize - this.firstCommand.size >= memberCount)
-      return true
-    if (this._maxCommandSize - this.secondCommand.size >= memberCount)
+    if (
+      this.firstCommand.hasSpaceFor(memberCount) ||
+      this.secondCommand.hasSpaceFor(memberCount)
+    )
       return true
     return false
   }
@@ -148,11 +161,16 @@ export class Lobby implements Match.Lobby.Instance {
     this._chat = instance
   }
 
+  private get _commandWithSpace() {
+    if (this.firstCommand.hasSpaceFor(1)) return this.firstCommand
+    if (this.secondCommand.hasSpaceFor(1)) return this.secondCommand
+  }
+
   private async _joinWithTeam(name: string): Promise<boolean> {
     let member = PLAYERS.get(name)
     if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
-
     if (!member.teamID) return this.join(member.name)
+
     let team = TEAMS.findById(member.teamID)
 
     if (!team) {
@@ -160,13 +178,21 @@ export class Lobby implements Match.Lobby.Instance {
       return false
     }
 
-    if (!this.canAddTeamWithSize(team.size)) return false
+    if (!this.canAddTeam(team.id)) return false
 
     let promises = []
     for (let member of team.members.toArray)
       promises.push(this.join(member.name))
 
     await Promise.all(promises)
+    return true
+  }
+
+  private _joinCommand(member: Match.Member.Instance) {
+    if (!this._commandWithSpace!.join(member.name)) return false
+    if (!this.members.addMember(member)) return false
+    member.lobbyID = this.id
+
     return true
   }
 
@@ -214,6 +240,14 @@ export class Lobby implements Match.Lobby.Instance {
       promises.push(this.leave(member.name))
 
     await Promise.all(promises)
+    return true
+  }
+
+  private _leaveCommand(member: Match.Member.Instance) {
+    if (!COMMANDS.get(member.commandID!)!.leave(member.name)) return false
+    if (!this.members.deleteMember(member.name)) return false
+    member.lobbyID = undefined
+
     return true
   }
 
