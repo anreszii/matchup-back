@@ -8,6 +8,8 @@ export type MODELS_ACTION_LIST =
   | 'User/generateTestData'
   | 'User/getTestData'
   | 'User/deleteTestData'
+  | 'User/getFriends'
+  | 'User/getSubscribers'
 
   /* TaskList Model */
   | 'TaskList/getDaily'
@@ -59,6 +61,8 @@ export const MODELS_ACTIONS: Map<MODELS_ACTION_LIST, number> = new Map()
 MODELS_ACTIONS.set('User/checkLevel', 0)
 MODELS_ACTIONS.set('User/addRelation', 0)
 MODELS_ACTIONS.set('User/dropRelation', 0)
+MODELS_ACTIONS.set('User/getFriends', 0)
+MODELS_ACTIONS.set('User/getSubscribers', 0)
 MODELS_ACTIONS.set('User/getPrefixes', 2)
 MODELS_ACTIONS.set('User/setPrefix', 2)
 MODELS_ACTIONS.set('User/generateTestData', 2)
