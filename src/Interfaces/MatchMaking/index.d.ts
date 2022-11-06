@@ -19,8 +19,15 @@ export declare namespace Match {
   }
   namespace Lobby {
     interface Instance extends ILobby {
+      move(
+        name: string,
+        command: Command.Instance | Command.Types | number,
+      ): Promise<boolean>
+      becomeReady(name: string): boolean
+      get commands(): Map<Command.Types, Command.Instance>
       set discord(client: DiscordClient)
       get discord(): DiscordClient
+      get isReady(): boolean
     }
 
     type Type = 'training' | 'arcade' | 'rating'
@@ -32,17 +39,25 @@ export declare namespace Match {
       interface Manager extends IManager<Command.Instance, number> {
         findByUserName(username: string): Promise<Command.Instance | undefined>
         findById(id: number): Command.Instance | undefined
-        move(name: string, from: number, to: number): Promise<boolean>
+        move(
+          name: string,
+          from: Instance | number,
+          to: Instance | number,
+        ): Promise<boolean>
         get toArray(): Command.Instance[]
         get IDs(): number[]
       }
       interface Instance extends Group<number> {
         isCaptain(member: string | Member.Instance): boolean
+        move(name: string, command: Instance | Types | number): Promise<boolean>
+        has(name: string): boolean
+        get(name: string): Member.Instance | null
 
         get lobbyID(): string
         get type(): Types
 
         get isForTeam(): boolean
+        get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
         get players(): Member.Instance[]
@@ -50,15 +65,22 @@ export declare namespace Match {
         get playersCount(): number
         get teamPlayersCount(): number
         get soloPlayersCount(): number
+        get isFilled(): boolean
 
         set captain(value: string)
         get captain(): string
+
+        becomeReady(name: string): boolean
+        get isReady(): boolean
       }
     }
   }
 
   namespace Member {
-    interface Manager extends IManager<Member.Instance, string> {}
+    interface Manager extends IManager<Member.Instance, string> {
+      becomeReady(name: string): boolean
+      becomeUnready(name: string): boolean
+    }
     interface Instance extends IMatchMember {}
 
     namespace Team {

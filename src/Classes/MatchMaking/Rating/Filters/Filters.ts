@@ -1,14 +1,18 @@
 import type { Match, Rating } from '../../../../Interfaces'
 import { GRIFilter } from './ByGRI'
 import { GuildFilter } from './ByGuild'
+import { RegimeFilter } from './ByRegime'
 import { RegionFilter } from './ByRegion'
+import { StatusFilter } from './ByStatus'
 import { TeamFilter } from './ByTeam'
 
 export class Filters implements Rating.SearchEngine.Filters {
   private _filtersCount: { [key: string]: number } = {}
   private _filters: Array<Rating.SearchEngine.Filter> = new Array()
 
-  constructor() {}
+  constructor() {
+    this._addFilter(new StatusFilter())
+  }
   byGRI(GRI: number) {
     let filter = new GRIFilter()
     filter.GRI = GRI
@@ -35,6 +39,14 @@ export class Filters implements Rating.SearchEngine.Filters {
 
   byGuild() {
     this._addFilter(new GuildFilter())
+    return this
+  }
+
+  byRegime(type: Match.Lobby.Type): Rating.SearchEngine.Filters {
+    let filter = new RegimeFilter()
+    filter.type = type
+
+    this._addFilter(filter)
     return this
   }
 

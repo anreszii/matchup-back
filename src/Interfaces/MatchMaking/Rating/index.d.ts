@@ -10,6 +10,7 @@ export declare namespace Rating {
     interface Instance extends SearchEngine {}
     interface Filters {
       byRegion(region: Rating.SearchEngine.SUPPORTED_REGIONS): Filters
+      byRegime(type: Match.Lobby.Type): Filters
       byGRI(GRI: number): Filters
       byTeam(id: number): Filters
       byGuild(): Filters

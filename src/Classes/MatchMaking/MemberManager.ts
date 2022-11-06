@@ -19,7 +19,7 @@ class PlayersManager implements Match.Member.Manager {
     let member = {
       id,
       name,
-      readyFlag: false,
+      isReady: false,
       guildName,
     } as Match.Member.Instance
 
@@ -45,6 +45,22 @@ class PlayersManager implements Match.Member.Manager {
     for (let member of this._players.toArray)
       if (member.id == entityID || member.name == entityID) return true
     return false
+  }
+
+  becomeReady(name: string): boolean {
+    let member = this._players.getByName(name)
+    if (!member) return false
+
+    member.isReady = true
+    return true
+  }
+
+  becomeUnready(name: string): boolean {
+    let member = this._players.getByName(name)
+    if (!member) return false
+
+    member.isReady = false
+    return true
   }
 
   /**

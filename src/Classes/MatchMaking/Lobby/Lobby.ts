@@ -9,7 +9,6 @@ import { getMedian } from '../../../Utils/math'
 
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
-import { TechnicalCause, TechnicalError } from '../../../error'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -21,6 +20,7 @@ export class Lobby implements Match.Lobby.Instance {
   > = new Map()
   private _chat!: Chat.Instance
   private _discordClient!: DiscordClient
+  private _status: Match.Lobby.Status = 'searching'
 
   constructor(
     private _id: string,
@@ -48,35 +48,62 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async start() {
-    return this._controller.start()
+    await this._controller.start()
+    this._status = 'started'
+    return true
   }
 
   async stop() {
     return this._controller.stop()
   }
 
+  async move(
+    name: string,
+    command: Match.Lobby.Command.Instance | Match.Lobby.Command.Types | number,
+  ): Promise<boolean> {
+    let commandWithMember: Match.Lobby.Command.Instance | undefined
+    for (let [type, command] of this.commands)
+      if (command.has(name)) commandWithMember = command
+
+    if (!commandWithMember) return false
+
+    if (typeof command == 'string')
+      return COMMANDS.move(
+        name,
+        commandWithMember,
+        this._commands.get(command)!,
+      )
+
+    return COMMANDS.move(name, commandWithMember, command)
+  }
+
   async join(name: string) {
+    if (this._status != 'searching') return false
     let member = await PLAYERS.get(name)
 
-    if (member.teamID) return this._joinWithTeam(name)
+    if (member.teamID) return this._joinWithTeam(member)
     if (!(await this._controller.addMembers(member))) return false
     if (!this._joinCommand(member)) return false
 
     await this._joinChat(member.name)
     await this._joinDiscrod(member.name)
+    if (this.firstCommand.size + this.secondCommand.size == 10)
+      this._status = 'filled'
     return true
   }
 
   async leave(name: string) {
+    if (this.status == 'started') return false
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id) return false
 
-    if (member.teamID) return this._leaveWithTeam(name)
+    if (member.teamID) return this._leaveWithTeam(member)
     if (!(await this._controller.removeMembers(name))) return false
     if (!this._leaveCommand(member)) return false
 
     await this._leaveChat(member.name)
     await this._leaveDiscord(member.name)
+    this._status = 'searching'
     return true
   }
 
@@ -96,6 +123,21 @@ export class Lobby implements Match.Lobby.Instance {
     )
       return true
     return false
+  }
+
+  becomeReady(name: string): boolean {
+    for (let [type, command] of this._commands)
+      if (command.becomeReady(name)) {
+        if (this.firstCommand.isReady && this.secondCommand.isReady)
+          this.start().then()
+        return true
+      }
+
+    return false
+  }
+
+  get commands() {
+    return this._commands
   }
 
   get id(): string {
@@ -142,9 +184,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get status() {
-    if (this.firstCommand.playersCount + this.secondCommand.playersCount < 10)
-      return 'searching'
-    else return this._controller.status
+    return this._status
   }
 
   get players() {
@@ -153,6 +193,10 @@ export class Lobby implements Match.Lobby.Instance {
 
   get playersCount() {
     return this.firstCommand.playersCount + this.secondCommand.playersCount
+  }
+
+  get isReady(): boolean {
+    return this.firstCommand.isReady && this.secondCommand.isReady
   }
 
   set discord(client: DiscordClient) {
@@ -176,24 +220,44 @@ export class Lobby implements Match.Lobby.Instance {
     if (this.secondCommand.hasSpaceFor(1)) return this.secondCommand
   }
 
-  private async _joinWithTeam(name: string): Promise<boolean> {
-    let member = await PLAYERS.get(name)
-    if (!member) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
-    if (!member.teamID) return this.join(member.name)
-
-    let team = TEAMS.findById(member.teamID)
+  private async _joinWithTeam(member: Match.Member.Instance): Promise<boolean> {
+    let team = TEAMS.findById(member.teamID!)
 
     if (!team) {
       member.teamID = undefined
       return false
     }
 
+    if (team.captainName != member.name) return false
     if (!this.canAddTeam(team.id)) return false
 
     let promises = []
     for (let member of team.members.toArray)
       promises.push(this.join(member.name))
 
+    await Promise.all(promises)
+    return true
+  }
+
+  private async _leaveWithTeam(
+    member: Match.Member.Instance,
+  ): Promise<boolean> {
+    let team = TEAMS.findById(member.teamID!)
+    if (!team) {
+      member.teamID = undefined
+      return this.leave(member.name)
+    }
+
+    if (team.captainName != member.name) return false
+
+    if (this.type != 'rating') {
+      if (!(await this.leave(member.name))) return false
+      return team.leave(member.name)
+    }
+
+    let promises = []
+    for (let member of team.members.toArray)
+      promises.push(this.leave(member.name))
     await Promise.all(promises)
     return true
   }
@@ -206,6 +270,14 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
+  private _leaveCommand(member: Match.Member.Instance) {
+    if (!COMMANDS.get(member.commandID!)!.leave(member.name)) return false
+    if (!this.members.deleteMember(member.name)) return false
+    member.lobbyID = undefined
+
+    return true
+  }
+
   private _joinChat(name: string) {
     return this._chat.addMember({ name }).then(async (status) => {
       if (status)
@@ -213,6 +285,16 @@ export class Lobby implements Match.Lobby.Instance {
           from: 'system',
           content: `member ${name} joined lobby#${this._id}`,
         })
+    })
+  }
+
+  private _leaveChat(name: string) {
+    return this._chat.deleteMember({ name }).then(async (status) => {
+      if (!status) return
+      await this._chat.send({
+        from: name,
+        content: `member ${name} leaved lobby#${this.id}`,
+      })
     })
   }
 
@@ -235,42 +317,6 @@ export class Lobby implements Match.Lobby.Instance {
     })
   }
 
-  private async _leaveWithTeam(name: string): Promise<boolean> {
-    let member = await PLAYERS.get(name)
-    if (!member) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
-    if (!member.teamID) return this.leave(member.name)
-
-    let team = TEAMS.findById(member.teamID)
-    if (!team) {
-      return this.leave(member.name)
-    }
-
-    let promises = []
-    for (let member of team.members.toArray)
-      promises.push(this.leave(member.name))
-
-    await Promise.all(promises)
-    return true
-  }
-
-  private _leaveCommand(member: Match.Member.Instance) {
-    if (!COMMANDS.get(member.commandID!)!.leave(member.name)) return false
-    if (!this.members.deleteMember(member.name)) return false
-    member.lobbyID = undefined
-
-    return true
-  }
-
-  private _leaveChat(name: string) {
-    return this._chat.deleteMember({ name }).then(async (status) => {
-      if (!status) return
-      await this._chat.send({
-        from: name,
-        content: `member ${name} leaved lobby#${this.id}`,
-      })
-    })
-  }
-
   private _leaveDiscord(name: string) {
     return this.discord
       ?.findGuildWithCustomTeamIdRole(this._id)
@@ -286,5 +332,19 @@ export class Lobby implements Match.Lobby.Instance {
         ? this.firstCommand.maxTeamSizeToJoin
         : this.secondCommand.maxTeamSizeToJoin
     return maxTeamSizeToJoin
+  }
+}
+
+export function isCorrectType(value: unknown): value is Match.Lobby.Type {
+  if (!value || typeof value != 'string') return false
+  switch (value) {
+    case 'training':
+      return true
+    case 'arcade':
+      return true
+    case 'rating':
+      return true
+    default:
+      return false
   }
 }

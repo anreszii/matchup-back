@@ -1,8 +1,10 @@
+import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
 import type { Match, Chat } from '../../../Interfaces/index'
 import { getMedian } from '../../../Utils/math'
 import { TEAMS } from '../index'
 import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
+import { COMMANDS } from './Manager'
 
 export class Command implements Match.Lobby.Command.Instance {
   private _members: MemberList = new MemberList()
@@ -56,7 +58,7 @@ export class Command implements Match.Lobby.Command.Instance {
     if (member.teamID) this._deleteTeamOfMember(member.teamID)
     this._checkGuildAfterLeave()
 
-    member.readyFlag = false
+    member.isReady = false
     member.commandID = undefined
     return this.members.deleteMember(name)
   }
@@ -67,7 +69,33 @@ export class Command implements Match.Lobby.Command.Instance {
   }
 
   hasSpaceFor(size: number) {
-    return this._maxSize - size > 0
+    return this._maxSize - this.playersCount - size > 0
+  }
+
+  has(name: string): boolean {
+    return this.members.hasMember(name)
+  }
+
+  get(name: string) {
+    return this.members.getByName(name)
+  }
+
+  async move(
+    name: string,
+    command: Match.Lobby.Command.Instance | Match.Lobby.Command.Types | number,
+  ) {
+    let lobby = StandOffLobbies.get(this._lobbyID)
+    if (!lobby) return false
+    switch (typeof command) {
+      case 'number':
+        return COMMANDS.move(name, this.id, command)
+      case 'string':
+        return COMMANDS.move(name, this.id, lobby.commands.get(command)!)
+      case 'object':
+        return COMMANDS.move(name, this.id, command.id)
+      default:
+        return false
+    }
   }
 
   get id() {
@@ -82,10 +110,28 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._commandType
   }
 
+  /** Средний рейтинг среди всех участников команды */
   get GRI(): number {
     const GRIArray: number[] = []
     for (let member of this._members.toArray) GRIArray.push(member.GRI)
     return getMedian(...GRIArray)
+  }
+
+  get isFilled() {
+    return this._maxSize - this.size == 0
+  }
+
+  get isOneTeam(): boolean {
+    if (!this.isFilled) return false
+    let teamID: number | undefined
+    let members = this.members.toArray
+    for (let i = 0; i < members.length; i++) {
+      if (!teamID) teamID = members[i].teamID
+      if (!teamID && i == 0) return false
+      if (teamID != members[i].teamID) return false
+    }
+
+    return true
   }
 
   get isForTeam(): boolean {
@@ -93,15 +139,29 @@ export class Command implements Match.Lobby.Command.Instance {
   }
 
   get maxTeamSizeToJoin() {
-    return this.playersCount - (this.teamPlayersCount + this.soloPlayersCount)
+    return this._maxSize - (this.teamPlayersCount + this.soloPlayersCount)
   }
 
   get members(): Match.Member.List {
     return this._members
   }
 
+  /** Количество участников команды */
   get size(): number {
     return this._members.count
+  }
+
+  get isReady(): boolean {
+    for (let member of this.members.toArray) if (!member.isReady) return false
+    return true
+  }
+
+  becomeReady(name: string): boolean {
+    let member = this.members.getByName(name)
+    if (!member) return false
+
+    member.isReady = true
+    return true
   }
 
   set chat(chat: Chat.Instance) {
@@ -177,5 +237,23 @@ export class Command implements Match.Lobby.Command.Instance {
     for (let i = 1; i < members.length; i++)
       if (members[i].guildName != this._keyGuild)
         return (this._keyGuild = undefined)
+  }
+}
+
+export function isCorrectCommand(
+  value: unknown,
+): value is Match.Lobby.Command.Types {
+  if (!value || typeof value != 'string') return false
+  switch (value) {
+    case 'command1':
+      return true
+    case 'command2':
+      return true
+    case 'spectators':
+      return true
+    case 'neutrals':
+      return true
+    default:
+      return false
   }
 }

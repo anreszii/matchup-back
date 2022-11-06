@@ -3,6 +3,8 @@ import { OneTypeArray } from '../../OneTypeArray'
 import { Command } from './Command'
 import { CHATS } from '../../Chat/Manager'
 import { PLAYERS } from '../MemberManager'
+import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
+import { TEAMS } from '../index'
 
 class CommandManager implements Match.Lobby.Command.Manager {
   private _commands: OneTypeArray<Match.Lobby.Command.Instance> =
@@ -21,19 +23,43 @@ class CommandManager implements Match.Lobby.Command.Manager {
     return command
   }
 
-  async move(name: string, to: number) {
-    let player = await PLAYERS.get(name)
-    if (!player || !player.commandID) return false
+  async move(
+    name: string,
+    from: number | Match.Lobby.Command.Instance,
+    to: number | Match.Lobby.Command.Instance,
+  ): Promise<boolean> {
+    let fromCommand: Match.Lobby.Command.Instance | undefined
+    let toCommand: Match.Lobby.Command.Instance | undefined
+    let team: Match.Member.Team.Instance | undefined
 
-    let fromCommand = this.get(player.commandID)
-    let toCommand = this.get(to)
+    if (!PLAYERS.has(name)) return false
+    let member = await PLAYERS.get(name)
+    if (member.teamID) team = TEAMS.get(member.teamID)
+    if (!team) {
+      member.teamID = undefined
+      return false
+    }
 
-    if (!fromCommand || !toCommand || fromCommand.id == to) return false
+    if (team.captainName != name) return false
+
+    if (typeof from == 'number') fromCommand = this.get(from)
+    else fromCommand = from
+    if (typeof to == 'number') toCommand = this.get(to)
+    else toCommand = to
+
+    if (!fromCommand || !toCommand || fromCommand.type == toCommand.type)
+      return false
     if (fromCommand.lobbyID != toCommand.lobbyID) return false
+    if (!fromCommand.has(name)) return false
+
+    let lobby = StandOffLobbies.get(fromCommand.lobbyID)
+    if (!lobby || lobby.type == 'rating') return false
+
+    if (fromCommand.isOneTeam || toCommand.isOneTeam) return false
     if (!toCommand.hasSpaceFor(1)) return false
 
-    fromCommand.leave(player.name)
-    toCommand.join(player.name)
+    if (!(await fromCommand.leave(name))) return false
+    if (!(await toCommand.join(name))) return false
 
     return true
   }

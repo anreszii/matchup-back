@@ -46,7 +46,7 @@ export class Team implements Match.Member.Team.Instance {
     })
     this._checkGuildAfterLeave()
 
-    member.readyFlag = false
+    member.isReady = false
     member.teamID = undefined
     return this.members.deleteMember(name)
   }
