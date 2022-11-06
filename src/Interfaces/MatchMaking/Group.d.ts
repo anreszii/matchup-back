@@ -11,6 +11,8 @@ export interface Group<T> extends IEntity<T> {
   set chat(chat: Chat.Instance)
 
   get GRI(): number
-  get members(): Match.Member.List
   get size(): number
+
+  get members(): Match.Member.List
+  get isGuild(): boolean
 }

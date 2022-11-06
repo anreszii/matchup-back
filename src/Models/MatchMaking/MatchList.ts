@@ -33,18 +33,15 @@ export class MatchList {
     return document.save()
   }
 
-  public async addRecords(
-    this: DocumentType<MatchList>,
-    ...records: MemberRecord[]
-  ) {
+  async addRecords(this: DocumentType<MatchList>, ...records: MemberRecord[]) {
     this.members = [...this.members, ...records]
     return this.save()
   }
 
-  public async changeRecord(
+  async changeRecord(
     this: DocumentType<MatchList>,
     username: string,
-    command?: Match.Member.command,
+    command?: Match.Lobby.Command.Types,
     statistic?: Statistic,
   ) {
     let member = this.members.find((member) => member.name == username)
@@ -58,15 +55,17 @@ export class MatchList {
     return this.save()
   }
 
-  public async setScreen(
+  async setScreen(
     this: DocumentType<MatchList>,
-    image: Buffer,
-    contentType: string,
+    buffer: Buffer,
+    mimeType: string,
   ) {
     this.screen = await ImageModel.create({
-      buffer: image,
-      contentType,
+      buffer,
+      mimeType,
     })
+
+    return this.save()
   }
 
   public static async generateTestData(

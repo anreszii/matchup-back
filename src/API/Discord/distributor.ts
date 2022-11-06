@@ -1,7 +1,10 @@
 import type { StateManager } from '../../Classes/Discord/StateManager'
 import type { Match } from '../../Interfaces/index'
 
-type PlayerCommand = Exclude<Match.Member.command, 'spectator' | 'neutral'>
+type PlayerCommand = Exclude<
+  Match.Lobby.Command.Types,
+  'spectators' | 'neutrals'
+>
 
 export function distribute(manager: StateManager) {
   let memberCommand = manager.memberCommand

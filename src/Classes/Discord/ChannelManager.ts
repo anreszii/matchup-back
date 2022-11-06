@@ -3,7 +3,10 @@ import type { Match } from '../../Interfaces/index'
 import { ChannelType, PermissionsBitField } from 'discord.js'
 import { DiscordRoleManager } from './RoleManager'
 
-type PlayerCommand = Exclude<Match.Member.command, 'spectator' | 'neutral'>
+type PlayerCommand = Exclude<
+  Match.Lobby.Command.Types,
+  'spectators' | 'neutrals'
+>
 
 export class DiscordChannelManager {
   public static async createChannelForTeam(

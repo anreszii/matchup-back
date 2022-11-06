@@ -12,7 +12,10 @@ import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
 import { StateManager } from './StateManager'
 
-type PlayerCommand = Exclude<Match.Member.command, 'spectator' | 'neutral'>
+type PlayerCommand = Exclude<
+  Match.Lobby.Command.Types,
+  'spectators' | 'neutrals'
+>
 
 export class DiscordClient {
   public client = new Client({

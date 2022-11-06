@@ -2,7 +2,10 @@ import type { VoiceState, VoiceChannel } from 'discord.js'
 import type { DiscordClient } from './Client'
 import type { Match } from '../../Interfaces/index'
 
-type PlayerCommand = Exclude<Match.Member.command, 'spectator' | 'neutral'>
+type PlayerCommand = Exclude<
+  Match.Lobby.Command.Types,
+  'spectators' | 'neutrals'
+>
 
 export class StateManager {
   constructor(public state: VoiceState, private _client: DiscordClient) {}

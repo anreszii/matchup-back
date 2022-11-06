@@ -43,6 +43,8 @@ export declare namespace Match {
         get isForTeam(): boolean
         get maxTeamSizeToJoin(): number
 
+        get players(): Member.Instance[]
+
         get playersCount(): number
         get teamPlayersCount(): number
         get soloPlayersCount(): number
@@ -84,13 +86,8 @@ export declare namespace Match {
 
       get count(): number
 
-      get isGuild(): boolean
-
-      get playersCount(): number
-      get spectatorsCount(): number
-
-      get players(): Member.Instance[]
-      get spectators(): Member.Instance[]
+      get members(): Member.Instance[]
+      get membersCount(): number
     }
     interface Statistic extends IStatistic {}
   }

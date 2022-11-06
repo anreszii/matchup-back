@@ -19,12 +19,12 @@ export declare interface ILobby extends IEntity<string> {
   get isForGuild(): boolean
 
   get firstCommand(): Match.Lobby.Command.Instance
-
   get secondCommand(): Match.Lobby.Command.Instance
-
   get neutrals(): Match.Lobby.Command.Instance
-
   get spectators(): Match.Lobby.Command.Instance
+
+  get players(): Match.Member.Instance[]
+  get playersCount(): number
 
   start(): Promise<boolean>
   stop(): Promise<boolean>
