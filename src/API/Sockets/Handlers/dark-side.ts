@@ -98,11 +98,13 @@ export function darkSideHandler(escort: IDataEscort) {
     })
   } catch (e) {
     let socketID = escort.get('socket_id') as string
+    const request = dtoParser.from.Object(escort.used)
     let error: DTO
     if (!isMatchUpError(e))
       error = new ServerError(ServerCause.UNKNOWN_ERROR).DTO
     else error = e.DTO
 
+    error.label = request.label
     return clientServer.control(socketID).emit(`dark-side`, error.to.JSON)
   }
 }

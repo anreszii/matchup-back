@@ -13,6 +13,7 @@ export class DTO implements DTO_NAMESPACE.Object {
   private _content!: DTO_NAMESPACE.OBJECT_DATA
   private _metaInfo!: DTO_NAMESPACE.OBJECT_DATA
   private _type!: DTO_TYPES
+  private _label!: string
   constructor(content: unknown) {
     if (typeof content != 'object' || !content)
       throw new TechnicalError('DTO content', TechnicalCause.REQUIRED)
@@ -21,8 +22,13 @@ export class DTO implements DTO_NAMESPACE.Object {
     this._specify()
   }
 
-  get label(): string {
-    return this._content.label as string
+  get label() {
+    return this._label
+  }
+
+  set label(value) {
+    if (this._label != 'undefined') return
+    this._label = value
   }
 
   get type(): DTO_TYPES {
@@ -64,7 +70,11 @@ export class DTO implements DTO_NAMESPACE.Object {
   private _specifyType(): DTO_TYPES {
     let content = this._content
     if (!content.label)
-      throw new TechnicalError('DTO content', TechnicalCause.INVALID_FORMAT)
+      throw new TechnicalError(
+        'DTO content',
+        TechnicalCause.INVALID_FORMAT,
+        'data',
+      )
     if (content.status) return 'performance'
     if (content.errorCode) return 'error'
     return 'data'

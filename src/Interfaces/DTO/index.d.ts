@@ -5,6 +5,7 @@ export namespace DTO {
   interface Object {
     /** ссылка на label внутри данных DTO */
     get label(): string
+    set label(value: string)
     /** тип распаршенной DTO, определенный в момент парсинга входящих данных*/
     get type(): DTO_TYPES
     /** метаданные, полученные после парсинга DTO*/
