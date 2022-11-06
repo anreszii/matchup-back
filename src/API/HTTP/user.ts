@@ -5,9 +5,7 @@ import { ValidationError, validationCause as cause } from '../../error'
 import { MatchListModel, UserModel } from '../../Models'
 import { SMTP, Mail, generatePassword } from '../../Utils'
 import { validatePasswordFormat } from '../../validation'
-import { StandOffLobbies } from '../index'
-import { writeFile } from 'fs'
-import { UserFlagsBitField } from 'discord.js'
+import { StandOffLobbies } from '../Sockets/Controllers/index'
 import { Match } from '../../Interfaces/index'
 
 let router = Router()
@@ -118,6 +116,7 @@ router.put('/recover', async (req, res, next) => {
 
     let newPassword = generatePassword()
     user.setPassword(newPassword)
+    await user.save()
 
     let mail = new Mail()
     mail.to(email)

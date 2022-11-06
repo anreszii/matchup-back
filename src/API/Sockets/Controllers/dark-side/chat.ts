@@ -1,7 +1,7 @@
 import type { WebSocket } from 'uWebSockets.js'
-import { clientServer } from '../clientSocketServer'
-import { validationCause, ValidationError } from '../../../error'
-import { CHATS } from '../../../Classes/index'
+import { TechnicalCause, TechnicalError } from '../../../../error'
+import { CHATS } from '../../../../Classes/index'
+import { CONTROLLERS } from '../../index'
 
 /**
  * Событие для отправки сообщения в лобби.</br>
@@ -35,19 +35,20 @@ export async function chat(socket: WebSocket, params: unknown[]) {
 
   let chatID = params[0]
   if (typeof chatID != 'string')
-    throw new ValidationError('chat', validationCause.INVALID_FORMAT)
-
-  let chat = CHATS.get(chatID)
-  if (!chat) throw new ValidationError('chat', validationCause.NOT_EXIST)
+    throw new TechnicalError('chat', TechnicalCause.INVALID_FORMAT)
 
   let message = params[1]
   if (typeof message != 'string')
-    throw new ValidationError('message', validationCause.INVALID_FORMAT)
+    throw new TechnicalError('message', TechnicalCause.INVALID_FORMAT)
+
+  let chat = CHATS.get(chatID)
+  if (!chat) throw new TechnicalError('chat', TechnicalCause.NOT_EXIST)
 
   await chat.send({
     from: username,
     content: message,
   })
 
-  clientServer.control(socket.id).emit('chat', { complete: true })
+  return true
 }
+CONTROLLERS.set('chat', chat)

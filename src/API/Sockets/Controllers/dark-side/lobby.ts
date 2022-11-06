@@ -1,14 +1,16 @@
-import * as MatchMaking from '../../../Classes/MatchMaking'
-import { Match, Rating } from '../../../Interfaces/index'
-import { PLAYERS } from '../../../Classes/MatchMaking/MemberManager'
-import { CHATS, SearchEngine, TEAMS } from '../../../Classes'
-
 import type { WebSocket } from 'uWebSockets.js'
-import { clientServer } from '../clientSocketServer'
-import { HANDLERS } from './dark-side'
 
-import { DiscordClient } from '../../../Classes/Discord/Client'
-import { validationCause, ValidationError } from '../../../error'
+import * as MatchMaking from '../../../../Classes/MatchMaking'
+import { Match, Rating } from '../../../../Interfaces/index'
+import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
+import { CHATS, SearchEngine, TEAMS } from '../../../../Classes'
+
+import { clientServer } from '../../clientSocketServer'
+import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
+
+import { DiscordClient } from '../../../../Classes/Discord/Client'
+import { TechnicalCause, TechnicalError } from '../../../../error'
+import { DTO } from '../../../../Classes/DTO/DTO'
 
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
@@ -28,7 +30,7 @@ setInterval(async () => {
  * Обработчик для поиска лобби.
  * @param params - ["region"]
  *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект(если в команде, то данный ивент придет всем игрокам команды):
+ * В случае успеха возвращает объект формата:
  * ```ts
  * {
  *  lobby_id: string
@@ -58,7 +60,7 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
 
   let region = params[0]
   if (typeof region != 'string' || !isCorrectRegion(region))
-    throw new ValidationError('region', validationCause.INVALID)
+    throw new TechnicalError('region', TechnicalCause.INVALID_FORMAT)
 
   let team = member.teamID ? TEAMS.get(member.teamID) : undefined
   if (team) Filters = createFilterForTeamSearch(team, region)
@@ -74,13 +76,13 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
     chat_id: lobby.chat!.id,
   })
 }
-HANDLERS.set('find_lobby', find_lobby)
+CONTROLLERS.set('find_lobby', find_lobby)
 
 /**
  * Обработчик для приглашения игрока в лобби.
  * @param params - ["userNameToInvite"]
  *
- * В случае успеха отправляет указанному пользователю ивент invite_to_lobby  с пакетом следующего вида:
+ * В случае успеха отправляет указанному пользователю ивент invite  с пакетом следующего вида:
  * ```ts
  * {
  *  lobbyID: string
@@ -101,65 +103,68 @@ export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
   let member = await PLAYERS.get(username)
 
   if (!member.lobbyID)
-    throw new ValidationError('lobby', validationCause.REQUIRED)
+    throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
   let lobby = StandOffLobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
-    throw new ValidationError('lobby', validationCause.INVALID)
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
   }
 
   let invitedUser = params[1]
   if (!invitedUser)
-    throw new ValidationError('username', validationCause.REQUIRED)
+    throw new TechnicalError('username', TechnicalCause.REQUIRED)
   if (typeof invitedUser != 'string')
-    throw new ValidationError('username', validationCause.INVALID_FORMAT)
+    throw new TechnicalError('username', TechnicalCause.INVALID_FORMAT)
 
   let sockets = clientServer.Aliases.get(invitedUser)
-  if (!sockets) throw new ValidationError('username', validationCause.INVALID)
+  if (!sockets) throw new TechnicalError('username', TechnicalCause.INVALID)
 
-  clientServer
-    .control(socket.id as string)
-    .emit('invite_to_lobby', { status: true })
-  clientServer.control(sockets).emit('invite_to_lobby', { lobbyID: lobby.id })
+  const invite = new DTO({ label: 'invite', lobbyID: lobby.id })
+  clientServer.control(sockets).emit('invite', invite.to.JSON)
+  return true
 }
-HANDLERS.set('invite_to_lobby', invite_to_lobby)
+CONTROLLERS.set('invite_to_lobby', invite_to_lobby)
 
 /**
- * Обработчик для вступления в лобби по ID.
+ * Контроллер для вступления в лобби по ID.
  * @param params - ["myLobbyID"]
- *
- *
- * В случае успеха отправляет указанному пользователю ивент sync_lobby
- * @category MatchMaking
- * @event
- */
-export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
-  let lobbyID = params[0]
-  if (!lobbyID) throw new ValidationError('lobbyID', validationCause.REQUIRED)
-  if (typeof lobbyID != 'string')
-    throw new ValidationError('lobbyID', validationCause.INVALID_FORMAT)
-
-  let lobby = StandOffLobbies.get(lobbyID)
-  if (!lobby) throw new ValidationError('lobbyID', validationCause.INVALID)
-
-  if (!(await lobby.join(socket.username))) return
-  clientServer.control(socket.id).emit('sync_lobby', {
-    status: lobby.status as string,
-    players: JSON.stringify(lobby.members.players),
-  })
-}
-HANDLERS.set('join_to_lobby', join_to_lobby)
-
-/**
- * Обработчик для ручной синхронизации пользователя с лобби.</br>
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * В случае успеха возвращает объект формата:
  *
  * ```ts
  * {
  *  status: 'searching' | 'filled' | 'started',
  *  players: Array<Member>,
- *  spectators: Array<Member>
+ * }
+ * ```
+ * @category MatchMaking
+ * @event
+ */
+export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
+  let lobbyID = params[0]
+  if (!lobbyID) throw new TechnicalError('lobbyID', TechnicalCause.REQUIRED)
+  if (typeof lobbyID != 'string')
+    throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
+
+  let lobby = StandOffLobbies.get(lobbyID)
+  if (!lobby) throw new TechnicalError('lobbyID', TechnicalCause.NOT_EXIST)
+
+  if (!(await lobby.join(socket.username))) return
+  return {
+    status: lobby.status,
+    players: lobby.players,
+  }
+}
+CONTROLLERS.set('join_to_lobby', join_to_lobby)
+
+/**
+ * Контроллер для ручной синхронизации пользователя с лобби.</br>
+ * В случае успеха возвращает объект формата:
+ *
+ * ```ts
+ * {
+ *  status: 'searching' | 'filled' | 'started',
+ *  players: Array<Member>,
  * }
  * ```
  * @category MatchMaking
@@ -170,32 +175,26 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
   let member = await PLAYERS.get(username)
 
   if (!member.lobbyID)
-    throw new ValidationError('lobby', validationCause.REQUIRED)
+    throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
   let lobby = StandOffLobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
-    throw new ValidationError('lobby', validationCause.INVALID)
+    throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  clientServer.control(socket.id).emit('sync_lobby', {
+  return {
     status: lobby.status,
-    players: JSON.stringify(lobby.members.players),
-  })
+    players: lobby.players,
+  }
 }
-HANDLERS.set('sync_lobby', sync_lobby)
+CONTROLLERS.set('sync_lobby', sync_lobby)
 
 /**
- * Обработчик для получения количества игроков, находящихся в лобби.</br>
+ * Контроллер для получения количества игроков, находящихся в лобби.</br>
  * @param params - ["myLobbyID"]
  *
- * В случае успеха создает ивент lobby_players_count и отправляет на него JSON объект:
- * ```ts
- * {
- *   lobby_id: string
- *   playersCount: number
- * }
- * ```
+ * В случае успеха возвращает количество игроков в лобби
  * @category MatchMaking
  * @event
  */
@@ -204,18 +203,36 @@ export async function get_lobby_players_count(
   params: unknown[],
 ) {
   let lobbyID = params[0]
+  if (!lobbyID) throw new TechnicalError('lobbyID', TechnicalCause.REQUIRED)
   if (typeof lobbyID != 'string')
-    throw new ValidationError('lobby', validationCause.REQUIRED)
+    throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
 
   let lobby = StandOffLobbies.get(lobbyID)
-  if (!lobby) throw new ValidationError('lobby', validationCause.NOT_EXIST)
+  if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-  clientServer.control(socket.id).emit('lobby_players_count', {
-    lobby_id: lobbyID,
-    playersCount: lobby.members.playersCount,
-  })
+  return lobby.playersCount
 }
-HANDLERS.set('get_lobby_players_count', get_lobby_players_count)
+CONTROLLERS.set('get_lobby_players_count', get_lobby_players_count)
+
+/**
+ * Контроллер для получения текущего количества лобби.</br>
+ *
+ * В случае успеха возвращает количество текущих лобби
+ * @category MatchMaking
+ * @event
+ */
+export async function get_lobby_count(socket: WebSocket, params: unknown[]) {
+  let lobbyID = params[0]
+  if (!lobbyID) throw new TechnicalError('lobbyID', TechnicalCause.REQUIRED)
+  if (typeof lobbyID != 'string')
+    throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
+
+  let lobby = StandOffLobbies.get(lobbyID)
+  if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+
+  return StandOffLobbies.lobbies.length
+}
+CONTROLLERS.set('get_lobby_count', get_lobby_count)
 
 function isCorrectRegion(
   region: string,
@@ -233,7 +250,7 @@ function createFilterForTeamSearch(
   Filters.byRegion(region)
   Filters.byGRI(team.GRI)
   Filters.byTeam(team.id)
-  if (team.members.isGuild) Filters.byGuild()
+  if (team.isGuild) Filters.byGuild()
 
   return Filters
 }
