@@ -6,13 +6,12 @@ import {
   STATIC_DATA,
   STATIC_TASK,
 } from '../../configs/task_reward'
-import { validationCause, ValidationError } from '../../error'
 import { Reward, UserModel } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
 import { TaskModel } from '../'
-import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class TaskList {
   @prop({ required: true, ref: () => User })
@@ -29,17 +28,20 @@ export class TaskList {
     if (typeof user == 'string')
       userDocument = await UserModel.findByName(user)!
     else userDocument = await UserModel.findById(user)!
-    if (!userDocument) throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
+    if (!userDocument)
+      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
-    return this._checkUserList(userDocument).then((result) => {
-      if (result) return result
+    let result = await this._checkUserList(userDocument)
+    if (result) return this._loadTasksFromID(result)
 
-      return this.create({ owner: userDocument, tasks: [] }).then((tasks) => {
-        promises.push(tasks.getDaily())
-        promises.push(tasks.getWeekly())
-        return Promise.all(promises).then(() => tasks.save())
-      })
-    })
+    let tasks = await this.create({ owner: userDocument, tasks: [] })
+
+    promises.push(tasks.getDaily())
+    promises.push(tasks.getWeekly())
+    await Promise.all(promises)
+
+    await tasks.save()
+    return this._loadTasksFromID(tasks)
   }
 
   public static async deleteForUser(
@@ -103,7 +105,7 @@ export class TaskList {
     if (!user) {
       await this.clear()
       await this.delete()
-      throw new ValidationError('user', validationCause.NOT_EXIST)
+      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     }
 
     let daily = await this.getDaily()
@@ -180,7 +182,7 @@ export class TaskList {
     if (!user) {
       await this.clear()
       await this.delete()
-      throw new ValidationError('user', validationCause.NOT_EXIST)
+      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     }
 
     let daily = await this.getWeekly()
@@ -269,6 +271,16 @@ export class TaskList {
     }
 
     return task.save()
+  }
+
+  private static _loadTasksFromID(
+    this: ReturnModelType<typeof TaskList>,
+    list: DocumentType<TaskList>,
+  ) {
+    const promises: Promise<DocumentType<Task> | null>[] = []
+    for (let id of list.tasks) promises.push(TaskModel.findById(id).exec())
+
+    return Promise.all(promises)
   }
 
   private static _checkUserList(
@@ -486,7 +498,7 @@ export class TaskList {
 
   private get _ownerName() {
     return UserModel.findById(this.owner).then((user) => {
-      if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
       return user.profile.username
     })
   }

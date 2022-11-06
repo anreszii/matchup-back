@@ -7,13 +7,12 @@ import {
   WEEK_IN_MS,
   YEAR_IN_MS,
 } from '../../configs/time_constants'
-
-import { validationCause, ValidationError } from '../../error'
 import { expirationTime, ExpirationTime } from './ExpirationTime'
 import { Flags } from './Flags'
 import { Progress } from './Progress'
 import { Reward } from '../Reward'
 import { User } from '../User/User'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class Task {
   @prop({ required: true, ref: () => User })
@@ -50,7 +49,7 @@ export class Task {
   public get expiresIn() {
     if (!this.expires) return
     if (!this.expires.expirationDate)
-      throw new ValidationError('expiration time', validationCause.REQUIRED)
+      throw new TechnicalError('expiration time', TechnicalCause.REQUIRED)
 
     let timePassed =
       this.expires.expirationDate.getTime() - new Date().getTime()
@@ -59,10 +58,7 @@ export class Task {
 
   public set expirationTime(expires: expirationTime) {
     if (this.expires)
-      throw new ValidationError(
-        'expiration time',
-        validationCause.ALREADY_EXIST,
-      )
+      throw new TechnicalError('expiration time', TechnicalCause.ALREADY_EXIST)
 
     let { amount, format } = expires
 

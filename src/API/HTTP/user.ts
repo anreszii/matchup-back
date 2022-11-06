@@ -1,12 +1,12 @@
 import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token'
-import { ValidationError, validationCause as cause } from '../../error'
 
 import { MatchListModel, UserModel } from '../../Models'
 import { SMTP, Mail, generatePassword } from '../../Utils'
 import { validatePasswordFormat } from '../../validation'
 import { StandOffLobbies } from '../Sockets/Controllers/index'
 import { Match } from '../../Interfaces/index'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 let router = Router()
 
@@ -26,7 +26,7 @@ router.put(
       let username = req.body.payload.username as string
 
       let user = await UserModel.findByName(username)
-      if (!user) throw new ValidationError('user', cause.NOT_EXIST)
+      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
       if (id) user.id = id
 
@@ -62,11 +62,11 @@ router.put(
 router.post('/login', async (req, res, next) => {
   try {
     let { username, password } = req.body
-    if (!username) throw new ValidationError('username', cause.REQUIRED)
-    if (!password) throw new ValidationError('password', cause.REQUIRED)
+    if (!username) throw new TechnicalError('username', TechnicalCause.REQUIRED)
+    if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     let user = await UserModel.findByName(username)
-    if (!user) throw new ValidationError('user', cause.NOT_EXIST)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     user.validatePassword(password)
 
     let token = generateToken({
@@ -109,10 +109,10 @@ router.post('/registration', async (req, res, next) => {
 router.put('/recover', async (req, res, next) => {
   try {
     let { email } = req.body
-    if (!email) throw new ValidationError('email', cause.REQUIRED)
+    if (!email) throw new TechnicalError('email', TechnicalCause.REQUIRED)
 
     let user = await UserModel.findByEmail(email)
-    if (!user) throw new ValidationError('user', cause.NOT_EXIST)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     let newPassword = generatePassword()
     user.setPassword(newPassword)
@@ -155,26 +155,26 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     let username = req.body.payload.username as string
     let user = await UserModel.findByName(username)
     if (!user || user.role != 'admin')
-      throw new ValidationError('user', cause.INVALID)
+      throw new TechnicalError('user', TechnicalCause.INVALID)
 
-    if (!req.files) throw new ValidationError('image', cause.REQUIRED)
+    if (!req.files) throw new TechnicalError('image', TechnicalCause.REQUIRED)
     let image = req.files[Object.keys(req.files)[0]]
-    if (!image) throw new ValidationError('image', cause.REQUIRED)
+    if (!image) throw new TechnicalError('image', TechnicalCause.REQUIRED)
     if (
       image instanceof Array ||
       (image.mimetype != 'image/jpeg' && image.mimetype != 'image/png')
     )
-      throw new ValidationError('image', cause.INVALID_FORMAT)
+      throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
 
     let { match_id } = req.body
     if (!match_id || typeof match_id != 'string')
-      throw new ValidationError('match_id', cause.REQUIRED)
+      throw new TechnicalError('match_id', TechnicalCause.REQUIRED)
 
     let lobby = StandOffLobbies.get(match_id)
-    if (!lobby) throw new ValidationError('match_id', cause.INVALID)
+    if (!lobby) throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
 
     let matchData = await MatchListModel.findOne({ id: match_id })
-    if (!matchData) throw new ValidationError('match_id', cause.INVALID)
+    if (!matchData) throw new TechnicalError('match_id', TechnicalCause.INVALID)
 
     matchData.setScreen(image.data, image.mimetype)
     matchData.save()
@@ -182,11 +182,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     let promises = []
     for (let matchMember of matchData.members) {
       let user = await UserModel.findByName(matchMember.name)
-      if (!user)
-        throw new ValidationError(
-          `user with name ${matchMember.name}`,
-          cause.NOT_EXIST,
-        )
+      if (!user) throw new TechnicalError(`user`, TechnicalCause.NOT_EXIST)
 
       let result: Match.Result = Match.Result.DRAW
 

@@ -10,6 +10,7 @@ export const enum TechnicalCause {
   CAN_NOT_ADD = `value can't be added`,
   CAN_NOT_DELETE = `value can't be deleted`,
   CAN_NOT_UPDATE = `value can't be updated`,
+  CAN_NOT_CREATE = `value can't be created`,
   NEED_HIGHER_VALUE = `value must be higher`,
   NEED_LOWER_VALUE = `value must be lower`,
 }

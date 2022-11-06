@@ -4,8 +4,8 @@ import { prop, ReturnModelType } from '@typegoose/typegoose'
 import { v4 as uuid } from 'uuid'
 import { UserModel } from '../index'
 import { User } from '../User'
-import { ValidationError, validationCause } from '../../error'
 import { getRandom } from '../../Utils/math'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class OrderList {
   @prop({ required: true, unique: true })
@@ -37,20 +37,18 @@ export class OrderList {
   ) {
     let user: DocumentType<User> | undefined | null
     switch (typeof owner) {
-      case 'string': {
+      case 'string':
         user = await UserModel.findByName(owner)
-        if (!user) throw new ValidationError('user', validationCause.INVALID)
+        if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
         break
-      }
 
-      case 'object': {
+      case 'object':
         user = await UserModel.findById(owner._id)
-        if (!user) throw new ValidationError('user', validationCause.INVALID)
+        if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
         break
-      }
 
       default:
-        throw new ValidationError('user', validationCause.INVALID)
+        throw new TechnicalError('user', TechnicalCause.INVALID_FORMAT)
     }
 
     let newOrder = new this({

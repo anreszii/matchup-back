@@ -2,9 +2,8 @@ import type { Match } from '../../../Interfaces'
 import type { DiscordClient } from '../../Discord/Client'
 
 import { v4 as uuid } from 'uuid'
-
-import { matchCause, MatchError } from '../../../error'
 import { Lobby } from './Lobby'
+import { TechnicalCause, TechnicalError } from '../../../error'
 
 export class LobbyManager implements Match.Manager.Instance {
   private _lobbyMap: Map<string, Match.Lobby.Instance> = new Map()
@@ -13,17 +12,18 @@ export class LobbyManager implements Match.Manager.Instance {
     this._controller = controller
   }
 
-  public spawn(): Match.Lobby.Instance {
+  public spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {
     const ID = LobbyManager._createID()
     this._dsClient.guildWithFreeChannelsForVoice.then((guild) => {
       if (!guild) return
       this._dsClient.createChannelsForMatch(guild, ID)
     })
     this._controller.create().then((status) => {
-      if (!status) throw new MatchError('lobby', matchCause.CREATE)
+      if (!status)
+        throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
     })
 
-    let lobby = new Lobby(ID, 5, this._controller)
+    let lobby = new Lobby(ID, type, 5, this._controller)
     lobby.discord = this._dsClient
 
     this._lobbyMap.set(ID, lobby)

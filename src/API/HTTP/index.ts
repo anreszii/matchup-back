@@ -1,22 +1,22 @@
 import { Router, NextFunction } from 'express'
 import { Error as MongoError } from 'mongoose'
 import { MongoServerError } from 'mongodb'
-import { ValidationError } from '../../error'
+import { isMatchUpError, MatchUpError } from '../../error'
 
 let router = Router()
 
 router.use('/api/user', require('./user'))
 
 router.use(function (
-  errorObject: ValidationError | MongoError.ValidationError | MongoServerError,
+  errorObject: MatchUpError | MongoError.ValidationError | MongoServerError,
   _: unknown,
   _1: unknown,
   next: NextFunction,
 ) {
   let errors: Array<string> = []
 
-  if (errorObject instanceof ValidationError) {
-    errors.push(errorObject.genericMessage)
+  if (isMatchUpError(errorObject)) {
+    errors.push(errorObject.DTO.to.JSON)
     return next(errors)
   }
 

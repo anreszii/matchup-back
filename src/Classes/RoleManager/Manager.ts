@@ -1,4 +1,4 @@
-import { validationCause, ValidationError } from '../../error'
+import { TechnicalCause, TechnicalError } from '../../error'
 import { RoleManager } from '../../Interfaces/RoleManager/index'
 
 export abstract class Manager<R extends string, A extends string>
@@ -15,7 +15,7 @@ export abstract class Manager<R extends string, A extends string>
   hasAccess(name: string, action: A) {
     let requiredAccessLevel = this._getAccessLevelForAction(action)
     if (!~requiredAccessLevel)
-      throw new ValidationError('action', validationCause.INVALID)
+      throw new TechnicalError('action', TechnicalCause.NOT_EXIST)
     let roleAccessLevel = this._getAccessLevel(name)
 
     if (typeof roleAccessLevel == 'number')

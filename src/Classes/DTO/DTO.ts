@@ -66,6 +66,6 @@ export class DTO implements DTO_NAMESPACE.Object {
     if (content.status) return 'performance'
     if (content.errorCode) return 'error'
     if (content.label) return 'data'
-    throw new ValidationError('DTO content', validationCause.INVALID_FORMAT)
+    throw new TechnicalError('DTO content', TechnicalCause.INVALID_FORMAT)
   }
 }

@@ -7,7 +7,7 @@ import { v4 } from 'uuid'
 import { getRandom } from '../../Utils/math'
 import { MatchListModel, UserModel } from '../index'
 import { Statistic } from './Statistic'
-import { validationCause, ValidationError } from '../../error'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class MatchList {
   @prop({ required: true, unique: true })
@@ -46,7 +46,7 @@ export class MatchList {
   ) {
     let member = this.members.find((member) => member.name == username)
     if (!member)
-      throw new ValidationError('member record', validationCause.NOT_EXIST)
+      throw new TechnicalError('member record', TechnicalCause.NOT_EXIST)
 
     if (command) member.command = command
 

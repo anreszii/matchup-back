@@ -1,8 +1,8 @@
 import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import type { Match } from '../../Interfaces'
-import { validationCause, ValidationError } from '../../error'
 import { v4 } from 'uuid'
 import { ReportListModel } from '../index'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class ReportList {
   @prop({ required: true, unique: true })
@@ -40,10 +40,10 @@ export class ReportList {
     rewrite: boolean = false,
   ) {
     let report = await this.findOne({ id })
-    if (!report) throw new ValidationError('reportID', validationCause.INVALID)
+    if (!report) throw new TechnicalError('reportID', TechnicalCause.INVALID)
 
     if (report.proof && !rewrite)
-      throw new ValidationError('report proof', validationCause.ALREADY_EXIST)
+      throw new TechnicalError('report proof', TechnicalCause.ALREADY_EXIST)
 
     report.proof = proof
     return report.save()

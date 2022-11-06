@@ -3,7 +3,7 @@ import {
   MODELS_ACTION_LIST,
 } from '../../configs/Models/actions'
 import { MODELS_ROLES } from '../../configs/Models/roles'
-import { validationCause, ValidationError } from '../../error'
+import { TechnicalCause, TechnicalError } from '../../error'
 import type { USER_ROLE } from '../../Interfaces/index'
 import { UserModel } from '../../Models/index'
 import { Manager } from './Manager'
@@ -20,7 +20,7 @@ export class ModelsManager extends Manager<USER_ROLE, MODELS_ACTION_LIST> {
 
   protected async _getAccessLevel(name: string): Promise<number> {
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.INVALID)
+    if (!user) throw new TechnicalError('user', TechnicalCause.INVALID)
 
     return this._roles.get(user.role)!
   }

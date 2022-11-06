@@ -5,11 +5,11 @@ import { TEAMS } from '../index'
 import { PLAYERS } from '../MemberManager'
 
 import { MemberList } from '../MemberList'
-import { validationCause, ValidationError } from '../../../error'
 import { getMedian } from '../../../Utils/math'
 
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
+import { TechnicalCause, TechnicalError } from '../../../error'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -24,6 +24,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   constructor(
     private _id: string,
+    private _type: Match.Lobby.Type,
     private _maxCommandSize: number,
     private _controller: Match.Controller,
   ) {
@@ -109,6 +110,10 @@ export class Lobby implements Match.Lobby.Instance {
     return this._members
   }
 
+  get type() {
+    return this._type
+  }
+
   get GRI(): number {
     return getMedian(
       this._commands.get('command1')!.GRI,
@@ -117,9 +122,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get isForGuild(): boolean {
-    return (
-      this.firstCommand.members.isGuild && this.secondCommand.members.isGuild
-    )
+    return this.firstCommand.isGuild && this.secondCommand.isGuild
   }
 
   get firstCommand() {
@@ -139,8 +142,17 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get status() {
-    if (this.members.playersCount < 10) return 'searching'
+    if (this.firstCommand.playersCount + this.secondCommand.playersCount < 10)
+      return 'searching'
     else return this._controller.status
+  }
+
+  get players() {
+    return [...this.firstCommand.players, ...this.secondCommand.players]
+  }
+
+  get playersCount() {
+    return this.firstCommand.playersCount + this.secondCommand.playersCount
   }
 
   set discord(client: DiscordClient) {
@@ -166,7 +178,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   private async _joinWithTeam(name: string): Promise<boolean> {
     let member = await PLAYERS.get(name)
-    if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
+    if (!member) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
     if (!member.teamID) return this.join(member.name)
 
     let team = TEAMS.findById(member.teamID)
@@ -225,7 +237,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   private async _leaveWithTeam(name: string): Promise<boolean> {
     let member = await PLAYERS.get(name)
-    if (!member) throw new ValidationError('member', validationCause.NOT_EXIST)
+    if (!member) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
     if (!member.teamID) return this.leave(member.name)
 
     let team = TEAMS.findById(member.teamID)

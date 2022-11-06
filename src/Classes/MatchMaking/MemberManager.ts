@@ -1,8 +1,8 @@
 import type { Match } from '../../Interfaces/index'
-import { validationCause, ValidationError } from '../../error'
 import { GuildModel, UserModel } from '../../Models/index'
 import { v4 as uuid } from 'uuid'
 import { MemberList } from './MemberList'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 class PlayersManager implements Match.Member.Manager {
   private _players: MemberList = new MemberList()
@@ -11,7 +11,7 @@ class PlayersManager implements Match.Member.Manager {
     let id = uuid()
 
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     let guild = user.guild ? await GuildModel.findById(user.guild) : undefined
     if (guild) guildName = guild.info.name
@@ -51,8 +51,8 @@ class PlayersManager implements Match.Member.Manager {
    * @param entityID имя пользоваетля или его ID
    * @returns статус операции удаления пользователя
    */
-  drop(entityID: string): boolean {
-    let member = this.get(entityID)
+  async drop(entityID: string): Promise<boolean> {
+    let member = await this.get(entityID)
     if (!member) return true
 
     return Boolean(this._players.delete(member))

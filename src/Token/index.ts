@@ -1,20 +1,21 @@
-import type { IDataEscort } from 'gamesocket.io'
+import { DTO } from '../Classes/DTO/DTO'
 
 import jwt = require('jsonwebtoken')
-import { NextFunction, Request } from 'express'
 import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token'
-import { validationCause, ValidationError } from '../error'
+import { TechnicalCause, TechnicalError } from '../error'
+
+import { NextFunction, Request } from 'express'
 
 export function validateToken(req: Request, _: unknown, next: NextFunction) {
   let token = getTokenFromRequest(req)
-  if (!token) next(new ValidationError('token', validationCause.REQUIRED))
+  if (!token) next(new TechnicalError('token', TechnicalCause.REQUIRED))
 
   try {
     let dataFromToken = jwt.verify(token as string, JWT_SECRET)
     req.body.payload = dataFromToken
     return next()
   } catch (e) {
-    next(new ValidationError('token', validationCause.INVALID))
+    next(new TechnicalError('token', TechnicalCause.INVALID))
   }
 }
 
@@ -24,10 +25,10 @@ export function validateToken(req: Request, _: unknown, next: NextFunction) {
  * @param escort
  * @returns расшированный токен, находящийся в поле 'token' JSON-пакета или ошибку валидации
  */
-export function validatePacket(escort: IDataEscort) {
-  let token = escort.get('token')
+export function validatePacket(dto: DTO) {
+  let token = dto.content.token
   if (typeof token != 'string')
-    throw new ValidationError('token', validationCause.REQUIRED)
+    throw new TechnicalError('token', TechnicalCause.INVALID_FORMAT)
 
   return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload
 }

@@ -1,10 +1,5 @@
 import type io from 'gamesocket.io'
-import {
-  ValidationError,
-  validationCause,
-  wsManageCause,
-  WebSocketManageError,
-} from '../error.js'
+import { TechnicalCause, TechnicalError } from '../error.js'
 
 export class WebSocketValidatior {
   constructor(private _app: ReturnType<typeof io>) {}
@@ -13,7 +8,7 @@ export class WebSocketValidatior {
     let socket = this._getSocket(socketID)
 
     if (!socket.isAuth)
-      throw new ValidationError('socket', validationCause.INVALID)
+      throw new TechnicalError('socket', TechnicalCause.INVALID)
   }
 
   public authorizeSocket(socketID: string) {
@@ -23,8 +18,7 @@ export class WebSocketValidatior {
 
   private _getSocket(socketID: string) {
     let socket = this._app.sockets.get(socketID)
-    if (!socket)
-      throw new WebSocketManageError(socketID, wsManageCause.NOT_FOUND)
+    if (!socket) throw new TechnicalError('socket', TechnicalCause.NOT_EXIST)
 
     return socket
   }

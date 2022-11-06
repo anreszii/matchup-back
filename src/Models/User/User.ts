@@ -3,18 +3,19 @@ import type { Types } from 'mongoose'
 
 import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 
-import { ValidationError, validationCause } from '../../error'
-import { Credentials } from './Credentials'
-import { UserLevel as Level } from './BattlePassLevel'
 import { Profile } from './Profile'
-import { generateHash, generatePassword, getRandom } from '../../Utils'
+import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
-import { BPLevelModel, GuildModel, TaskListModel } from '../index'
-import { Guild } from '../Guild/Guild'
+import { UserLevel as Level } from './BattlePassLevel'
+
 import { UserModel } from '../'
-import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
-import { generateName } from '../../Utils/nameGenerator'
+import { Guild } from '../Guild/Guild'
+import { BPLevelModel, GuildModel, TaskListModel } from '../index'
 import { PREFIXES } from '../../configs/prefixes'
+
+import { generateHash, generatePassword, getRandom } from '../../Utils'
+import { generateName } from '../../Utils/nameGenerator'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class User {
   @prop({
@@ -89,9 +90,9 @@ export class User {
     prefix: string,
   ) {
     if (!PREFIXES.includes(prefix))
-      throw new ValidationError('prefix', validationCause.NOT_EXIST)
+      throw new TechnicalError('prefix', TechnicalCause.NOT_EXIST)
     return this.findByName(name).then((user) => {
-      if (!user) throw new ValidationError('user', validationCause.INVALID)
+      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
       user.prefix = prefix
       return user.save().then(() => user)
     })
@@ -153,16 +154,14 @@ export class User {
   /* PASSWORD */
 
   public validatePassword(this: DocumentType<User>, password: string) {
-    if (!password)
-      throw new ValidationError('password', validationCause.REQUIRED)
+    if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     if (this.credentials.password !== generateHash(password))
-      throw new ValidationError('password', validationCause.INVALID)
+      throw new TechnicalError('password', TechnicalCause.INVALID)
   }
 
   public setPassword(this: DocumentType<User>, password: string) {
-    if (!password)
-      throw new ValidationError('password', validationCause.REQUIRED)
+    if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     this.credentials.password = generateHash(password)
     return
@@ -225,12 +224,12 @@ export class User {
   /* RELATION ACTIONS */
 
   public async addRelation(this: DocumentType<User>, name: string) {
-    if (!name) throw new ValidationError('username', validationCause.REQUIRED)
+    if (!name) throw new TechnicalError('name', TechnicalCause.REQUIRED)
     if (this.hasFriend(name))
-      throw new DTOError(PERFORMANCE_ERRORS["can't add relation"])
+      throw new TechnicalError('user relation', TechnicalCause.ALREADY_EXIST)
 
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
       user.addSubscriber(this.profile.username)
@@ -246,14 +245,14 @@ export class User {
   }
 
   public async dropRelation(this: DocumentType<User>, name: string) {
-    if (!name) throw new ValidationError('name', validationCause.REQUIRED)
+    if (!name) throw new TechnicalError('name', TechnicalCause.REQUIRED)
     if (!this.hasFriend(name))
-      throw new DTOError(PERFORMANCE_ERRORS["can't drop relation"])
+      throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.NOT_EXIST)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     if (!user.hasFriend(this.profile.username))
-      throw new DTOError(PERFORMANCE_ERRORS["can't drop relation"])
+      throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
     user.deleteFriend(this.profile.username)
     await user.save()
@@ -268,15 +267,14 @@ export class User {
   public joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
     GuildModel.findById(guildID).then((Guild) => {
       if (!Guild || !Guild.hasMember(this.profile.username))
-        throw new ValidationError('guild', validationCause.NOT_EXIST)
+        throw new TechnicalError('guild', TechnicalCause.NOT_EXIST)
 
       this.guild = guildID
     })
   }
 
   public leaveGuild(this: DocumentType<User>) {
-    if (!this.guild)
-      throw new ValidationError('guild', validationCause.REQUIRED)
+    if (!this.guild) throw new TechnicalError('guild', TechnicalCause.REQUIRED)
     this.guild = undefined
   }
 
@@ -287,7 +285,8 @@ export class User {
   }
 
   public buy(this: DocumentType<User>, itemPrice: number) {
-    if (itemPrice < 0) throw new DTOError(PERFORMANCE_ERRORS['low balance'])
+    if (itemPrice < 0)
+      throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
     this.profile.balance -= itemPrice
   }
 

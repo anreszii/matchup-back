@@ -6,8 +6,7 @@ import { API_ROLES } from '../../configs/API/roles'
 import { API_ACTIONS } from '../../configs/API/actions'
 
 import { UserModel } from '../../Models/index'
-
-import { validationCause, ValidationError } from '../../error'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class APIManager extends Manager<ROLE_LIST, API_ACTION_LIST> {
   _roles = API_ROLES
@@ -19,7 +18,7 @@ export class APIManager extends Manager<ROLE_LIST, API_ACTION_LIST> {
   }
   protected async _getAccessLevel(name: string) {
     let user = await UserModel.findByName(name)
-    if (!user) throw new ValidationError('user', validationCause.INVALID)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     return this._roles.get(user.role)!
   }

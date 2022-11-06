@@ -1,12 +1,11 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
-import { validationCause, ValidationError } from '../../error'
 import { UserModel, GuildModel } from '../index'
 import { Info } from './GuildInfo'
 import { Member, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
-import { DTOError, PERFORMANCE_ERRORS } from '../../Classes/DTO/error'
 import { generateGuildName } from '../../Utils/nameGenerator'
 import { getRandom } from '../../Utils/math'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class Guild {
   @prop({ required: true, default: [], type: () => String })
@@ -62,7 +61,7 @@ export class Guild {
     ownerName: string,
   ) {
     let user = await UserModel.findByName(ownerName)
-    if (!user) throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     user.buy(PRICE_OF_GUILD_CREATION)
 
     let guild = new this({
@@ -119,7 +118,7 @@ export class Guild {
 
       case false: {
         if (User.GRI < this.info.requiredMPR)
-          throw new DTOError(PERFORMANCE_ERRORS['low mpr'])
+          throw new TechnicalError('mpr', TechnicalCause.NEED_HIGHER_VALUE)
 
         let member = new Member()
         ;(member.name = memberName), (member.id = User)
@@ -153,13 +152,13 @@ export class Guild {
     let executor = this.findMemberByName(executorName)
     let member = this.findMemberByName(memberName)
     if (!executor || !member)
-      throw new DTOError(PERFORMANCE_ERRORS['wrong document'])
+      throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('changeRole'))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
+      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
 
     if (executor.role <= newRole || member.role == newRole)
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
+      throw new TechnicalError('access lebe', TechnicalCause.NEED_HIGHER_VALUE)
     member.role = newRole
     return this.save()
   }
@@ -170,15 +169,14 @@ export class Guild {
     newName: string,
   ) {
     let executor = this.findMemberByName(executorName)
-    if (!executor)
-      throw new ValidationError('member', validationCause.NOT_EXIST)
+    if (!executor) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('changeName'))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
+      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
 
     if (newName == this.info.name) return false
     if (await GuildModel.findByName(newName))
-      throw new ValidationError('guild', validationCause.ALREADY_EXIST)
+      throw new TechnicalError('guild', TechnicalCause.ALREADY_EXIST)
 
     this.info.name = newName
     await this.validate()
@@ -191,15 +189,14 @@ export class Guild {
     newTag: string,
   ) {
     let executor = this.findMemberByName(executorName)
-    if (!executor)
-      throw new ValidationError('member', validationCause.NOT_EXIST)
+    if (!executor) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
 
     if (!executor.hasRightToExecute('changeTag'))
-      throw new DTOError(PERFORMANCE_ERRORS['wrong access level'])
+      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
 
     if (newTag == this.info.tag) return false
     if (await GuildModel.findByTag(newTag))
-      throw new ValidationError('guild tag', validationCause.ALREADY_EXIST)
+      throw new TechnicalError('guild', TechnicalCause.ALREADY_EXIST)
 
     this.info.tag = newTag
     await this.validate()

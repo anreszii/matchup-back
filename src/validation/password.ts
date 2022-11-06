@@ -1,8 +1,8 @@
-import { ValidationError, validationCause } from '../error.js'
 import validator from 'validator'
+import { TechnicalCause, TechnicalError } from '../error'
 
 export function validatePasswordFormat(password: string) {
-  if (!password) throw new ValidationError('password', validationCause.REQUIRED)
+  if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
   if (
     !validator.isStrongPassword(password, {
       minLength: 8,
@@ -12,5 +12,5 @@ export function validatePasswordFormat(password: string) {
       minSymbols: 0,
     })
   )
-    throw new ValidationError('password', validationCause.INVALID_FORMAT)
+    throw new TechnicalError('password', TechnicalCause.INVALID_FORMAT)
 }

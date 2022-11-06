@@ -1,9 +1,8 @@
 import { DocumentType, prop } from '@typegoose/typegoose'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 import { GuildModel, UserModel } from '../index'
 import { RatingRecord as Record } from './Record'
-
-import { validationCause, ValidationError } from '../../error'
 
 type ratingType = 'user' | 'guild'
 
@@ -59,7 +58,7 @@ export class Leaderboard {
         return this._createGuildRecords()
 
       default:
-        throw new ValidationError('leaderboard type', validationCause.INVALID)
+        throw new TechnicalError('leaderboard type', TechnicalCause.INVALID)
     }
   }
 
