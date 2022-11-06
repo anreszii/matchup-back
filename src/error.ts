@@ -7,9 +7,9 @@ export const enum TechnicalCause {
   REQUIRED = 'value is required',
   NOT_EXIST = `value doesn't exist`,
   ALREADY_EXIST = `value already exist`,
-  CAN_NOT_ADD = `can't add value`,
-  CAN_NOT_DELETE = `can't delete value`,
-  CAN_NOT_UPDATE = `can't update value`,
+  CAN_NOT_ADD = `value can't be added`,
+  CAN_NOT_DELETE = `value can't be deleted`,
+  CAN_NOT_UPDATE = `value can't be updated`,
   NEED_HIGHER_VALUE = `value must be higher`,
   NEED_LOWER_VALUE = `value must be lower`,
 }
