@@ -1,4 +1,4 @@
-import type { SyscallQuery } from '../../index'
+import type { SyscallQuery } from '../../Handlers/queries'
 
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { MODELS } from '../../../../Models/index'

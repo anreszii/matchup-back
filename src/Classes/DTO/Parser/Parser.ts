@@ -36,23 +36,15 @@ class To implements FormatTo {
 
 class From implements FormatFrom {
   JSON(value: unknown): DTO {
-    try {
-      if (!value || typeof value != 'string')
-        throw new ServerError(ServerCause.INVALID_DTO)
-      return this.Object(JSON.parse(value))
-    } catch (e) {
+    if (!value || typeof value != 'string')
       throw new ServerError(ServerCause.INVALID_DTO)
-    }
+    return this.Object(JSON.parse(value))
   }
 
   Object(value: unknown): DTO {
-    try {
-      if (!value || typeof value != 'object')
-        throw new ServerError(ServerCause.INVALID_DTO)
-      return new DTO(value)
-    } catch (e) {
+    if (!value || typeof value != 'object')
       throw new ServerError(ServerCause.INVALID_DTO)
-    }
+    return new DTO(value)
   }
 }
 

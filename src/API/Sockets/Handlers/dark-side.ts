@@ -8,7 +8,6 @@ import { API_ACTION_LIST, isValidAPIAction } from '../../../configs/API/actions'
 
 import {
   isMatchUpError,
-  MatchUpError,
   ServerCause,
   ServerError,
   TechnicalCause,

@@ -1,8 +1,8 @@
 import type { Match } from '../../../Interfaces'
 import { OneTypeArray } from '../../OneTypeArray'
 import { Team } from './Team'
-import { CHATS } from '../../index'
 import { PLAYERS } from '../MemberManager'
+import { CHATS } from '../../Chat/Manager'
 
 class TeamManager implements Match.Member.Team.Manager {
   private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()

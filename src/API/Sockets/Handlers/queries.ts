@@ -3,7 +3,6 @@ import { MODELS } from '../../../Models/index'
 import { clientServer } from '../clientSocketServer'
 import { WS_SERVER } from '../../../app'
 
-import { WebSocketValidatior } from '../../../validation/index'
 import {
   isMatchUpError,
   ServerCause,
@@ -17,6 +16,7 @@ import { get } from '../Controllers/query/get'
 import { set } from '../Controllers/query/set'
 import { syscall } from '../Controllers/query/syscall'
 import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
+import { WebSocketValidatior } from '../../../validation/websocket'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 

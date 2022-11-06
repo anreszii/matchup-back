@@ -1,10 +1,11 @@
 import type { Match, Chat } from '../../../Interfaces/index'
-import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
 import { getMedian } from '../../../Utils/math'
-import { TEAMS } from '../index'
+
 import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
 import { COMMANDS } from './Manager'
+import { TEAMS } from '../Team/Manager'
+import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
 
 export class Command implements Match.Lobby.Command.Instance {
   private _members: MemberList = new MemberList()
@@ -84,7 +85,7 @@ export class Command implements Match.Lobby.Command.Instance {
     name: string,
     command: Match.Lobby.Command.Instance | Match.Lobby.Command.Types | number,
   ) {
-    let lobby = StandOffLobbies.get(this._lobbyID)
+    let lobby = StandOff_Lobbies.get(this._lobbyID)
     if (!lobby) return false
     switch (typeof command) {
       case 'number':

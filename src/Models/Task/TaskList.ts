@@ -6,12 +6,13 @@ import {
   STATIC_DATA,
   STATIC_TASK,
 } from '../../configs/task_reward'
-import { Reward, UserModel } from '../index'
+import { UserModel } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
 import { TaskModel } from '../'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { Reward } from '../Reward'
 
 export class TaskList {
   @prop({ required: true, ref: () => User })

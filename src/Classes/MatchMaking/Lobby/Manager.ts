@@ -1,5 +1,5 @@
 import type { Match } from '../../../Interfaces'
-import type { DiscordClient } from '../../Discord/Client'
+import { DiscordClient } from '../../Discord/Client'
 
 import { v4 as uuid } from 'uuid'
 import { Lobby } from './Lobby'

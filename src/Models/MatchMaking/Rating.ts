@@ -1,7 +1,7 @@
 import { Match } from '../../Interfaces'
 import { prop } from '@typegoose/typegoose'
-import { RatingCalculator } from '../../Classes'
 import { Statistic } from './Statistic'
+import { RatingCalculator } from '../../Classes/MatchMaking/Rating/Calculator'
 
 export class Rating {
   @prop({ required: true, default: 0 })

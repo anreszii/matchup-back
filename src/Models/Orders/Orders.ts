@@ -3,9 +3,9 @@ import type { Types } from 'mongoose'
 import { prop, ReturnModelType } from '@typegoose/typegoose'
 import { v4 as uuid } from 'uuid'
 import { UserModel } from '../index'
-import { User } from '../User'
 import { getRandom } from '../../Utils/math'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { User } from '../User/User'
 
 export class OrderList {
   @prop({ required: true, unique: true })

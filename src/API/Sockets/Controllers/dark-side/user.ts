@@ -2,10 +2,9 @@ import type { WebSocket } from 'uWebSockets.js'
 
 import { clientServer } from '../../clientSocketServer'
 import { TechnicalCause, TechnicalError } from '../../../../error'
-
-import { UserModel } from '../../../../Models'
 import { CONTROLLERS } from '../../Handlers/dark-side'
 import { DTO } from '../../../../Classes/DTO/DTO'
+import { UserModel } from '../../../../Models/index'
 
 /**
  * Событие для начала отношений с дргиум пользователем. </br>

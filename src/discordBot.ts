@@ -3,7 +3,7 @@ import type { Collection, Guild, GuildMember } from 'discord.js'
 import { VoiceState } from 'discord.js'
 import { guardCommandVoice } from './API/Discord/commandVoiceChatGuard'
 import { distribute } from './API/Discord/distributor'
-import { DiscordClient } from './Classes/Discord'
+import { DiscordClient } from './Classes/Discord/Client'
 import { StateManager } from './Classes/Discord/StateManager'
 
 export function init(token: string) {

@@ -1,5 +1,5 @@
 import type { ModelType } from '@typegoose/typegoose/lib/types'
-import type { Query } from '../../index'
+import type { Query } from '../../Handlers/queries'
 
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../../../error'

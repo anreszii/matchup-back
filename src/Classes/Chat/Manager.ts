@@ -1,5 +1,5 @@
 import type { Chat } from '../../Interfaces'
-import { ChatInstance } from '../'
+import { ChatInstance } from '../Chat/Instance'
 import { Factory } from './Controllers'
 
 export class ChatManager implements Chat.Manager {

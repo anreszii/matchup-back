@@ -1,12 +1,16 @@
 import type { ModelType } from '@typegoose/typegoose/lib/types'
 import { getModelForClass } from '@typegoose/typegoose'
-import { User } from './User'
-import { TaskList, Task } from './Task'
-import { Guild } from './Guild'
-import { Rating, MatchList, ReportList } from './MatchMaking'
+
 import { OrderList } from './Orders/Orders'
 import { StaticTask } from './Task/Types/Static'
 import { DynamicTask } from './Task/Types/Dynamic'
+import { User } from './User/User'
+import { Task } from './Task/Task'
+import { TaskList } from './Task/TaskList'
+import { Guild } from './Guild/Guild'
+import { Rating } from './MatchMaking/Rating'
+import { MatchList } from './MatchMaking/MatchList'
+import { ReportList } from './MatchMaking/Reports'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -18,13 +22,6 @@ export const MatchListModel = getModelForClass(MatchList)
 export const OrderListModel = getModelForClass(OrderList)
 export const StaticTaskModel = getModelForClass(StaticTask)
 export const DynamicTaskModel = getModelForClass(DynamicTask)
-
-export * from './User'
-export * from './Task'
-export * from './Guild'
-export * from './MatchMaking'
-export * from './GlobalStatistic'
-export * from './Reward'
 
 export const MODELS: Map<string, ModelType<any, any>> = new Map()
 MODELS.set(UserModel.modelName, UserModel)

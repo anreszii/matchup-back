@@ -2,11 +2,13 @@ import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token'
 
 import { MatchListModel, UserModel } from '../../Models'
-import { SMTP, Mail, generatePassword } from '../../Utils'
-import { validatePasswordFormat } from '../../validation'
-import { StandOffLobbies } from '../Sockets/Controllers/index'
+
 import { Match } from '../../Interfaces/index'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { validatePasswordFormat } from '../../validation/password'
+import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
+import { Mail, SMTP } from '../../Utils/smtp'
+import { generatePassword } from '../../Utils/passwordGenerator'
 
 let router = Router()
 
@@ -170,7 +172,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     if (!match_id || typeof match_id != 'string')
       throw new TechnicalError('match_id', TechnicalCause.REQUIRED)
 
-    let lobby = StandOffLobbies.get(match_id)
+    let lobby = StandOff_Lobbies.get(match_id)
     if (!lobby) throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
 
     let matchData = await MatchListModel.findOne({ id: match_id })

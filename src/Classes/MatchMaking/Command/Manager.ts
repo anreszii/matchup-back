@@ -3,8 +3,8 @@ import { OneTypeArray } from '../../OneTypeArray'
 import { Command } from './Command'
 import { CHATS } from '../../Chat/Manager'
 import { PLAYERS } from '../MemberManager'
-import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
-import { TEAMS } from '../index'
+import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
+import { TEAMS } from '../Team/Manager'
 
 class CommandManager implements Match.Lobby.Command.Manager {
   private _commands: OneTypeArray<Match.Lobby.Command.Instance> =
@@ -52,7 +52,7 @@ class CommandManager implements Match.Lobby.Command.Manager {
     if (fromCommand.lobbyID != toCommand.lobbyID) return false
     if (!fromCommand.has(name)) return false
 
-    let lobby = StandOffLobbies.get(fromCommand.lobbyID)
+    let lobby = StandOff_Lobbies.get(fromCommand.lobbyID)
     if (!lobby || lobby.type == 'rating') return false
 
     if (fromCommand.isOneTeam || toCommand.isOneTeam) return false

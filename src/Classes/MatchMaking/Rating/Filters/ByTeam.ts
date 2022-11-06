@@ -1,5 +1,5 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
-import { TEAMS } from '../../index'
+import { TEAMS } from '../../Team/Manager'
 
 export class TeamFilter implements Rating.SearchEngine.Filter {
   private _ID!: number

@@ -8,15 +8,17 @@ import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
 import { UserLevel as Level } from './BattlePassLevel'
 
-import { UserModel } from '../'
+import { GuildModel, TaskListModel, UserModel } from '../'
 import { Guild } from '../Guild/Guild'
-import { BPLevelModel, GuildModel, TaskListModel } from '../index'
 import { PREFIXES } from '../../configs/prefixes'
 
-import { generateHash, generatePassword, getRandom } from '../../Utils'
+import { generatePassword } from '../../Utils/passwordGenerator'
 import { generateName } from '../../Utils/nameGenerator'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { RelationRecord } from './Relations'
+import { BPLevelModel } from '../Task/BattlePassLevel'
+import { generateHash } from '../../Utils/hashGenerator'
+import { getRandom } from '../../Utils/math'
 
 export class User {
   @prop({

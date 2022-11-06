@@ -1,31 +1,37 @@
 import type { WebSocket } from 'uWebSockets.js'
-
-import * as MatchMaking from '../../../../Classes/MatchMaking'
 import { Match, Rating } from '../../../../Interfaces/index'
-import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
-import { CHATS, isCorrectType, SearchEngine, TEAMS } from '../../../../Classes'
 
 import { clientServer } from '../../clientSocketServer'
-import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
 
-import { DiscordClient } from '../../../../Classes/Discord/Client'
-import { TechnicalCause, TechnicalError } from '../../../../error'
 import { DTO } from '../../../../Classes/DTO/DTO'
-import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
-import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
+import { TechnicalCause, TechnicalError } from '../../../../error'
+
+import { CHATS } from '../../../../Classes/Chat/Manager'
+import { DiscordClient } from '../../../../Classes/Discord/Client'
+
+import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
 import { GAME_MAPS } from '../../../../configs/standoff_maps'
+
+import { SearchEngine } from '../../../../Classes/MatchMaking/Rating/SearchEngine'
+import { LobbyManager } from '../../../../Classes/MatchMaking/Lobby/Manager'
+import { isCorrectType } from '../../../../Classes/MatchMaking/Lobby/Lobby'
+import { TEAMS } from '../../../../Classes/MatchMaking/Team/Manager'
+import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
+import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
+import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
+import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
-export const StandOffLobbies = new MatchMaking.LobbyManager(
-  new MatchMaking.StandOffController(),
+export const StandOff_Lobbies = new LobbyManager(
+  new StandOffController(),
   dsClient,
 )
 
-const Searcher = new SearchEngine(StandOffLobbies)
+const Searcher = new SearchEngine(StandOff_Lobbies)
 
 setInterval(async () => {
-  for (let lobby of StandOffLobbies.lobbies) {
+  for (let lobby of StandOff_Lobbies.lobbies) {
     if (!lobby.chat) await createChatForLobby(lobby.id)
     if (lobby.status == 'filled') sendReadyIventToLobby(lobby)
     if (lobby.status == 'voting') sendVoteIventToLobby(lobby)
@@ -103,7 +109,7 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
 CONTROLLERS.set('find_lobby', find_lobby)
 
 /**
- * Контроллер для получения текущего количества лобби.</br>
+ * Контроллер для подтверждение входа в лобби.</br>
  *
  * @category Lobby
  * @event
@@ -115,7 +121,7 @@ export async function ready(socket: WebSocket, params: unknown[]) {
   if (!member.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(member.lobbyID)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -128,7 +134,7 @@ export async function ready(socket: WebSocket, params: unknown[]) {
 CONTROLLERS.set('get_ready', ready)
 
 /**
- * Контроллер для смены команды.</br>
+ * Контроллер для голосования за выбор карты(доступно только капитанам).</br>
  * @param params - ["map"]
  * - map может принимать значения, которые можно получить из контроллера get_maps
  *
@@ -146,7 +152,7 @@ export async function vote(socket: WebSocket, params: unknown[]) {
   if (!member.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(member.lobbyID)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -157,14 +163,13 @@ export async function vote(socket: WebSocket, params: unknown[]) {
       'member command role',
       TechnicalCause.NEED_HIGHER_VALUE,
     )
+  sendVoteIventToLobby(lobby)
   return true
 }
 CONTROLLERS.set('vote', vote)
 
 /**
- * Контроллер для смены команды.</br>
- * @param params - ["map"]
- * - map может принимать значения, которые можно получить из контроллера get_maps
+ * Контроллер для получения доступных карт.</br>
  *
  * @category Lobby
  * @event
@@ -182,7 +187,7 @@ CONTROLLERS.set('get_maps', get_maps)
  * @category Lobby
  * @event
  */
-export async function changeCommand(socket: WebSocket, params: unknown[]) {
+export async function change_command(socket: WebSocket, params: unknown[]) {
   let command = params[0]
   if (!isCorrectCommand(command))
     throw new TechnicalError('command', TechnicalCause.INVALID_FORMAT)
@@ -192,7 +197,7 @@ export async function changeCommand(socket: WebSocket, params: unknown[]) {
   if (!member.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(member.lobbyID)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -202,15 +207,15 @@ export async function changeCommand(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('member command', TechnicalCause.CAN_NOT_UPDATE)
   return true
 }
-CONTROLLERS.set('change_command', changeCommand)
+CONTROLLERS.set('change_command', change_command)
 
 /**
- * Контроллер для получения текущего капитана.</br>
+ * Контроллер для получения текущего капитана команды.</br>
  * @returns имя капитана команды игрока
  * @category Lobby
  * @event
  */
-export async function getCaptain(socket: WebSocket, params: unknown[]) {
+export async function get_captain(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
@@ -225,7 +230,7 @@ export async function getCaptain(socket: WebSocket, params: unknown[]) {
 
   return command.captain
 }
-CONTROLLERS.set('get_captain', getCaptain)
+CONTROLLERS.set('get_captain', get_captain)
 
 /**
  * Обработчик для приглашения игрока в лобби.
@@ -254,7 +259,7 @@ export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
   if (!member.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(member.lobbyID)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -295,7 +300,7 @@ export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
   if (typeof lobbyID != 'string')
     throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
 
-  let lobby = StandOffLobbies.get(lobbyID)
+  let lobby = StandOff_Lobbies.get(lobbyID)
   if (!lobby) throw new TechnicalError('lobbyID', TechnicalCause.NOT_EXIST)
 
   if (!(await lobby.join(socket.username))) return
@@ -326,7 +331,7 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
   if (!member.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOffLobbies.get(member.lobbyID)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
   if (!lobby) {
     member.lobbyID = undefined
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -356,7 +361,7 @@ export async function get_lobby_players_count(
   if (typeof lobbyID != 'string')
     throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
 
-  let lobby = StandOffLobbies.get(lobbyID)
+  let lobby = StandOff_Lobbies.get(lobbyID)
   if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
   return lobby.playersCount
@@ -376,10 +381,10 @@ export async function get_lobby_count(socket: WebSocket, params: unknown[]) {
   if (typeof lobbyID != 'string')
     throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
 
-  let lobby = StandOffLobbies.get(lobbyID)
+  let lobby = StandOff_Lobbies.get(lobbyID)
   if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-  return StandOffLobbies.lobbies.length
+  return StandOff_Lobbies.lobbies.length
 }
 CONTROLLERS.set('get_lobby_count', get_lobby_count)
 
@@ -454,13 +459,13 @@ function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
 }
 
 async function createChatForLobby(lobbyID: string) {
-  let lobby = StandOffLobbies.get(lobbyID)!
+  let lobby = StandOff_Lobbies.get(lobbyID)!
   lobby.chat = CHATS.spawn('gamesocket.io', `lobby#${lobbyID}`, {
     namespace: process.env.CLIENT_NAMESPACE!,
     room: `lobby#${lobbyID}`,
   })
 
-  updateLobbyChatMembers(StandOffLobbies.get(lobbyID)!)
+  updateLobbyChatMembers(StandOff_Lobbies.get(lobbyID)!)
   return lobby.chat
 }
 

@@ -78,11 +78,11 @@ export class Guild {
     this: ReturnModelType<typeof Guild>,
     guildName: string,
   ) {
-    return this.findOne({ 'info.name': guildName })
+    return this.findOne({ 'info.name': guildName }).exec()
   }
 
   static async findByTag(this: ReturnModelType<typeof Guild>, tag: string) {
-    return this.findOne({ 'info.tag': tag })
+    return this.findOne({ 'info.tag': tag }).exec()
   }
 
   findMemberByName(name: string) {

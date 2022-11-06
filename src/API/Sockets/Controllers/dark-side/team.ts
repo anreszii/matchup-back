@@ -1,7 +1,7 @@
 import type { WebSocket } from 'uWebSockets.js'
+import { TEAMS } from '../../../../Classes/MatchMaking/Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../../error'
 import { CONTROLLERS } from '../../Handlers/dark-side'
-import { TEAMS } from '../../../../Classes/index'
 
 /**
  * Обработчик для создания временной команды.</br>

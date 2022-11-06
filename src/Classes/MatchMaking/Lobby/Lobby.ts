@@ -1,7 +1,6 @@
 import type { Chat, Match, Rating } from '../../../Interfaces/index'
 
 import { COMMANDS } from '../Command/Manager'
-import { TEAMS } from '../index'
 import { PLAYERS } from '../MemberManager'
 
 import { MemberList } from '../MemberList'
@@ -11,6 +10,7 @@ import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
+import { TEAMS } from '../Team/Manager'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS

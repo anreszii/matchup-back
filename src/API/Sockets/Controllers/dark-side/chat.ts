@@ -1,7 +1,7 @@
 import type { WebSocket } from 'uWebSockets.js'
+import { CHATS } from '../../../../Classes/Chat/Manager'
 import { TechnicalCause, TechnicalError } from '../../../../error'
-import { CHATS } from '../../../../Classes/index'
-import { CONTROLLERS } from '../../index'
+import { CONTROLLERS } from '../../Handlers/dark-side'
 
 /**
  * Событие для отправки сообщения в лобби.</br>
