@@ -13,8 +13,8 @@ import { TechnicalCause, TechnicalError } from '../../../../error'
 
 let ModelsRoleManager = new ModelsManager()
 
-export async function syscall(request: DTO): Promise<DTO> {
-  let query = request.content.query as unknown as SyscallQuery
+export async function syscall(request: DTO) {
+  const query = request.content.query as unknown as SyscallQuery
   switch (typeof query.model) {
     case 'undefined': {
       let results: Array<Promise<unknown>> = []
@@ -28,31 +28,23 @@ export async function syscall(request: DTO): Promise<DTO> {
         )
       }
 
-      Promise.all(results).then((results) => {
-        for (let result of results)
-          if (result && result !== true)
-            return new DTO({ label: request.label, response: results })
-
+      return Promise.all(results).then((results) => {
         let response: Array<{ model: string; result: unknown }> = []
-        for (let i = 0; i < names.length; i++) {
+        for (let i = 0; i < names.length; i++)
           response.push({ model: names[i], result: results[i] })
-        }
-        return new DTO({
-          label: request.label,
-          status: 'success',
-        })
+        return response
       })
     }
 
     case 'string': {
-      let model = MODELS.get(query.model as string) as any
-      if (!model) throw new TechnicalError('model', TechnicalCause.INVALID)
+      const model = MODELS.get(query.model as string) as any
+      if (!model) throw new TechnicalError('model', TechnicalCause.NOT_EXIST)
 
-      let action = `${query.model}/${query.execute.function}`
+      const action = `${query.model}/${query.execute.function}`
       if (!isValidModelAction(action))
         throw new TechnicalError('action', TechnicalCause.NOT_EXIST)
 
-      let hasAccess = ModelsRoleManager.hasAccess(
+      const hasAccess = ModelsRoleManager.hasAccess(
         request.content.username as string,
         action as MODELS_ACTION_LIST,
       )
@@ -64,19 +56,11 @@ export async function syscall(request: DTO): Promise<DTO> {
 
       switch (typeof query.filter) {
         case 'undefined':
-          let result = await model[query.execute.function].call(
+          return await model[query.execute.function].call(
             model,
             ...query.execute.params,
           )
 
-          if (!result || result == true)
-            return new DTO({ label: request.label, status: 'success' })
-          return new DTO({
-            label: request.label,
-            response: {
-              ...result,
-            },
-          })
         case 'object':
           return model.findOne(query.filter).then(async (document: any) => {
             if (!document)
@@ -88,13 +72,7 @@ export async function syscall(request: DTO): Promise<DTO> {
             )
             await document.save()
 
-            if (!result || result == true)
-              return new DTO({ label: request.label, status: 'success' })
-
-            return new DTO({
-              label: request.label,
-              callResult: { ...result },
-            })
+            return result
           })
       }
     }
