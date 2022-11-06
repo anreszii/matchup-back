@@ -23,7 +23,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="tsd-signature-type">Instance</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L14">src/Classes/MatchMaking/Lobby/Lobby.ts:14</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L15">src/Classes/MatchMaking/Lobby/Lobby.ts:15</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -33,10 +33,14 @@
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="Classes.Lobby.html#region" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>region</span></a>
 <a href="Classes.Lobby.html#_game" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_game</span></a>
+<a href="Classes.Lobby.html#_prepareStageStarted" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_prepare<wbr/>Stage<wbr/>Started?</span></a>
 <a href="Classes.Lobby.html#_members" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_members</span></a>
 <a href="Classes.Lobby.html#_commands" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_commands</span></a>
+<a href="Classes.Lobby.html#_votes" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_votes</span></a>
+<a href="Classes.Lobby.html#_map" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_map?</span></a>
 <a href="Classes.Lobby.html#_chat" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_chat</span></a>
 <a href="Classes.Lobby.html#_discordClient" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_discord<wbr/>Client</span></a>
+<a href="Classes.Lobby.html#_status" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_status</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Constructors</h3>
@@ -46,22 +50,31 @@
 <h3 class="tsd-index-heading">Methods</h3>
 <div class="tsd-index-list"><a href="Classes.Lobby.html#start" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-2048-path"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)" id="icon-2048-text"></path></svg><span>start</span></a>
 <a href="Classes.Lobby.html#stop" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>stop</span></a>
+<a href="Classes.Lobby.html#vote" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>vote</span></a>
+<a href="Classes.Lobby.html#move" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>move</span></a>
 <a href="Classes.Lobby.html#join" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>join</span></a>
 <a href="Classes.Lobby.html#leave" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>leave</span></a>
 <a href="Classes.Lobby.html#canAddTeam" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>can<wbr/>Add<wbr/>Team</span></a>
 <a href="Classes.Lobby.html#hasSpace" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>has<wbr/>Space</span></a>
+<a href="Classes.Lobby.html#becomeReady" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>become<wbr/>Ready</span></a>
 <a href="Classes.Lobby.html#_joinWithTeam" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>With<wbr/>Team</span></a>
-<a href="Classes.Lobby.html#_joinCommand" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Command</span></a>
-<a href="Classes.Lobby.html#_joinChat" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Chat</span></a>
-<a href="Classes.Lobby.html#_joinDiscrod" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Discrod</span></a>
 <a href="Classes.Lobby.html#_leaveWithTeam" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_leave<wbr/>With<wbr/>Team</span></a>
+<a href="Classes.Lobby.html#_joinCommand" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Command</span></a>
 <a href="Classes.Lobby.html#_leaveCommand" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_leave<wbr/>Command</span></a>
+<a href="Classes.Lobby.html#_joinChat" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Chat</span></a>
 <a href="Classes.Lobby.html#_leaveChat" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_leave<wbr/>Chat</span></a>
+<a href="Classes.Lobby.html#_joinDiscrod" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_join<wbr/>Discrod</span></a>
 <a href="Classes.Lobby.html#_leaveDiscord" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_leave<wbr/>Discord</span></a>
+<a href="Classes.Lobby.html#_checkStatus" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_check<wbr/>Status</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Accessors</h3>
-<div class="tsd-index-list"><a href="Classes.Lobby.html#id" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D4D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-262144-path"></rect><path d="M8.85 16L11.13 7.24H12.582L14.85 16H13.758L13.182 13.672H10.53L9.954 16H8.85ZM10.746 12.76H12.954L12.282 10.06C12.154 9.548 12.054 9.12 11.982 8.776C11.91 8.432 11.866 8.208 11.85 8.104C11.834 8.208 11.79 8.432 11.718 8.776C11.646 9.12 11.546 9.544 11.418 10.048L10.746 12.76Z" fill="var(--color-text)" id="icon-262144-text"></path></svg><span>id</span></a>
+<div class="tsd-index-list"><a href="Classes.Lobby.html#isVotingStageEnd" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D4D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-262144-path"></rect><path d="M8.85 16L11.13 7.24H12.582L14.85 16H13.758L13.182 13.672H10.53L9.954 16H8.85ZM10.746 12.76H12.954L12.282 10.06C12.154 9.548 12.054 9.12 11.982 8.776C11.91 8.432 11.866 8.208 11.85 8.104C11.834 8.208 11.79 8.432 11.718 8.776C11.646 9.12 11.546 9.544 11.418 10.048L10.746 12.76Z" fill="var(--color-text)" id="icon-262144-text"></path></svg><span>is<wbr/>Voting<wbr/>Stage<wbr/>End</span></a>
+<a href="Classes.Lobby.html#votes" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>votes</span></a>
+<a href="Classes.Lobby.html#map" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>map</span></a>
+<a href="Classes.Lobby.html#readyToStart" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>ready<wbr/>To<wbr/>Start</span></a>
+<a href="Classes.Lobby.html#commands" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>commands</span></a>
+<a href="Classes.Lobby.html#id" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>id</span></a>
 <a href="Classes.Lobby.html#game" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>game</span></a>
 <a href="Classes.Lobby.html#members" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>members</span></a>
 <a href="Classes.Lobby.html#type" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>type</span></a>
@@ -74,8 +87,10 @@
 <a href="Classes.Lobby.html#status" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>status</span></a>
 <a href="Classes.Lobby.html#players" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>players</span></a>
 <a href="Classes.Lobby.html#playersCount" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>players<wbr/>Count</span></a>
+<a href="Classes.Lobby.html#isReady" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>is<wbr/>Ready</span></a>
 <a href="Classes.Lobby.html#discord" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>discord</span></a>
 <a href="Classes.Lobby.html#chat" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>chat</span></a>
+<a href="Classes.Lobby.html#_mapFromVotes" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>_map<wbr/>From<wbr/>Votes</span></a>
 <a href="Classes.Lobby.html#_commandWithSpace" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>_command<wbr/>With<wbr/>Space</span></a>
 <a href="Classes.Lobby.html#_maxTeamSize" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>_max<wbr/>Team<wbr/>Size</span></a>
 </div></section></div></details></section></section>
@@ -86,32 +101,52 @@
 <div class="tsd-signature">region<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">SUPPORTED_REGIONS</span></div><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.region</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L15">src/Classes/MatchMaking/Lobby/Lobby.ts:15</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L16">src/Classes/MatchMaking/Lobby/Lobby.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_game" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_game</span><a href="#_game" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_game<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;StandOff2&quot;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L16">src/Classes/MatchMaking/Lobby/Lobby.ts:16</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L17">src/Classes/MatchMaking/Lobby/Lobby.ts:17</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_prepareStageStarted" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>_prepare<wbr/>Stage<wbr/>Started</span><a href="#_prepareStageStarted" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">_prepare<wbr/>Stage<wbr/>Started<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L18">src/Classes/MatchMaking/Lobby/Lobby.ts:18</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_members" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_members</span><a href="#_members" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_members<span class="tsd-signature-symbol">:</span> <a href="Classes.MemberList.html" class="tsd-signature-type" data-tsd-kind="Class">MemberList</a><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L17">src/Classes/MatchMaking/Lobby/Lobby.ts:17</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L19">src/Classes/MatchMaking/Lobby/Lobby.ts:19</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_commands" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_commands</span><a href="#_commands" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_commands<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Types</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L18">src/Classes/MatchMaking/Lobby/Lobby.ts:18</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L20">src/Classes/MatchMaking/Lobby/Lobby.ts:20</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_votes" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_votes</span><a href="#_votes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">_votes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>command<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;command1&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;command2&quot;</span><span class="tsd-signature-symbol">; </span>map<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L24">src/Classes/MatchMaking/Lobby/Lobby.ts:24</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_map" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>_map</span><a href="#_map" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">_map<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L28">src/Classes/MatchMaking/Lobby/Lobby.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_chat" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_chat</span><a href="#_chat" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_chat<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Instance</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L22">src/Classes/MatchMaking/Lobby/Lobby.ts:22</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L29">src/Classes/MatchMaking/Lobby/Lobby.ts:29</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_discordClient" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_discord<wbr/>Client</span><a href="#_discordClient" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_discord<wbr/>Client<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">DiscordClient</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L23">src/Classes/MatchMaking/Lobby/Lobby.ts:23</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L30">src/Classes/MatchMaking/Lobby/Lobby.ts:30</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_status" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_status</span><a href="#_status" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">_status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Status</span><span class="tsd-signature-symbol"> = &#39;searching&#39;</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L31">src/Classes/MatchMaking/Lobby/Lobby.ts:31</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
@@ -132,7 +167,7 @@
 <h5>_controller: <span class="tsd-signature-type">Controller</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Classes.Lobby.html" class="tsd-signature-type" data-tsd-kind="Class">Lobby</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L25">src/Classes/MatchMaking/Lobby/Lobby.ts:25</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L33">src/Classes/MatchMaking/Lobby/Lobby.ts:33</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="start" class="tsd-anchor"></a>
@@ -143,7 +178,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.start</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L50">src/Classes/MatchMaking/Lobby/Lobby.ts:50</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L58">src/Classes/MatchMaking/Lobby/Lobby.ts:58</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="stop" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>stop</span><a href="#stop" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -152,7 +187,39 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.stop</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L54">src/Classes/MatchMaking/Lobby/Lobby.ts:54</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L66">src/Classes/MatchMaking/Lobby/Lobby.ts:66</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="vote" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>vote</span><a href="#vote" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="vote.vote-1">vote<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, map<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#vote.vote-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>name: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>map: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.vote</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L70">src/Classes/MatchMaking/Lobby/Lobby.ts:70</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="move" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>move</span><a href="#move" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="move.move-1">move<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, command<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Types</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#move.move-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>name: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>command: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Types</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.move</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L114">src/Classes/MatchMaking/Lobby/Lobby.ts:114</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="join" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>join</span><a href="#join" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -166,7 +233,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.join</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L58">src/Classes/MatchMaking/Lobby/Lobby.ts:58</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L134">src/Classes/MatchMaking/Lobby/Lobby.ts:134</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="leave" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>leave</span><a href="#leave" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -180,7 +247,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.leave</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L70">src/Classes/MatchMaking/Lobby/Lobby.ts:70</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L149">src/Classes/MatchMaking/Lobby/Lobby.ts:149</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="canAddTeam" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>can<wbr/>Add<wbr/>Team</span><a href="#canAddTeam" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -194,7 +261,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.canAddTeam</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L83">src/Classes/MatchMaking/Lobby/Lobby.ts:83</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L164">src/Classes/MatchMaking/Lobby/Lobby.ts:164</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="hasSpace" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>has<wbr/>Space</span><a href="#hasSpace" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -208,20 +275,47 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.hasSpace</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L92">src/Classes/MatchMaking/Lobby/Lobby.ts:92</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinWithTeam" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>With<wbr/>Team</span><a href="#_joinWithTeam" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="_joinWithTeam._joinWithTeam-1">_join<wbr/>With<wbr/>Team<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinWithTeam._joinWithTeam-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L173">src/Classes/MatchMaking/Lobby/Lobby.ts:173</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="becomeReady" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>become<wbr/>Ready</span><a href="#becomeReady" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="becomeReady.becomeReady-1">become<wbr/>Ready<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#becomeReady.becomeReady-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.becomeReady</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L182">src/Classes/MatchMaking/Lobby/Lobby.ts:182</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinWithTeam" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>With<wbr/>Team</span><a href="#_joinWithTeam" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_joinWithTeam._joinWithTeam-1">_join<wbr/>With<wbr/>Team<span class="tsd-signature-symbol">(</span>member<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinWithTeam._joinWithTeam-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>member: <span class="tsd-signature-type">Instance</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L179">src/Classes/MatchMaking/Lobby/Lobby.ts:179</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L307">src/Classes/MatchMaking/Lobby/Lobby.ts:307</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_leaveWithTeam" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_leave<wbr/>With<wbr/>Team</span><a href="#_leaveWithTeam" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_leaveWithTeam._leaveWithTeam-1">_leave<wbr/>With<wbr/>Team<span class="tsd-signature-symbol">(</span>member<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#_leaveWithTeam._leaveWithTeam-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>member: <span class="tsd-signature-type">Instance</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L326">src/Classes/MatchMaking/Lobby/Lobby.ts:326</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinCommand" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>Command</span><a href="#_joinCommand" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -234,46 +328,7 @@
 <h5>member: <span class="tsd-signature-type">Instance</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L201">src/Classes/MatchMaking/Lobby/Lobby.ts:201</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinChat" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>Chat</span><a href="#_joinChat" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="_joinChat._joinChat-1">_join<wbr/>Chat<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinChat._joinChat-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L209">src/Classes/MatchMaking/Lobby/Lobby.ts:209</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinDiscrod" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>Discrod</span><a href="#_joinDiscrod" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="_joinDiscrod._joinDiscrod-1">_join<wbr/>Discrod<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinDiscrod._joinDiscrod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L219">src/Classes/MatchMaking/Lobby/Lobby.ts:219</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_leaveWithTeam" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_leave<wbr/>With<wbr/>Team</span><a href="#_leaveWithTeam" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="_leaveWithTeam._leaveWithTeam-1">_leave<wbr/>With<wbr/>Team<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#_leaveWithTeam._leaveWithTeam-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L238">src/Classes/MatchMaking/Lobby/Lobby.ts:238</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L349">src/Classes/MatchMaking/Lobby/Lobby.ts:349</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_leaveCommand" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_leave<wbr/>Command</span><a href="#_leaveCommand" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -286,7 +341,20 @@
 <h5>member: <span class="tsd-signature-type">Instance</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L256">src/Classes/MatchMaking/Lobby/Lobby.ts:256</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L357">src/Classes/MatchMaking/Lobby/Lobby.ts:357</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinChat" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>Chat</span><a href="#_joinChat" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_joinChat._joinChat-1">_join<wbr/>Chat<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinChat._joinChat-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L365">src/Classes/MatchMaking/Lobby/Lobby.ts:365</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_leaveChat" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_leave<wbr/>Chat</span><a href="#_leaveChat" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -299,7 +367,20 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L264">src/Classes/MatchMaking/Lobby/Lobby.ts:264</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L375">src/Classes/MatchMaking/Lobby/Lobby.ts:375</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_joinDiscrod" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_join<wbr/>Discrod</span><a href="#_joinDiscrod" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_joinDiscrod._joinDiscrod-1">_join<wbr/>Discrod<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#_joinDiscrod._joinDiscrod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L385">src/Classes/MatchMaking/Lobby/Lobby.ts:385</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_leaveDiscord" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_leave<wbr/>Discord</span><a href="#_leaveDiscord" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -312,9 +393,65 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L274">src/Classes/MatchMaking/Lobby/Lobby.ts:274</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L404">src/Classes/MatchMaking/Lobby/Lobby.ts:404</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_checkStatus" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_check<wbr/>Status</span><a href="#_checkStatus" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_checkStatus._checkStatus-1">_check<wbr/>Status<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#_checkStatus._checkStatus-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L412">src/Classes/MatchMaking/Lobby/Lobby.ts:412</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="isVotingStageEnd" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>is<wbr/>Voting<wbr/>Stage<wbr/>End</span><a href="#isVotingStageEnd" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="isVotingStageEnd.isVotingStageEnd-1"><span class="tsd-signature-symbol">get</span> isVotingStageEnd<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.isVotingStageEnd</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L90">src/Classes/MatchMaking/Lobby/Lobby.ts:90</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="votes" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>votes</span><a href="#votes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="votes.votes-1"><span class="tsd-signature-symbol">get</span> votes<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>[key: <span class="tsd-signature-type">string</span>]<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>[key: <span class="tsd-signature-type">string</span>]<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></h4>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-index-signature">
+<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">number</span></h5></li></ul><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.votes</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L98">src/Classes/MatchMaking/Lobby/Lobby.ts:98</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="map" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>map</span><a href="#map" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="map.map-1"><span class="tsd-signature-symbol">get</span> map<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.map</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L109">src/Classes/MatchMaking/Lobby/Lobby.ts:109</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="readyToStart" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>ready<wbr/>To<wbr/>Start</span><a href="#readyToStart" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="readyToStart.readyToStart-1"><span class="tsd-signature-symbol">get</span> readyToStart<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.readyToStart</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L193">src/Classes/MatchMaking/Lobby/Lobby.ts:193</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="commands" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>commands</span><a href="#commands" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="commands.commands-1"><span class="tsd-signature-symbol">get</span> commands<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Types</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Types</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.commands</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L201">src/Classes/MatchMaking/Lobby/Lobby.ts:201</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="id" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>id</span><a href="#id" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -323,7 +460,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.id</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L101">src/Classes/MatchMaking/Lobby/Lobby.ts:101</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L205">src/Classes/MatchMaking/Lobby/Lobby.ts:205</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="game" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>game</span><a href="#game" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -332,7 +469,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">&quot;StandOff2&quot;</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.game</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L105">src/Classes/MatchMaking/Lobby/Lobby.ts:105</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L209">src/Classes/MatchMaking/Lobby/Lobby.ts:209</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="members" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>members</span><a href="#members" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -341,7 +478,7 @@
 <h4 class="tsd-returns-title">Returns <a href="Classes.MemberList.html" class="tsd-signature-type" data-tsd-kind="Class">MemberList</a></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.members</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L109">src/Classes/MatchMaking/Lobby/Lobby.ts:109</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L213">src/Classes/MatchMaking/Lobby/Lobby.ts:213</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="type" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>type</span><a href="#type" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -350,7 +487,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Type</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.type</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L113">src/Classes/MatchMaking/Lobby/Lobby.ts:113</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L217">src/Classes/MatchMaking/Lobby/Lobby.ts:217</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="GRI" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>GRI</span><a href="#GRI" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -359,7 +496,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.GRI</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L117">src/Classes/MatchMaking/Lobby/Lobby.ts:117</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L221">src/Classes/MatchMaking/Lobby/Lobby.ts:221</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="isForGuild" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>For<wbr/>Guild</span><a href="#isForGuild" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -368,7 +505,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.isForGuild</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L124">src/Classes/MatchMaking/Lobby/Lobby.ts:124</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L228">src/Classes/MatchMaking/Lobby/Lobby.ts:228</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="firstCommand" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>first<wbr/>Command</span><a href="#firstCommand" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -377,7 +514,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.firstCommand</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L128">src/Classes/MatchMaking/Lobby/Lobby.ts:128</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L232">src/Classes/MatchMaking/Lobby/Lobby.ts:232</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="secondCommand" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>second<wbr/>Command</span><a href="#secondCommand" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -386,7 +523,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.secondCommand</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L132">src/Classes/MatchMaking/Lobby/Lobby.ts:132</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L236">src/Classes/MatchMaking/Lobby/Lobby.ts:236</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="neutrals" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>neutrals</span><a href="#neutrals" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -395,7 +532,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.neutrals</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L136">src/Classes/MatchMaking/Lobby/Lobby.ts:136</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L240">src/Classes/MatchMaking/Lobby/Lobby.ts:240</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="spectators" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>spectators</span><a href="#spectators" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -404,16 +541,16 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.spectators</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L140">src/Classes/MatchMaking/Lobby/Lobby.ts:140</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L244">src/Classes/MatchMaking/Lobby/Lobby.ts:244</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="status" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>status</span><a href="#status" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
-<li class="tsd-signature" id="status.status-1"><span class="tsd-signature-symbol">get</span> status<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;searching&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;filled&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;started&quot;</span></li>
+<li class="tsd-signature" id="status.status-1"><span class="tsd-signature-symbol">get</span> status<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Status</span></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">&quot;searching&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;filled&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;started&quot;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Status</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.status</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L144">src/Classes/MatchMaking/Lobby/Lobby.ts:144</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L248">src/Classes/MatchMaking/Lobby/Lobby.ts:248</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="players" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>players</span><a href="#players" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -422,7 +559,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.players</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L150">src/Classes/MatchMaking/Lobby/Lobby.ts:150</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L253">src/Classes/MatchMaking/Lobby/Lobby.ts:253</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="playersCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>players<wbr/>Count</span><a href="#playersCount" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -431,7 +568,16 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.playersCount</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L154">src/Classes/MatchMaking/Lobby/Lobby.ts:154</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L257">src/Classes/MatchMaking/Lobby/Lobby.ts:257</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="isReady" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>is<wbr/>Ready</span><a href="#isReady" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<li class="tsd-signature" id="isReady.isReady-1"><span class="tsd-signature-symbol">get</span> isReady<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of Match.Lobby.Instance.isReady</p>
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L261">src/Classes/MatchMaking/Lobby/Lobby.ts:261</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="discord" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>discord</span><a href="#discord" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -440,7 +586,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">DiscordClient</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.discord</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L162">src/Classes/MatchMaking/Lobby/Lobby.ts:162</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L269">src/Classes/MatchMaking/Lobby/Lobby.ts:269</a></li></ul></aside></li>
 <li class="tsd-signature" id="discord.discord-2"><span class="tsd-signature-symbol">set</span> discord<span class="tsd-signature-symbol">(</span>client<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DiscordClient</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -451,7 +597,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.discord</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L158">src/Classes/MatchMaking/Lobby/Lobby.ts:158</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L265">src/Classes/MatchMaking/Lobby/Lobby.ts:265</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="chat" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chat</span><a href="#chat" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -460,7 +606,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.chat</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L166">src/Classes/MatchMaking/Lobby/Lobby.ts:166</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L273">src/Classes/MatchMaking/Lobby/Lobby.ts:273</a></li></ul></aside></li>
 <li class="tsd-signature" id="chat.chat-2"><span class="tsd-signature-symbol">set</span> chat<span class="tsd-signature-symbol">(</span>instance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Instance</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -471,7 +617,15 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of Match.Lobby.Instance.chat</p>
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L170">src/Classes/MatchMaking/Lobby/Lobby.ts:170</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L277">src/Classes/MatchMaking/Lobby/Lobby.ts:277</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a id="_mapFromVotes" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_map<wbr/>From<wbr/>Votes</span><a href="#_mapFromVotes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature" id="_mapFromVotes._mapFromVotes-1"><span class="tsd-signature-symbol">get</span> _mapFromVotes<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L281">src/Classes/MatchMaking/Lobby/Lobby.ts:281</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a id="_commandWithSpace" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_command<wbr/>With<wbr/>Space</span><a href="#_commandWithSpace" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-private">
@@ -479,7 +633,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Instance</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L174">src/Classes/MatchMaking/Lobby/Lobby.ts:174</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L301">src/Classes/MatchMaking/Lobby/Lobby.ts:301</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a id="_maxTeamSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_max<wbr/>Team<wbr/>Size</span><a href="#_maxTeamSize" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-private">
@@ -487,7 +641,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/5ab5d85/src/Classes/MatchMaking/Lobby/Lobby.ts#L282">src/Classes/MatchMaking/Lobby/Lobby.ts:282</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/13a354b/src/Classes/MatchMaking/Lobby/Lobby.ts#L426">src/Classes/MatchMaking/Lobby/Lobby.ts:426</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -519,17 +673,29 @@
 <ul>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Classes.Lobby.html#region" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>region</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_game" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_game</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_prepareStageStarted" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_prepare<wbr/>Stage<wbr/>Started?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_members" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_members</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_commands" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_commands</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_votes" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_votes</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_map" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_map?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_chat" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_chat</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_discordClient" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_discord<wbr/>Client</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_status" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_status</a></li>
 <li class="tsd-kind-constructor tsd-parent-kind-class"><a href="Classes.Lobby.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-512-path"></use><use href="#icon-512-text"></use></svg>constructor</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#start" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>start</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#stop" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>stop</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#vote" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>vote</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#isVotingStageEnd" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>is<wbr/>Voting<wbr/>Stage<wbr/>End</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#votes" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>votes</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#map" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>map</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#move" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>move</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#join" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>join</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#leave" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>leave</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#canAddTeam" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>can<wbr/>Add<wbr/>Team</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#hasSpace" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>has<wbr/>Space</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Classes.Lobby.html#becomeReady" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>become<wbr/>Ready</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#readyToStart" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>ready<wbr/>To<wbr/>Start</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#commands" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>commands</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#id" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>id</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#game" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>game</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#members" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>members</a></li>
@@ -543,17 +709,20 @@
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#status" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>status</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#players" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>players</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#playersCount" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>players<wbr/>Count</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#isReady" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>is<wbr/>Ready</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#discord" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>discord</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Classes.Lobby.html#chat" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>chat</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_mapFromVotes" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>_map<wbr/>From<wbr/>Votes</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_commandWithSpace" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>_command<wbr/>With<wbr/>Space</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinWithTeam" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>With<wbr/>Team</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinCommand" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Command</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinChat" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Chat</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinDiscrod" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Discrod</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_leaveWithTeam" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_leave<wbr/>With<wbr/>Team</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinCommand" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Command</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_leaveCommand" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_leave<wbr/>Command</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinChat" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Chat</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_leaveChat" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_leave<wbr/>Chat</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_joinDiscrod" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_join<wbr/>Discrod</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_leaveDiscord" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_leave<wbr/>Discord</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_checkStatus" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_check<wbr/>Status</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><a href="Classes.Lobby.html#_maxTeamSize" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>_max<wbr/>Team<wbr/>Size</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
