@@ -1,128 +1,85 @@
-import { DTOError } from './Classes/DTO/error'
+import type { DTO_TYPES } from './Interfaces/DTO/Types/index'
+import { DTO } from './Classes/DTO/DTO'
 
-export const enum validationCause {
-  INVALID_FORMAT = 'invalid format',
-  REQUIRED = 'required',
-  NOT_EXIST = `doesn't exist`,
-  ALREADY_EXIST = 'already exist',
-  INVALID = `invalid`,
+export const enum TechnicalCause {
+  INVALID_FORMAT = 'value format is invalid',
+  INVALID = 'value is invalid',
+  REQUIRED = 'value is required',
+  NOT_EXIST = `value doesn't exist`,
+  ALREADY_EXIST = `value already exist`,
+  CAN_NOT_ADD = `can't add value`,
+  CAN_NOT_DELETE = `can't delete value`,
+  CAN_NOT_UPDATE = `can't update value`,
+  NEED_HIGHER_VALUE = `value must be higher`,
+  NEED_LOWER_VALUE = `value must be lower`,
 }
 
-export const enum matchCause {
-  CREATE = 'create',
-  ADD_MEMBER = 'add member',
-  REMOVE_MEMBER = 'remove member',
-  UPDATE_MEMBER = 'update member',
+export const enum ServerCause {
+  UNKNOWN_ERROR = 500,
+  OLD_API = 501,
+
+  INVALID_ROUTE = 300,
+  INVALID_DTO = 301,
 }
 
-export const enum wsManageCause {
-  NOT_FOUND = 'not found',
+export const SERVER_ERRORS_DESCRIPTIONS: Map<ServerCause, string> = new Map([
+  [500, 'unknown error'],
+  [501, 'old api'],
+  [300, 'invalid route'],
+  [301, 'invalid dto'],
+])
+
+interface hasDescription {
+  get description(): string
 }
 
-interface hasGenericMessage {
-  get genericMessage(): string
+export abstract class MatchUpError extends Error implements hasDescription {
+  abstract get DTO(): DTO
+  abstract get type(): DTO_TYPES
+  abstract get description(): string
 }
 
-interface canBeDTO {}
+export class TechnicalError extends MatchUpError {
+  constructor(
+    private _key: string,
+    private _cause: TechnicalCause,
+    private _label: string = 'unknown',
+  ) {
+    super(`${_key}: ${_cause}`)
+  }
 
-export abstract class MatchUpError extends Error implements hasGenericMessage {
-  abstract get genericMessage(): string
-  get toDto() {
-    return new DTOError(this.genericMessage)
+  get DTO(): DTO {
+    return new DTO({ label: this._label, status: `${this.message}` })
+  }
+
+  get type(): DTO_TYPES {
+    return 'performance'
+  }
+
+  get description() {
+    return this.message
   }
 }
 
-export class ValidationError extends MatchUpError implements canBeDTO {
-  name: 'ValidationError' = 'ValidationError'
-  constructor(private _key: string, public errorCause: validationCause) {
-    super(`${_key} ${errorCause}`)
+export class ServerError extends MatchUpError {
+  constructor(private _cause: ServerCause, private _label: string = 'unknown') {
+    super(`server error: ${_cause}`)
   }
 
-  public get genericMessage(): string {
-    switch (this.errorCause) {
-      case validationCause.INVALID_FORMAT:
-        return FormatError(this._key)
-      case validationCause.REQUIRED:
-        return RequiredError(this._key)
-      case validationCause.NOT_EXIST:
-        return NotExistError(this._key)
-      case validationCause.INVALID:
-        return InvalidError(this._key)
-      case validationCause.ALREADY_EXIST:
-        return ExistError(this._key)
-    }
+  get DTO(): DTO {
+    return new DTO({ label: this._label, error: `${this._cause}` })
+  }
+
+  get type(): DTO_TYPES {
+    return 'performance'
+  }
+
+  get description() {
+    return this.message
   }
 }
 
-export class MatchError extends MatchUpError {
-  name: 'MatchControllError' = 'MatchControllError'
-  constructor(private _lobbyID: string, public errorCause: matchCause) {
-    super(`match ${_lobbyID} error: ${errorCause}`)
-  }
-
-  public get genericMessage(): string {
-    switch (this.errorCause) {
-      case matchCause.CREATE:
-        return CreateMatchError(this._lobbyID)
-      case matchCause.ADD_MEMBER:
-        return AddMemberError(this._lobbyID)
-      case matchCause.REMOVE_MEMBER:
-        return RemoveMemberError(this._lobbyID)
-      case matchCause.UPDATE_MEMBER:
-        return UpdateMember(this._lobbyID)
-    }
-  }
-}
-
-export class WebSocketManageError extends MatchUpError {
-  constructor(private _id: string, public errorCause: wsManageCause) {
-    super(`socket#${_id}: ${errorCause}`)
-  }
-
-  public get genericMessage() {
-    switch (this.errorCause) {
-      case wsManageCause.NOT_FOUND:
-        return FoundError(this._id)
-    }
-  }
-}
-
-function FormatError(name: string) {
-  return `invalid ${name} format`
-}
-
-function NotExistError(name: string) {
-  return `${name} doesn't exist`
-}
-
-function ExistError(name: string) {
-  return `${name} already exist`
-}
-
-function RequiredError(name: string) {
-  return `${name} required`
-}
-
-function InvalidError(name: string) {
-  return `invalid ${name}`
-}
-
-function CreateMatchError(lobbyID: string) {
-  return `Lobby#${lobbyID}: failed to create match`
-}
-
-function AddMemberError(lobbyID: string) {
-  return `Lobby#${lobbyID}: failed to add member`
-}
-
-function RemoveMemberError(lobbyID: string) {
-  return `Lobby#${lobbyID}: failed to remove member`
-}
-
-function UpdateMember(lobbyID: string) {
-  return `Lobby#${lobbyID}: failed to update member`
-}
-
-function FoundError(socketID: string) {
-  return `socket#s${socketID}: doesn't exist`
+export function isMatchUpError(value: unknown): value is MatchUpError {
+  if (!value || typeof value != 'object') return false
+  return 'DTO' in value
 }
