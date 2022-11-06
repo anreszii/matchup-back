@@ -52,6 +52,7 @@ let RoleManager = new APIManager()
  */
 export function darkSideHandler(escort: IDataEscort) {
   try {
+    let response: DTO
     let socketID = escort.get('socket_id') as string
     wsValidator.validateSocket(socketID)
 
@@ -81,7 +82,6 @@ export function darkSideHandler(escort: IDataEscort) {
       throw new TechnicalError('action controller', TechnicalCause.NOT_EXIST)
 
     controller(socket, params).then((result) => {
-      let response: DTO
       if (result == true)
         response = new DTO({
           label: request.label,
