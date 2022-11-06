@@ -63,9 +63,10 @@ export class DTO implements DTO_NAMESPACE.Object {
 
   private _specifyType(): DTO_TYPES {
     let content = this._content
+    if (!content.label)
+      throw new TechnicalError('DTO content', TechnicalCause.INVALID_FORMAT)
     if (content.status) return 'performance'
     if (content.errorCode) return 'error'
-    if (content.label) return 'data'
-    throw new TechnicalError('DTO content', TechnicalCause.INVALID_FORMAT)
+    return 'data'
   }
 }

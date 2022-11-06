@@ -47,10 +47,7 @@ class From implements FormatFrom {
 
   Object(value: unknown): DTO {
     try {
-      if (
-        value !== null ||
-        (typeof value !== 'object' && !('content' in value && 'label' in value))
-      )
+      if (!value || typeof value != 'object')
         throw new ServerError(ServerCause.INVALID_DTO)
       return new DTO(value)
     } catch (e) {
