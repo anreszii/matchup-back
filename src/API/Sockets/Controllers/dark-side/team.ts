@@ -25,7 +25,7 @@ import { TEAMS } from '../../../../Classes/index'
  *  "teamID": number
  *  "chat_id": string
  * }
- * @category MatchMaking
+ * @category Team
  * @event
  */
 export async function create_team(socket: WebSocket, params: unknown[]) {
@@ -60,7 +60,7 @@ CONTROLLERS.set('create_team', create_team)
  * ```
  *
  * @return ID чата команды в случае успешного подключения
- * @category MatchMaking
+ * @category Team
  * @event
  */
 export async function join_team(socket: WebSocket, params: unknown[]) {
@@ -83,7 +83,7 @@ CONTROLLERS.set('join_team', join_team)
  * Событие для выхода из команды.</br>
  *
  * @return true, если игрок успешно вышел из команды
- * @category MatchMaking
+ * @category Team
  * @event
  */
 export async function leave_team(socket: WebSocket, params: unknown[]) {
@@ -109,7 +109,7 @@ CONTROLLERS.set('leave_team', leave_team)
  *  GRI: number
  * }
  * ```
- * @category MatchMaking
+ * @category Team
  * @event
  */
 export async function check_team(socket: WebSocket, params: unknown[]) {
@@ -130,7 +130,7 @@ CONTROLLERS.set('check_team', check_team)
  * Контроллер для получения списка всех существующих комманд</br>
  *
  * @return массив ID комманд
- * @category MatchMaking
+ * @category Team
  * @event
  */
 export async function get_teams(socket: WebSocket, params: unknown[]) {

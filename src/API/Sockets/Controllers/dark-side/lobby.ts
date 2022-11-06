@@ -13,6 +13,7 @@ import { TechnicalCause, TechnicalError } from '../../../../error'
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
 import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
+import { GAME_MAPS } from '../../../../configs/standoff_maps'
 
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
@@ -26,7 +27,12 @@ const Searcher = new SearchEngine(StandOffLobbies)
 setInterval(async () => {
   for (let lobby of StandOffLobbies.lobbies) {
     if (!lobby.chat) await createChatForLobby(lobby.id)
-    if (lobby.status == 'filled' && !lobby.isReady) sendReadyIventToLobby(lobby)
+    if (lobby.status == 'filled') sendReadyIventToLobby(lobby)
+    if (lobby.status == 'voting') sendVoteIventToLobby(lobby)
+    if (lobby.status == 'preparing' && lobby.readyToStart) {
+      sendStartIventToLobby(lobby)
+      await lobby.start()
+    }
   }
 }, 1000 * 3)
 
@@ -120,6 +126,53 @@ export async function ready(socket: WebSocket, params: unknown[]) {
   return true
 }
 CONTROLLERS.set('get_ready', ready)
+
+/**
+ * Контроллер для смены команды.</br>
+ * @param params - ["map"]
+ * - map может принимать значения, которые можно получить из контроллера get_maps
+ *
+ * @category Lobby
+ * @event
+ */
+export async function vote(socket: WebSocket, params: unknown[]) {
+  let map = params[0]
+  if (typeof map != 'string')
+    throw new TechnicalError('map', TechnicalCause.INVALID_FORMAT)
+
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
+
+  let lobby = StandOffLobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+  }
+
+  if (!lobby.vote(username, map))
+    throw new TechnicalError(
+      'member command role',
+      TechnicalCause.NEED_HIGHER_VALUE,
+    )
+  return true
+}
+CONTROLLERS.set('vote', vote)
+
+/**
+ * Контроллер для смены команды.</br>
+ * @param params - ["map"]
+ * - map может принимать значения, которые можно получить из контроллера get_maps
+ *
+ * @category Lobby
+ * @event
+ */
+export async function get_maps(socket: WebSocket, params: unknown[]) {
+  return GAME_MAPS
+}
+CONTROLLERS.set('get_maps', get_maps)
 
 /**
  * Контроллер для смены команды.</br>
@@ -365,6 +418,35 @@ function createFiltersForSoloSearch(
 function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
   for (let member of lobby.players) {
     let dto = new DTO({ label: 'ready', lobby: lobby.id })
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('ready', dto.to.JSON)
+  }
+}
+
+function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
+  let captains = {
+    command1: lobby.firstCommand.captain,
+    command2: lobby.secondCommand.captain,
+  }
+  for (let member of lobby.players) {
+    let dto = new DTO({
+      label: 'vote',
+      captains,
+      maps: GAME_MAPS,
+      votes: lobby.votes,
+    })
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('ready', dto.to.JSON)
+  }
+}
+
+function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
+  for (let member of lobby.players) {
+    let dto = new DTO({
+      label: 'lobby start',
+    })
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
       .emit('ready', dto.to.JSON)
