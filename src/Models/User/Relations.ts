@@ -1,16 +1,21 @@
 import { prop } from '@typegoose/typegoose'
+import { TechnicalCause, TechnicalError } from '../../error'
 import { Image } from '../Image'
+import { UserModel } from '../index'
 
 export class Relations {
-  @prop({ type: () => RelationRecord, required: true, default: [] })
-  public friends!: RelationRecord[]
-  @prop({ type: () => RelationRecord, required: true, default: [] })
-  public subscribers!: RelationRecord[]
+  @prop({ type: () => String, required: true, default: [] })
+  public friends!: string[]
+  @prop({ type: () => String, required: true, default: [] })
+  public subscribers!: string[]
 }
 
-class RelationRecord {
-  @prop({ required: true })
-  name!: string
-  @prop({ type: () => Image, _id: false })
-  avatar?: Image
+export class RelationRecord {
+  public image?: Image
+  constructor(public name: string) {
+    UserModel.findByName(name).then((user) => {
+      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+      this.image = user.profile.avatar
+    })
+  }
 }

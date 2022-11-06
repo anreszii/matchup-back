@@ -16,6 +16,7 @@ import { PREFIXES } from '../../configs/prefixes'
 import { generateHash, generatePassword, getRandom } from '../../Utils'
 import { generateName } from '../../Utils/nameGenerator'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { RelationRecord } from './Relations'
 
 export class User {
   @prop({
@@ -171,71 +172,58 @@ export class User {
 
   /* SUBSCRIBERS */
 
-  get subscriberList() {
-    return this.profile.relations.subscribers
+  async getSubscribers() {
+    let result: RelationRecord[] = []
+    for (let subscriber of this.profile.relations.subscribers)
+      result.push(new RelationRecord(subscriber))
+
+    return result
   }
 
   hasSubscriber(this: DocumentType<User>, name: string) {
-    for (let subscriber of this.profile.relations.subscribers)
-      if (subscriber.name == name) return true
-
-    return false
+    return this.profile.relations.subscribers.includes(name)
   }
 
-  async addSubscriber(this: DocumentType<User>, name: string) {
+  addSubscriber(this: DocumentType<User>, name: string) {
     if (this.hasSubscriber(name)) return
 
-    const image = await UserModel.findOne(
-      { 'profile.username': name },
-      'profile.avatar',
-    )
-    this.profile.relations.subscribers.push({
-      name,
-      avatar: image?.profile.avatar,
-    })
+    this.profile.relations.subscribers.push(name)
   }
 
   deleteSubscriber(this: DocumentType<User>, name: string) {
     if (!this.hasSubscriber(name)) return
-
     let subscribers = this.profile.relations.subscribers
-    let subscriberIndex = subscribers.findIndex((record) => record.name == name)
+
+    let subscriberIndex = subscribers.indexOf(name)
 
     if (~subscriberIndex) subscribers.splice(subscriberIndex, 1)
   }
 
   /* FRIENDS */
 
-  get friendList() {
-    return this.profile.relations.friends
+  async getFriends() {
+    let result: RelationRecord[] = []
+    for (let friend of this.profile.relations.friends)
+      result.push(new RelationRecord(friend))
+
+    return result
   }
 
   hasFriend(this: DocumentType<User>, name: string) {
-    for (let friend of this.profile.relations.friends)
-      if (friend.name == name) return true
-
-    return false
+    return this.profile.relations.friends.includes(name)
   }
 
-  async addFriend(this: DocumentType<User>, name: string) {
+  addFriend(this: DocumentType<User>, name: string) {
     if (this.hasFriend(name)) return
 
-    const image = await UserModel.findOne(
-      { 'profile.username': name },
-      'profile.avatar',
-    )
-
-    this.profile.relations.friends.push({
-      name,
-      avatar: image?.profile.avatar,
-    })
+    this.profile.relations.friends.push(name)
   }
 
   deleteFriend(this: DocumentType<User>, name: string) {
     if (!this.hasFriend(name)) return
 
     let friends = this.profile.relations.friends
-    let friendIndex = friends.findIndex((record) => record.name == name)
+    let friendIndex = friends.indexOf(name)
 
     if (~friendIndex) friends.splice(friendIndex, 1)
   }
@@ -251,11 +239,11 @@ export class User {
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
-      await user.addSubscriber(this.profile.username)
+      user.addSubscriber(this.profile.username)
       return user.save()
     }
 
-    await user.addFriend(this.profile.username)
+    user.addFriend(this.profile.username)
     await user.save()
 
     this.deleteSubscriber(name)
@@ -273,7 +261,7 @@ export class User {
     if (!user.hasFriend(this.profile.username))
       throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
-    await user.deleteFriend(this.profile.username)
+    user.deleteFriend(this.profile.username)
     await user.save()
 
     this.deleteFriend(name)
