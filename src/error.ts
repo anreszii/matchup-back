@@ -72,7 +72,7 @@ export class ServerError extends MatchUpError {
   }
 
   get type(): DTO_TYPES {
-    return 'performance'
+    return 'error'
   }
 
   get description() {
