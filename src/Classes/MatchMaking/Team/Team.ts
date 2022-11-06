@@ -8,6 +8,7 @@ export class Team implements Match.Member.Team.Instance {
   private _captain!: string
   private _teamChat!: Chat.Instance
   private _maxTeamSize = 5
+  private _keyGuild?: string
 
   constructor(private _id: number) {}
 
@@ -24,6 +25,7 @@ export class Team implements Match.Member.Team.Instance {
         content: `${member.name} joined team#${this.id}`,
       })
     })
+    this._checkGuildAfterJoin(member)
 
     if (!this._captain) this._captain = member.name
     return true
@@ -42,6 +44,7 @@ export class Team implements Match.Member.Team.Instance {
         content: `${member!.name} leaved team#${this.id}`,
       })
     })
+    this._checkGuildAfterLeave()
 
     member.readyFlag = false
     member.teamID = undefined
@@ -67,8 +70,8 @@ export class Team implements Match.Member.Team.Instance {
     return getMedian(...GRIArray)
   }
 
-  get isGuild(): boolean {
-    return this._members.isGuild
+  get isGuild() {
+    return Boolean(this._keyGuild)
   }
 
   get members(): Match.Member.List {
@@ -93,5 +96,21 @@ export class Team implements Match.Member.Team.Instance {
 
   get chat() {
     return this._teamChat
+  }
+
+  private _checkGuildAfterJoin(member: Match.Member.Instance) {
+    if (this.members.count == 0) {
+      this._keyGuild = member.guildName
+      return
+    }
+    if (this._keyGuild != member.guildName) this._keyGuild = undefined
+  }
+
+  private _checkGuildAfterLeave() {
+    let members = this.members.toArray
+    this._keyGuild = members[0].guildName
+    for (let i = 1; i < members.length; i++)
+      if (members[i].guildName != this._keyGuild)
+        return (this._keyGuild = undefined)
   }
 }

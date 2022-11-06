@@ -7,6 +7,7 @@ export declare interface ILobby extends IEntity<string> {
   get id(): string
   get status(): Match.Lobby.Status
   get game(): Match.Manager.supportedGames
+  get type(): Match.Lobby.Type
   get members(): Match.Member.List
 
   get chat(): Chat.Instance

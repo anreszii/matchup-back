@@ -23,6 +23,8 @@ export declare namespace Match {
       get discord(): DiscordClient
     }
 
+    type Type = 'training' | 'arcade' | 'rating'
+
     type Status = 'searching' | 'filled' | 'started'
 
     namespace Command {

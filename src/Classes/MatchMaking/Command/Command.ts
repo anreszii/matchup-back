@@ -9,6 +9,7 @@ export class Command implements Match.Lobby.Command.Instance {
   private _commandChat!: Chat.Instance
   private _captain!: string
   private _teamIDs: Set<number> = new Set()
+  private _keyGuild?: string
 
   constructor(
     private _commandID: number,
@@ -30,6 +31,7 @@ export class Command implements Match.Lobby.Command.Instance {
         content: `${member.name} joined team#${this.id}`,
       })
     })
+    this._checkGuildAfterJoin(member)
 
     if (!this._captain) this._captain = member.name
     if (member.teamID) this._addTeamOfMember(member.teamID)
@@ -52,6 +54,7 @@ export class Command implements Match.Lobby.Command.Instance {
     })
 
     if (member.teamID) this._deleteTeamOfMember(member.teamID)
+    this._checkGuildAfterLeave()
 
     member.readyFlag = false
     member.commandID = undefined
@@ -117,6 +120,10 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._captain
   }
 
+  get players() {
+    return this._members.toArray
+  }
+
   get playersCount() {
     return this._members.count
   }
@@ -131,6 +138,10 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get soloPlayersCount() {
     return this.playersCount - this.teamPlayersCount
+  }
+
+  get isGuild() {
+    return Boolean(this._keyGuild)
   }
 
   private _addTeamOfMember(id: number) {
@@ -150,5 +161,21 @@ export class Command implements Match.Lobby.Command.Instance {
       if (member.commandID == this.id) count++
 
     return count
+  }
+
+  private _checkGuildAfterJoin(member: Match.Member.Instance) {
+    if (this.members.count == 0) {
+      this._keyGuild = member.guildName
+      return
+    }
+    if (this._keyGuild != member.guildName) this._keyGuild = undefined
+  }
+
+  private _checkGuildAfterLeave() {
+    let members = this.members.toArray
+    this._keyGuild = members[0].guildName
+    for (let i = 1; i < members.length; i++)
+      if (members[i].guildName != this._keyGuild)
+        return (this._keyGuild = undefined)
   }
 }

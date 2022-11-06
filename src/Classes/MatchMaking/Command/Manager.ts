@@ -1,7 +1,7 @@
 import type { Match } from '../../../Interfaces'
 import { OneTypeArray } from '../../OneTypeArray'
 import { Command } from './Command'
-import { CHATS } from '../../index'
+import { CHATS } from '../../Chat/Manager'
 import { PLAYERS } from '../MemberManager'
 
 class CommandManager implements Match.Lobby.Command.Manager {

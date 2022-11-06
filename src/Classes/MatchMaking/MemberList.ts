@@ -1,7 +1,6 @@
-import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import type { Match } from '../../Interfaces/index'
+import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import { OneTypeArray } from '../OneTypeArray'
-import { COMMANDS } from './Command/Manager'
 
 export class MemberList
   extends OneTypeArray<Match.Member.Instance>
@@ -12,14 +11,12 @@ export class MemberList
   }
 
   private _membersCount = 0
-  private _keyGuild?: string
 
   public addMember(member: Match.Member.Instance) {
     let index = super.addOne(member)
     if (!~index) return false
 
     this._membersCount++
-    this._checkGuildAfterJoin(member)
     return true
   }
 
@@ -29,7 +26,6 @@ export class MemberList
 
     let deletedCount = super.delete(member)
     if (!~deletedCount) return false
-    this._checkGuildAfterLeave()
     return true
   }
 
@@ -67,75 +63,27 @@ export class MemberList
     return this.toArray.length
   }
 
-  get isGuild(): boolean {
-    return Boolean(this._keyGuild)
-  }
-
-  get players(): Match.Member.Instance[] {
+  get members(): Match.Member.Instance[] {
     let members: Match.Member.Instance[] = []
     for (let member of this.toArray) {
       const ID = member?.commandID
       if (!ID) continue
 
-      let command = COMMANDS.get(ID)
-      if (command && command.type.includes('command')) members.push(member)
+      members.push(member)
     }
 
     return members
   }
 
-  get spectators(): Match.Member.Instance[] {
-    let members: Match.Member.Instance[] = []
-    for (let member of this.toArray) {
-      const ID = member?.commandID
-      if (!ID) continue
-
-      let command = COMMANDS.get(ID)
-      if (command && command.type == 'spectators') members.push(member)
-    }
-
-    return members
-  }
-
-  get spectatorsCount(): number {
+  get membersCount(): number {
     let count = 0
     for (let member of this.toArray) {
       const ID = member?.commandID
       if (!ID) continue
 
-      let command = COMMANDS.get(ID)
-      if (command && command.type == 'spectators') count++
+      count++
     }
 
     return count
-  }
-
-  get playersCount(): number {
-    let count = 0
-    for (let member of this.toArray) {
-      const ID = member?.commandID
-      if (!ID) continue
-
-      let command = COMMANDS.get(ID)
-      if (command && command.type.includes('command')) count++
-    }
-
-    return count
-  }
-
-  private _checkGuildAfterLeave() {
-    let members = this.toArray
-    this._keyGuild = members[0].guildName
-    for (let i = 1; i < members.length; i++)
-      if (members[i].guildName != this._keyGuild)
-        return (this._keyGuild = undefined)
-  }
-
-  private _checkGuildAfterJoin(member: Match.Member.Instance) {
-    if (this._membersCount == 0) {
-      this._keyGuild = member.guildName
-      return
-    }
-    if (this._keyGuild != member.guildName) this._keyGuild = undefined
   }
 }

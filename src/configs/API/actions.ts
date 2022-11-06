@@ -4,6 +4,7 @@ export type API_ACTION_LIST =
   | 'join_to_lobby'
   | 'sync_lobby'
   | 'get_lobby_players_count'
+  | 'get_lobby_count'
   | 'create_team'
   | 'join_team'
   | 'leave_team'
@@ -18,6 +19,7 @@ API_ACTIONS.set('find_lobby', 0)
 API_ACTIONS.set('invite_to_lobby', 0)
 API_ACTIONS.set('join_to_lobby', 0)
 API_ACTIONS.set('get_lobby_players_count', 0)
+API_ACTIONS.set('get_lobby_count', 0)
 API_ACTIONS.set('sync_lobby', 0)
 API_ACTIONS.set('create_team', 0)
 API_ACTIONS.set('join_team', 0)
