@@ -21,6 +21,7 @@ class PlayersManager implements Match.Member.Manager {
       name,
       isReady: false,
       guildName,
+      prefix: user.prefix,
     } as Match.Member.Instance
 
     this._players.addMember(member)

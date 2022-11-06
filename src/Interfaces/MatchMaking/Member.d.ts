@@ -8,4 +8,5 @@ export interface IMatchMember extends IEntity<string> {
   teamID?: number //глобальный team id
   lobbyID?: string
   guildName?: string
+  prefix?: string
 }
