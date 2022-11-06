@@ -27,7 +27,7 @@ let RoleManager = new APIManager()
  * ```json
  * {
  *  "label": "идентефикатор, с которым возвращается результат выполнения запроса"
- *  "function": "имя функции, имеющийся в списке доступных",
+ *  "controller": "имя функции, имеющийся в списке доступных",
  *  "params": [],
  *  "__comment_params": "это массив параметров, которые будут переданы в вызванную функцию"
  * }
@@ -61,23 +61,24 @@ export function darkSideHandler(escort: IDataEscort) {
 
     const request = dtoParser.from.Object(escort.used)
 
-    let action = request.content.action
-    if (!action) throw new TechnicalError('function', TechnicalCause.REQUIRED)
-    if (typeof action != 'string')
-      throw new TechnicalError('function', TechnicalCause.INVALID_FORMAT)
+    let controllerName = request.content.controller
+    if (!controllerName)
+      throw new TechnicalError('controller name', TechnicalCause.REQUIRED)
+    if (typeof controllerName != 'string')
+      throw new TechnicalError('controller name', TechnicalCause.INVALID_FORMAT)
 
     let params = request.content.params
     if (!params) throw new TechnicalError('params', TechnicalCause.REQUIRED)
     if (typeof params != 'object' || !(params instanceof Array))
       throw new TechnicalError('params', TechnicalCause.INVALID_FORMAT)
 
-    if (!isValidAPIAction(action))
+    if (!isValidAPIAction(controllerName))
       throw new TechnicalError('action', TechnicalCause.INVALID)
 
-    if (!RoleManager.hasAccess(username, action))
+    if (!RoleManager.hasAccess(username, controllerName))
       throw new Error('Low access level')
 
-    let controller = CONTROLLERS.get(action)
+    let controller = CONTROLLERS.get(controllerName)
     if (!controller)
       throw new TechnicalError('action controller', TechnicalCause.NOT_EXIST)
 

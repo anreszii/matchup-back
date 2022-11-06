@@ -28,13 +28,19 @@ setInterval(async () => {
 
 /**
  * Обработчик для поиска лобби.
- * @param params - ["region"]
- *
+ * @param params - ["region", "matchType"]
+ * 
+ * matchType может быть следующего вида:
+ * 
+ * - training
+ * - arcade
+ * - rating
+ * 
  * В случае успеха возвращает объект формата:
  * ```ts
  * {
- *  lobby_id: string
- *  chat_id: string
+ *  lobbyID: string
+ *  chatID: string
  * }
  * ```
  * Все события из чата матча будут приходить на event chat в формате:
@@ -42,7 +48,7 @@ setInterval(async () => {
  
  * ```json
  * {
- *  "chat_id":"lobby#xxxx",
+ *  "chat":"lobby#xxxx",
  *  "message": 
  *  {
  *    "from": "system or username",
@@ -71,10 +77,10 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   if (!lobby.chat) await createChatForLobby(lobby.id)
 
   await lobby.join(username)
-  return clientServer.control(`lobby#${lobby.id}`).emit('find_lobby', {
-    lobby_id: lobby.id,
-    chat_id: lobby.chat!.id,
-  })
+  return {
+    lobbyID: lobby.id,
+    chatID: lobby.chat!.id,
+  }
 }
 CONTROLLERS.set('find_lobby', find_lobby)
 
