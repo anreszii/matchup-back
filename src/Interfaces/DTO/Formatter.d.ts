@@ -1,11 +1,16 @@
-import type { FormatJSON } from './Formats/JSON'
-import { DTO } from './index'
+import type { DTO as DTO_NAMESPACE } from './index'
+import type { DTO } from '../../Classes/DTO/DTO'
 
 export interface Parser {
-  get JSON(): FormatJSON
+  get to(): FormatTo
+  get from(): FormatFrom
 }
 
-export interface Formatter {
-  toDTO(entity: DTO.Object): unknown
-  toObject(entity: unknown): DTO.Object
+interface FormatTo {
+  get JSON(): string
+}
+
+interface FormatFrom {
+  JSON(value: unknown): DTO
+  Object(value: unknown): DTO
 }

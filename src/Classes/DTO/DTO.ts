@@ -1,18 +1,23 @@
 import type { DTO_TYPES } from '../../Interfaces/DTO/Types/index'
 import type { DTO as DTO_NAMESPACE } from '../../Interfaces/index'
+import { dtoParser } from './Parser/Parser'
 
-import { validationCause, ValidationError } from '../../error'
-import { FormatJSON } from '../../Interfaces/DTO/Formats/JSON'
+import {
+  SERVER_ERRORS_DESCRIPTIONS,
+  TechnicalCause,
+  TechnicalError,
+} from '../../error'
+import { FormatTo } from '../../Interfaces/DTO/Formatter'
 
 export class DTO implements DTO_NAMESPACE.Object {
   private _content!: DTO_NAMESPACE.OBJECT_DATA
   private _metaInfo!: DTO_NAMESPACE.OBJECT_DATA
   private _type!: DTO_TYPES
-  constructor(content: DTO_NAMESPACE.OBJECT_DATA) {
+  constructor(content: unknown) {
     if (typeof content != 'object' || !content)
-      throw new ValidationError('DTO content', validationCause.INVALID_FORMAT)
+      throw new TechnicalError('DTO content', TechnicalCause.REQUIRED)
 
-    this._content = content
+    this._content = content as DTO_NAMESPACE.OBJECT_DATA
     this._specify()
   }
 
@@ -32,6 +37,10 @@ export class DTO implements DTO_NAMESPACE.Object {
     return this._content
   }
 
+  get to(): FormatTo {
+    return dtoParser.to
+  }
+
   private _specify() {
     this._specifyType()
     this._specifyMetaInfo()
@@ -40,12 +49,12 @@ export class DTO implements DTO_NAMESPACE.Object {
   private _specifyMetaInfo() {
     this._metaInfo = { type: this._type }
     switch (this._type) {
-      // case 'error': {
-      //   this._metaInfo.errorDescription = TECHNICAL_ERRORS_LIST.get(
-      //     this._content.error as TECHNICAL_ERRORS,
-      //   )!
-      //   break
-      // }
+      case 'error': {
+        this._metaInfo.errorDescription = SERVER_ERRORS_DESCRIPTIONS.get(
+          this._content.error as number,
+        )!
+        break
+      }
       default: {
         break
       }
@@ -60,22 +69,3 @@ export class DTO implements DTO_NAMESPACE.Object {
     throw new ValidationError('DTO content', validationCause.INVALID_FORMAT)
   }
 }
-
-class Formatter implements DTO_NAMESPACE.Formatter {
-  private _json = new JSONFormatter()
-  get JSON(): FormatJSON {
-    return this._json
-  }
-}
-
-class JSONFormatter implements FormatJSON {
-  toDTO(entity: DTO_NAMESPACE.Object): string {
-    return JSON.stringify(entity.content)
-  }
-
-  toObject(entity: string): DTO_NAMESPACE.Object {
-    return JSON.parse(entity)
-  }
-}
-
-export const DTO_FORMATTER = new Formatter()
