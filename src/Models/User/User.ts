@@ -171,59 +171,78 @@ export class User {
 
   /* SUBSCRIBERS */
 
-  public getSubscriberList(this: DocumentType<User>) {
+  get subscriberList() {
     return this.profile.relations.subscribers
   }
 
-  public hasSubscriber(this: DocumentType<User>, name: string) {
-    return this.profile.relations.subscribers.includes(name)
+  hasSubscriber(this: DocumentType<User>, name: string) {
+    for (let subscriber of this.profile.relations.subscribers)
+      if (subscriber.name == name) return true
+
+    return false
   }
 
-  public addSubscriber(this: DocumentType<User>, name: string) {
+  async addSubscriber(this: DocumentType<User>, name: string) {
     if (this.hasSubscriber(name)) return
 
-    this.profile.relations.subscribers.push(name)
+    const image = await UserModel.findOne(
+      { 'profile.username': name },
+      'profile.avatar',
+    )
+    this.profile.relations.subscribers.push({
+      name,
+      avatar: image?.profile.avatar,
+    })
   }
 
-  public deleteSubscriber(this: DocumentType<User>, name: string) {
+  deleteSubscriber(this: DocumentType<User>, name: string) {
     if (!this.hasSubscriber(name)) return
+
     let subscribers = this.profile.relations.subscribers
+    let subscriberIndex = subscribers.findIndex((record) => record.name == name)
 
-    let subscriberIndex = subscribers.indexOf(name)
-
-    if (~subscriberIndex) {
-      subscribers.splice(subscriberIndex, 1)
-    }
+    if (~subscriberIndex) subscribers.splice(subscriberIndex, 1)
   }
 
   /* FRIENDS */
 
-  public getFriendList(this: DocumentType<User>) {
+  get friendList() {
     return this.profile.relations.friends
   }
 
-  public hasFriend(this: DocumentType<User>, name: string) {
-    return this.profile.relations.friends.includes(name)
+  hasFriend(this: DocumentType<User>, name: string) {
+    for (let friend of this.profile.relations.friends)
+      if (friend.name == name) return true
+
+    return false
   }
 
-  public addFriend(this: DocumentType<User>, name: string) {
+  async addFriend(this: DocumentType<User>, name: string) {
     if (this.hasFriend(name)) return
 
-    this.profile.relations.friends.push(name)
+    const image = await UserModel.findOne(
+      { 'profile.username': name },
+      'profile.avatar',
+    )
+
+    this.profile.relations.friends.push({
+      name,
+      avatar: image?.profile.avatar,
+    })
   }
 
-  public deleteFriend(this: DocumentType<User>, name: string) {
+  deleteFriend(this: DocumentType<User>, name: string) {
     if (!this.hasFriend(name)) return
 
     let friends = this.profile.relations.friends
-    let friendIndex = friends.indexOf(name)
+    let friendIndex = friends.findIndex((record) => record.name == name)
 
     if (~friendIndex) friends.splice(friendIndex, 1)
   }
 
   /* RELATION ACTIONS */
 
-  public async addRelation(this: DocumentType<User>, name: string) {
+  async addRelation(this: DocumentType<User>, name: string) {
     if (!name) throw new TechnicalError('name', TechnicalCause.REQUIRED)
     if (this.hasFriend(name))
       throw new TechnicalError('user relation', TechnicalCause.ALREADY_EXIST)
@@ -232,11 +251,11 @@ export class User {
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     if (!this.hasSubscriber(name)) {
-      user.addSubscriber(this.profile.username)
+      await user.addSubscriber(this.profile.username)
       return user.save()
     }
 
-    user.addFriend(this.profile.username)
+    await user.addFriend(this.profile.username)
     await user.save()
 
     this.deleteSubscriber(name)
@@ -244,7 +263,7 @@ export class User {
     return this.save()
   }
 
-  public async dropRelation(this: DocumentType<User>, name: string) {
+  async dropRelation(this: DocumentType<User>, name: string) {
     if (!name) throw new TechnicalError('name', TechnicalCause.REQUIRED)
     if (!this.hasFriend(name))
       throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
@@ -254,7 +273,7 @@ export class User {
     if (!user.hasFriend(this.profile.username))
       throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
-    user.deleteFriend(this.profile.username)
+    await user.deleteFriend(this.profile.username)
     await user.save()
 
     this.deleteFriend(name)
