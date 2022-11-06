@@ -3,9 +3,9 @@ import { Types } from 'mongoose'
 
 export class Image {
   @prop({ required: true })
-  public buffer!: Types.Buffer
+  public buffer!: Buffer
   @prop({ required: true })
-  public contentType!: string
+  public mimeType!: string
 }
 
 export const ImageModel = getModelForClass(Image)
