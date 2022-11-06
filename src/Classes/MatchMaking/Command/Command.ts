@@ -1,5 +1,5 @@
-import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
 import type { Match, Chat } from '../../../Interfaces/index'
+import { StandOffLobbies } from '../../../API/Sockets/Controllers/index'
 import { getMedian } from '../../../Utils/math'
 import { TEAMS } from '../index'
 import { MemberList } from '../MemberList'

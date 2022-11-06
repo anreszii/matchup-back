@@ -19,6 +19,12 @@ export declare namespace Match {
   }
   namespace Lobby {
     interface Instance extends ILobby {
+      get readyToStart(): boolean
+      vote(name: string, map: string): boolean
+      get votes(): { [key: string]: number }
+      get isVotingStageEnd(): boolean
+      get map(): string | undefined
+
       move(
         name: string,
         command: Command.Instance | Command.Types | number,
@@ -32,7 +38,7 @@ export declare namespace Match {
 
     type Type = 'training' | 'arcade' | 'rating'
 
-    type Status = 'searching' | 'filled' | 'started'
+    type Status = 'searching' | 'filled' | 'voting' | 'preparing' | 'started'
 
     namespace Command {
       type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'

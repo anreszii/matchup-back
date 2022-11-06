@@ -5,19 +5,27 @@ import { TEAMS } from '../index'
 import { PLAYERS } from '../MemberManager'
 
 import { MemberList } from '../MemberList'
-import { getMedian } from '../../../Utils/math'
+import { getMedian, minMax } from '../../../Utils/math'
 
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
+import { GAME_MAPS } from '../../../configs/standoff_maps'
+import { MINUTE_IN_MS } from '../../../configs/time_constants'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _game!: Match.Manager.supportedGames
+  private _prepareStageStarted?: Date
   private _members: MemberList = new MemberList()
   private _commands: Map<
     Match.Lobby.Command.Types,
     Match.Lobby.Command.Instance
   > = new Map()
+  private _votes: {
+    command: Exclude<Match.Lobby.Command.Types, 'spectators' | 'neutrals'>
+    map: string
+  }[] = []
+  private _map?: string
   private _chat!: Chat.Instance
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
@@ -35,7 +43,7 @@ export class Lobby implements Match.Lobby.Instance {
     )
     this._commands.set(
       'neutrals',
-      COMMANDS.spawn(this.id, 'neutrals', _maxCommandSize),
+      COMMANDS.spawn(this.id, 'neutrals', _maxCommandSize * 4),
     )
     this._commands.set(
       'command1',
@@ -48,6 +56,8 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async start() {
+    if (this._status != 'preparing') return false
+    if (!this._map) return false
     await this._controller.start()
     this._status = 'started'
     return true
@@ -55,6 +65,50 @@ export class Lobby implements Match.Lobby.Instance {
 
   async stop() {
     return this._controller.stop()
+  }
+
+  vote(name: string, map: string): boolean {
+    if (this.status != 'preparing' || this.map != undefined) return false
+    if (!GAME_MAPS.includes(map)) return false
+    if (
+      this.firstCommand.captain == name &&
+      !this._votes.find((value) => value.command == 'command1')
+    ) {
+      this._votes.push({ command: 'command1', map })
+      return true
+    }
+    if (
+      this.secondCommand.captain == name &&
+      !this._votes.find((value) => value.command == 'command2')
+    ) {
+      this._votes.push({ command: 'command2', map })
+      return true
+    }
+    return false
+  }
+
+  get isVotingStageEnd(): boolean {
+    if (this._map) return true
+    if (this._votes.length != 2) return false
+
+    this._map = this._mapFromVotes
+    return true
+  }
+
+  get votes() {
+    this.isVotingStageEnd
+    let result: { [key: string]: number } = {}
+    for (let i = 0; i < this._votes.length; i++) {
+      if (!result[this._votes[i].map]) result[this._votes[i].map] = 1
+      result[this._votes[i].map]++
+    }
+
+    return result
+  }
+
+  get map() {
+    if (this.status != 'started') return undefined
+    return this._map
   }
 
   async move(
@@ -136,6 +190,14 @@ export class Lobby implements Match.Lobby.Instance {
     return false
   }
 
+  get readyToStart() {
+    if (this.status != 'preparing' || !this._prepareStageStarted) return false
+    return (
+      Date.now() - this._prepareStageStarted.getMilliseconds() >
+      MINUTE_IN_MS * 5
+    )
+  }
+
   get commands() {
     return this._commands
   }
@@ -184,6 +246,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get status() {
+    this._checkStatus()
     return this._status
   }
 
@@ -215,7 +278,28 @@ export class Lobby implements Match.Lobby.Instance {
     this._chat = instance
   }
 
+  private get _mapFromVotes() {
+    let recordsWithMaxVotes: { map: string; count: number }[] = [
+      {
+        map: '',
+        count: -1,
+      },
+    ]
+    const votes = this.votes
+    for (let map in votes) {
+      if (recordsWithMaxVotes[0].count < votes[map])
+        recordsWithMaxVotes = [{ map, count: votes[map] }]
+      else if (recordsWithMaxVotes[0].count == votes[map])
+        recordsWithMaxVotes.push({ map, count: votes[map] })
+    }
+
+    if (recordsWithMaxVotes.length > 1)
+      return recordsWithMaxVotes[minMax(0, recordsWithMaxVotes.length - 1)].map
+    return recordsWithMaxVotes[0].map
+  }
+
   private get _commandWithSpace() {
+    if (this.type != 'rating') return this.neutrals
     if (this.firstCommand.hasSpaceFor(1)) return this.firstCommand
     if (this.secondCommand.hasSpaceFor(1)) return this.secondCommand
   }
@@ -323,6 +407,20 @@ export class Lobby implements Match.Lobby.Instance {
       .then((guild) => {
         if (guild) this.discord?.removeMatchMakingRolesFromUser(guild, name)
       })
+  }
+
+  private _checkStatus() {
+    if (
+      this.status == 'searching' &&
+      this.playersCount == this._maxCommandSize * 2
+    )
+      this._status = 'filled'
+    if (this.status == 'filled' && this.isReady) this._status = 'voting'
+    if (this.status == 'voting' && this.isVotingStageEnd)
+      this._status = 'preparing'
+
+    if (this._status == 'preparing' && !this._prepareStageStarted)
+      this._prepareStageStarted = new Date()
   }
 
   private get _maxTeamSize() {
