@@ -1,2 +1,2 @@
-require('./dark-side')
-require('./query')
+export * from './dark-side'
+export * from './query'

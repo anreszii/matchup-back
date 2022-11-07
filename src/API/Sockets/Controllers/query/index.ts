@@ -1,3 +1,3 @@
-require('./get')
-require('./set')
-require('./syscall')
+export * from './get'
+export * from './set'
+export * from './syscall'

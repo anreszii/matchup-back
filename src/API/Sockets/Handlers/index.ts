@@ -1,3 +1,3 @@
-require('./authorize')
-require('./dark-side')
-require('./queries')
+export * from './authorize'
+export * from './dark-side'
+export * from './queries'

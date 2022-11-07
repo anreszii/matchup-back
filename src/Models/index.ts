@@ -23,6 +23,17 @@ export const OrderListModel = getModelForClass(OrderList)
 export const StaticTaskModel = getModelForClass(StaticTask)
 export const DynamicTaskModel = getModelForClass(DynamicTask)
 
+export * from './Orders/Orders'
+export * from './Task/Types/Static'
+export * from './Task/Types/Dynamic'
+export * from './User/User'
+export * from './Task/Task'
+export * from './Task/TaskList'
+export * from './Guild/Guild'
+export * from './MatchMaking/Rating'
+export * from './MatchMaking/MatchList'
+export * from './MatchMaking/Reports'
+
 export const MODELS: Map<string, ModelType<any, any>> = new Map()
 MODELS.set(UserModel.modelName, UserModel)
 MODELS.set(TaskModel.modelName, TaskModel)
