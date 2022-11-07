@@ -1,5 +1,6 @@
 export type API_ACTION_LIST =
   | 'find_lobby'
+  | 'leave_lobby'
   | 'invite_to_lobby'
   | 'join_to_lobby'
   | 'sync_lobby'
@@ -21,6 +22,7 @@ export type API_ACTION_LIST =
 
 export const API_ACTIONS: Map<API_ACTION_LIST, number> = new Map()
 API_ACTIONS.set('find_lobby', 0)
+API_ACTIONS.set('leave_lobby', 0)
 API_ACTIONS.set('invite_to_lobby', 0)
 API_ACTIONS.set('vote', 0)
 API_ACTIONS.set('join_to_lobby', 0)

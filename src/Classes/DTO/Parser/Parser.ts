@@ -27,24 +27,30 @@ class Parser implements DTO_NAMESPACE.Parser.Instance {
   }
 }
 
-class To implements FormatTo {
+export class To implements FormatTo {
   constructor(private _value: DTO_NAMESPACE.Object) {}
   get JSON(): string {
     return JSON.stringify(this._value.content)
   }
 }
 
-class From implements FormatFrom {
+export class From implements FormatFrom {
   JSON(value: unknown): DTO {
-    if (!value || typeof value != 'string')
-      throw new ServerError(ServerCause.INVALID_DTO)
-    return this.Object(JSON.parse(value))
+    try {
+      if (!value || typeof value != 'string')
+        throw new ServerError(ServerCause.INVALID_DTO)
+      return this.Object(JSON.parse(value))
+    } catch (e) {
+      throw e
+    }
   }
 
   Object(value: unknown): DTO {
-    if (!value || typeof value != 'object')
-      throw new ServerError(ServerCause.INVALID_DTO)
-    return new DTO(value)
+    try {
+      return new DTO(value)
+    } catch (e) {
+      throw e
+    }
   }
 }
 

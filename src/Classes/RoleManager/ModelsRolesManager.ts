@@ -20,7 +20,7 @@ export class ModelsManager extends Manager<USER_ROLE, MODELS_ACTION_LIST> {
 
   protected async _getAccessLevel(name: string): Promise<number> {
     let user = await UserModel.findByName(name)
-    if (!user) throw new TechnicalError('user', TechnicalCause.INVALID)
+    if (!user) return -1
 
     return this._roles.get(user.role)!
   }

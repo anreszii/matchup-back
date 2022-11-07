@@ -76,6 +76,7 @@ export class ReportList {
   public static async deleteTestData(this: ReturnModelType<typeof ReportList>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
+    return true
   }
 
   private static async getUniqueID() {

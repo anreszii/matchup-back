@@ -49,7 +49,7 @@ let RoleManager = new APIManager()
  * @category Basic
  * @event dark-side
  */
-export function darkSideHandler(escort: IDataEscort) {
+export async function darkSideHandler(escort: IDataEscort) {
   try {
     let response: DTO
     let socketID = escort.get('socket_id') as string
@@ -81,20 +81,19 @@ export function darkSideHandler(escort: IDataEscort) {
     if (!controller)
       throw new TechnicalError('action controller', TechnicalCause.NOT_EXIST)
 
-    controller(socket, params).then((result) => {
-      if (result == true)
-        response = new DTO({
-          label: request.label,
-          status: 'success',
-        })
-      else
-        response = new DTO({
-          label: request.label,
-          response: result,
-        })
+    let result = await controller(socket, params)
+    if (result == true)
+      response = new DTO({
+        label: request.label,
+        status: 'success',
+      })
+    else
+      response = new DTO({
+        label: request.label,
+        response: result,
+      })
 
-      clientServer.control(socketID).emit('dark-side', response.to.JSON)
-    })
+    clientServer.control(socketID).emit('dark-side', response.to.JSON)
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)

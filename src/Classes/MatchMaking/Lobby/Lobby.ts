@@ -411,12 +411,12 @@ export class Lobby implements Match.Lobby.Instance {
 
   private _checkStatus() {
     if (
-      this.status == 'searching' &&
+      this._status == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
     )
       this._status = 'filled'
-    if (this.status == 'filled' && this.isReady) this._status = 'voting'
-    if (this.status == 'voting' && this.isVotingStageEnd)
+    if (this._status == 'filled' && this.isReady) this._status = 'voting'
+    if (this._status == 'voting' && this.isVotingStageEnd)
       this._status = 'preparing'
 
     if (this._status == 'preparing' && !this._prepareStageStarted)

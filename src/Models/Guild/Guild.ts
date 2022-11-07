@@ -21,25 +21,11 @@ export class Guild {
     this: ReturnModelType<typeof Guild>,
     testDocumentsCount: number = 2,
   ) {
-    let generatedDocuments: DocumentType<Guild>[] = []
-    for (let i = 1; i < testDocumentsCount + 1; i++) {
-      let users = await UserModel.generateTestData(5)
-      let owner = users[0]
-      owner.profile.balance = 10000
-      owner.save()
-      users.splice(0, 1)
+    let guilds = []
+    for (let i = 1; i < testDocumentsCount + 1; i++)
+      guilds.push(await this._generateTestDocument())
 
-      let newGuild = await this.new(
-        this._randomGuildTag,
-        this._randomGuildName,
-        owner.profile.username,
-      )
-
-      for (let user of users) await newGuild.join(user.profile.username)
-      generatedDocuments.push(newGuild)
-    }
-
-    return generatedDocuments
+    return guilds
   }
 
   static async getTestData(this: ReturnModelType<typeof Guild>) {
@@ -52,6 +38,7 @@ export class Guild {
   static async deleteTestData(this: ReturnModelType<typeof Guild>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
+    return true
   }
 
   static async new(
@@ -63,13 +50,13 @@ export class Guild {
     let user = await UserModel.findByName(ownerName)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     user.buy(PRICE_OF_GUILD_CREATION)
+    await user.save()
 
     let guild = new this({
       info: { name: guildName, tag: tag },
       memberlist: [{ role: 'owner', name: ownerName }],
     })
 
-    await user.save()
     await guild.validate()
     return guild.save()
   }
@@ -213,16 +200,43 @@ export class Guild {
     return this.save()
   }
 
-  private static get _randomGuildTag() {
+  private static async _generateTestDocument(
+    this: ReturnModelType<typeof Guild>,
+  ) {
+    let users = await UserModel.generateTestData(5, false)
+
+    let owner = users[0]
+    owner.profile.balance = 10000
+    await owner.save()
+
+    users.splice(0, 1)
+    let nameAndTag = await Promise.all([
+      this._getRandomGuildTag(),
+      this._getRandomGuildName(),
+    ])
+
+    let guild = await this.new(
+      nameAndTag[0],
+      nameAndTag[1],
+      owner.profile.username,
+    )
+    for (let user of users) await guild.join(user.profile.username)
+
+    return guild
+  }
+
+  private static async _getRandomGuildTag(this: ReturnModelType<typeof Guild>) {
     let tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
-    while (GuildModel.findByTag(tag).then((guild) => guild))
+    while (await this.findByTag(tag))
       tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
     return tag
   }
 
-  private static get _randomGuildName() {
+  private static async _getRandomGuildName(
+    this: ReturnModelType<typeof Guild>,
+  ) {
     let name = `test_${generateGuildName()}#${getRandom(1, 99)}`
-    while (GuildModel.findByName(name).then((guild) => guild))
+    while (await this.findByName(name))
       name = `test_${generateGuildName()}#${getRandom(1, 99)}`
     return name
   }

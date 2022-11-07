@@ -6,7 +6,7 @@ import {
   STATIC_DATA,
   STATIC_TASK,
 } from '../../configs/task_reward'
-import { UserModel } from '../index'
+import { DynamicTaskModel, StaticTaskModel, UserModel } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
@@ -63,7 +63,8 @@ export class TaskList {
     if (!wasCleared) return this._findCurrentDailyTasks()
 
     let tasks = await this._createDailyTasks()
-    if (!tasks) throw new Error(`can't create daily tasks`)
+    if (!tasks)
+      throw new TechnicalError('daily task list', TechnicalCause.CAN_NOT_ADD)
 
     return tasks
   }
@@ -73,7 +74,8 @@ export class TaskList {
     if (!wasCleared) return this._findCurrentWeeklyTasks()
 
     let tasks = await this._createWeeklyTasks()
-    if (!tasks) throw new Error(`can't create daily tasks`)
+    if (!tasks)
+      throw new TechnicalError('weekly task list', TechnicalCause.CAN_NOT_ADD)
 
     return tasks
   }
@@ -377,7 +379,7 @@ export class TaskList {
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
   ) {
-    let task = DYNAMIC_DATA.getRandomDaily(usedTasksNames)
+    let task = await DynamicTaskModel.getRandomDaily(usedTasksNames)
     if (!task) return
 
     let data = TaskData.getDataFrom(task.data)
@@ -423,7 +425,7 @@ export class TaskList {
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
   ) {
-    let task = DYNAMIC_DATA.getRandomWeekly(usedTasksNames)
+    let task = await DynamicTaskModel.getRandomWeekly(usedTasksNames)
     if (!task) return
 
     let data = TaskData.getDataFrom(task.data)
@@ -442,7 +444,7 @@ export class TaskList {
   }
 
   private get _createTaskToCompleteAllDaily() {
-    let data = STATIC_DATA.get('completedDaily')!
+    let data = StaticTaskModel.getType('completedDaily')!
     return this._ownerName.then((username) => {
       return this._create('completedDaily', data.points).then((task) => {
         if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
@@ -459,7 +461,7 @@ export class TaskList {
   }
 
   private get _createTaskToCompleteAllWeekly() {
-    let data = STATIC_DATA.get('completedDaily')!
+    let data = StaticTaskModel.getType('completedWeekly')!
     return this._ownerName.then((username) => {
       return this._create('completedWeeky', data.points).then((task) => {
         if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp

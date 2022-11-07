@@ -14,8 +14,7 @@ export abstract class Manager<R extends string, A extends string>
   /** @returns true, если операция для данного пользователя доступна и false  в противном случае*/
   hasAccess(name: string, action: A) {
     let requiredAccessLevel = this._getAccessLevelForAction(action)
-    if (!~requiredAccessLevel)
-      throw new TechnicalError('action', TechnicalCause.NOT_EXIST)
+    if (!~requiredAccessLevel) return false
     let roleAccessLevel = this._getAccessLevel(name)
 
     if (typeof roleAccessLevel == 'number')

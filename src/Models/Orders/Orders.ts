@@ -64,24 +64,29 @@ export class OrderList {
 
     await newOrder.validate()
     await newOrder.save()
+    return newOrder
   }
 
   public static async generateTestData(
     this: ReturnModelType<typeof OrderList>,
     testDocumentsCount: number = 4,
   ) {
-    let testUsers = await UserModel.generateTestData(5)
-    for (let i = 0; i < testDocumentsCount; i++) {
-      await this.createOrder(
-        testUsers[getRandom(0, testUsers.length - 1)],
-        'testCountry',
-        'testRegion',
-        'testCity',
-        'testStreet',
-        `${getRandom(1, 999)}`,
-        createRandomPostal(),
+    let testUsers = await UserModel.generateTestData(5, false)
+    let records = []
+    for (let i = 0; i < testDocumentsCount; i++)
+      records.push(
+        await this.createOrder(
+          testUsers[getRandom(0, testUsers.length - 1)],
+          'testCountry',
+          'testRegion',
+          'testCity',
+          'testStreet',
+          `${getRandom(1, 999)}`,
+          createRandomPostal(),
+        ),
       )
-    }
+
+    return records
   }
 
   public static async getTestData(this: ReturnModelType<typeof OrderList>) {
@@ -94,6 +99,7 @@ export class OrderList {
   public static async deleteTestData(this: ReturnModelType<typeof OrderList>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
+    return true
   }
 
   private static async _getUniqueID(this: ReturnModelType<typeof OrderList>) {

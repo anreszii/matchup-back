@@ -8,6 +8,7 @@ export class Profile {
     unique: true,
     validate: {
       validator: function (v: string) {
+        if (v.startsWith('test_')) return true
         let length = v.length
         return length >= 6 && length <= 18
       },
@@ -20,6 +21,7 @@ export class Profile {
     unique: true,
     validate: {
       validator: function (v: string) {
+        if (v.startsWith('test_')) return true
         let length = v.length
         return length >= 6 && length <= 18
       },

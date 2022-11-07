@@ -1,1 +1,1 @@
-export const PREFIXES = ['YouTube', 'Funny']
+export const PREFIXES = ['YouTube', 'Funny', 'Test']

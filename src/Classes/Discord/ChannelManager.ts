@@ -56,11 +56,10 @@ export class DiscordChannelManager {
     id: string,
     command: PlayerCommand,
   ) {
-    return guild.channels.fetch().then((channels) => {
-      return channels.find((channel) => {
-        if (channel.name != `${command}#${id}`) return false
-        return true
-      })
+    let channels = await guild.channels.fetch()
+    return channels.find((channel) => {
+      if (channel.name != `${command}#${id}`) return false
+      return true
     })
   }
 }

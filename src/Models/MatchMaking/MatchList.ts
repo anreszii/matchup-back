@@ -72,55 +72,11 @@ export class MatchList {
     this: ReturnModelType<typeof MatchList>,
     testDocumentsCount: number = 3,
   ) {
-    let generatedDocuments: DocumentType<MatchList>[] = []
-    let testUsers = await UserModel.generateTestData(10)
-    for (let i = 1; i < testDocumentsCount + 1; i++) {
-      let score1 = getRandom(0, 16)
-      let score2 = 0
-      if (score1 != 16) {
-        score2 = 30 - score1
-      }
-      let document = new this({
-        id: await this.getRandomID(),
-        game: 'StandOff2',
-        score: {
-          mapName: 'testMap',
-          command1: score1,
-          command2: score2,
-        },
-      })
+    let records = []
+    for (let i = 1; i < testDocumentsCount + 1; i++)
+      records.push(await this._generateTestDocument())
 
-      for (let usersCount = 0; usersCount < 10; ) {
-        for (let i = 0; i < 5; ) {
-          let usedUsers: string[] = []
-          let user = testUsers[getRandom(0, testUsers.length - 1)]
-          if (usedUsers.includes(user.profile.username)) continue
-          if (usersCount < 5) {
-            document.members.push({
-              name: user.profile.username,
-              command: 'command1',
-              statistic: { kills: 0, deaths: 0, assists: 0 },
-            })
-            usedUsers.push(user.profile.username)
-            i++
-          } else {
-            document.members.push({
-              name: user.profile.username,
-              command: 'command2',
-              statistic: { kills: 0, deaths: 0, assists: 0 },
-            })
-            usedUsers.push(user.profile.username)
-            i++
-          }
-        }
-        usersCount += 5
-      }
-
-      await document.save()
-      generatedDocuments.push(document)
-    }
-
-    return generatedDocuments
+    return records
   }
 
   public static async getTestData(this: ReturnModelType<typeof MatchList>) {
@@ -132,11 +88,55 @@ export class MatchList {
   public static async deleteTestData(this: ReturnModelType<typeof MatchList>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
+    return true
+  }
+
+  private static async _generateTestDocument(
+    this: ReturnModelType<typeof MatchList>,
+  ) {
+    let score1 = getRandom(0, 16)
+    let score2 = 0
+    if (score1 != 16) {
+      score2 = 30 - score1
+    }
+    let matchRecord = new this({
+      id: await this.getRandomID(),
+      game: 'StandOff2',
+      score: {
+        mapName: 'testMap',
+        command1: score1,
+        command2: score2,
+      },
+    })
+    matchRecord._fullFillWithTestData()
+    await matchRecord.save()
+    return matchRecord
   }
 
   private static async getRandomID() {
     let id = v4()
     while (await MatchListModel.findOne({ id })) id = v4()
     return id
+  }
+
+  private async _fullFillWithTestData(this: DocumentType<MatchList>) {
+    let testUsers = await UserModel.getTestData()
+    if (testUsers.length < 10)
+      testUsers = await UserModel.generateTestData(10, false)
+    for (let membersCount = 0; membersCount < 10; membersCount++) {
+      let user = testUsers[membersCount]
+      if (membersCount < 5)
+        this.members.push({
+          name: user.profile.username,
+          command: 'command1',
+          statistic: { kills: 0, deaths: 0, assists: 0 },
+        })
+      else
+        this.members.push({
+          name: user.profile.username,
+          command: 'command2',
+          statistic: { kills: 0, deaths: 0, assists: 0 },
+        })
+    }
   }
 }

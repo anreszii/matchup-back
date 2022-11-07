@@ -1,6 +1,6 @@
 import type { DTO_TYPES } from '../../Interfaces/DTO/Types/index'
 import type { DTO as DTO_NAMESPACE } from '../../Interfaces/index'
-import { dtoParser } from './Parser/Parser'
+import { dtoParser, To } from './Parser/Parser'
 
 import {
   SERVER_ERRORS_DESCRIPTIONS,
@@ -14,12 +14,14 @@ export class DTO implements DTO_NAMESPACE.Object {
   private _metaInfo!: DTO_NAMESPACE.OBJECT_DATA
   private _type!: DTO_TYPES
   private _label!: string
+  private _to!: FormatTo
   constructor(content: unknown) {
     if (typeof content != 'object' || !content)
       throw new TechnicalError('DTO content', TechnicalCause.REQUIRED)
 
     this._content = content as DTO_NAMESPACE.OBJECT_DATA
     this._specify()
+    this._to = new To(this)
   }
 
   get label() {
@@ -27,7 +29,7 @@ export class DTO implements DTO_NAMESPACE.Object {
   }
 
   set label(value) {
-    if (this._label != 'undefined') return
+    if (this.label && this._label != 'undefined') return
     this._label = value
   }
 
@@ -44,7 +46,7 @@ export class DTO implements DTO_NAMESPACE.Object {
   }
 
   get to(): FormatTo {
-    return dtoParser.to
+    return this._to
   }
 
   private _specify() {
@@ -69,12 +71,10 @@ export class DTO implements DTO_NAMESPACE.Object {
 
   private _specifyType(): DTO_TYPES {
     let content = this._content
-    if (!content.label)
-      throw new TechnicalError(
-        'DTO content',
-        TechnicalCause.INVALID_FORMAT,
-        'data',
-      )
+
+    if (!content.label) this.label = 'unknown'
+    else this.label = content.label as string
+
     if (content.status) return 'performance'
     if (content.errorCode) return 'error'
     return 'data'

@@ -49,38 +49,34 @@ export async function HQuery(escort: IDataEscort) {
 
     switch (query.method) {
       case 'get':
-        get(model, request).then((result) => {
-          if (result == true)
-            response = new DTO({
-              label: request.label,
-              status: 'success',
-            })
-          else
-            response = new DTO({
-              label: request.label,
-              response: result,
-            })
+        let result = await get(model, request)
+        if (result == true)
+          response = new DTO({
+            label: request.label,
+            status: 'success',
+          })
+        else
+          response = new DTO({
+            label: request.label,
+            response: result,
+          })
 
-          clientServer.control(socketID).emit('query', response.to.JSON)
-        })
-        break
+        return clientServer.control(socketID).emit('query', response.to.JSON)
 
       case 'set':
-        set(model, request).then((result) => {
-          if (result == true)
-            response = new DTO({
-              label: request.label,
-              status: 'success',
-            })
-          else
-            response = new DTO({
-              label: request.label,
-              response: result,
-            })
+        result = await set(model, request)
+        if (result == true)
+          response = new DTO({
+            label: request.label,
+            status: 'success',
+          })
+        else
+          response = new DTO({
+            label: request.label,
+            response: result,
+          })
 
-          clientServer.control(socketID).emit('query', response.to.JSON)
-        })
-        break
+        return clientServer.control(socketID).emit('query', response.to.JSON)
 
       default:
         throw new TechnicalError('method', TechnicalCause.NOT_EXIST)
@@ -127,20 +123,19 @@ export async function HSyscall(escort: IDataEscort) {
     if (!query.execute.params)
       throw new TechnicalError('params', TechnicalCause.REQUIRED)
 
-    syscall(request).then((result) => {
-      if (result == true)
-        response = new DTO({
-          label: request.label,
-          status: 'success',
-        })
-      else
-        response = new DTO({
-          label: request.label,
-          response: result,
-        })
+    let result = await syscall(request)
+    if (result == true)
+      response = new DTO({
+        label: request.label,
+        status: 'success',
+      })
+    else
+      response = new DTO({
+        label: request.label,
+        response: result,
+      })
 
-      return clientServer.control(socketID).emit('syscall', response.to.JSON)
-    })
+    return clientServer.control(socketID).emit('syscall', response.to.JSON)
   } catch (e) {
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)

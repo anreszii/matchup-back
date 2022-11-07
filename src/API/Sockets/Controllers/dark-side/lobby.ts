@@ -20,6 +20,7 @@ import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
 import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
 import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
+import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 
 let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
@@ -79,6 +80,10 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   let Filters: Rating.SearchEngine.Filters
   let username = socket.username as string
   let member = await PLAYERS.get(username)
+  if (member.lobbyID) {
+    let lobby = StandOff_Lobbies.get(member.lobbyID)
+    if (lobby) throw new TechnicalError('lobbyID', TechnicalCause.ALREADY_EXIST)
+  }
 
   let region = params[0]
   if (typeof region != 'string' || !isCorrectRegion(region))
@@ -101,12 +106,34 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   if (!lobby.chat) await createChatForLobby(lobby.id)
 
   await lobby.join(username)
+  sync_lobby(socket, [])
   return {
     lobbyID: lobby.id,
     chatID: lobby.chat!.id,
   }
 }
 CONTROLLERS.set('find_lobby', find_lobby)
+
+/**
+ * Обработчик для выхода из лобби.
+ * @category Lobby
+ * @event
+ */
+export async function leave_lobby(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+  if (!member.lobbyID)
+    throw new TechnicalError('lobbyID', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+  }
+
+  return lobby.leave(username)
+}
+CONTROLLERS.set('leave_lobby', leave_lobby)
 
 /**
  * Контроллер для подтверждение входа в лобби.</br>
@@ -337,6 +364,16 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
+  for (let member of lobby.members.toArray) {
+    clientServer.control(clientServer.Aliases.get(member.name)!).emit(
+      'sync_lobby',
+      dtoParser.from.Object({
+        label: 'join',
+        status: lobby.status,
+        players: lobby.players,
+      }).to.JSON,
+    )
+  }
   return {
     status: lobby.status,
     players: lobby.players,
@@ -471,12 +508,11 @@ async function createChatForLobby(lobbyID: string) {
 
 async function updateLobbyChatMembers(lobby: Match.Lobby.Instance) {
   for (let member of lobby.members.values()) {
-    lobby.chat!.addMember({ name: member.name }).then(async (status) => {
-      if (status)
-        await lobby.chat!.send({
-          from: 'system',
-          content: `member ${member.name} joined lobby#${lobby.id}`,
-        })
-    })
+    let status = await lobby.chat!.addMember({ name: member.name })
+    if (status)
+      await lobby.chat!.send({
+        from: 'system',
+        content: `member ${member.name} joined lobby#${lobby.id}`,
+      })
   }
 }

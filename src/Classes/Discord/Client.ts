@@ -196,18 +196,16 @@ export class DiscordClient {
   }
 
   public async getMemberByNickanme(guild: string | Guild, nick: string) {
-    return this._getMembersFromGuild(guild).then((members) => {
-      return members?.find((member) => {
-        if (member.nickname != nick) return false
-        return true
-      })
+    let members = await this._getMembersFromGuild(guild)
+    return members?.find((member) => {
+      if (member.nickname != nick) return false
+      return true
     })
   }
 
   public async getMemberById(guildName: string, id: string) {
-    return this._getMembersFromGuild(guildName).then((members) => {
-      if (members?.has(id)) return members.get(id)!
-    })
+    let members = await this._getMembersFromGuild(guildName)
+    if (members?.has(id)) return members.get(id)!
   }
 
   public async getGuildByName(name: string) {

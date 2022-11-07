@@ -55,7 +55,7 @@ export class User {
   @prop({ ref: () => Guild })
   guild?: Ref<Guild>
 
-  public static async findByName(
+  static async findByName(
     this: ReturnModelType<typeof User>,
     name: string,
   ): Promise<DocumentType<User>> {
@@ -64,86 +64,76 @@ export class User {
     }).exec() as unknown as DocumentType<User>
   }
 
-  public static async findByEmail(
-    this: ReturnModelType<typeof User>,
-    email: string,
-  ) {
+  static async findByEmail(this: ReturnModelType<typeof User>, email: string) {
     return this.findOne({
       'credentials.email': email,
     }).exec() as unknown as DocumentType<User>
   }
 
-  public static async getPublicData(
-    this: ReturnModelType<typeof User>,
-    name: string,
-  ) {
+  static async getPublicData(this: ReturnModelType<typeof User>, name: string) {
     return this.findOne(
       { 'profile.username': name },
       'id profile level rating role prefix guild credentials.email credentials.region',
     )
   }
 
-  public static async getPrefixes() {
+  static async getPrefixes() {
     return PREFIXES
   }
 
-  public static setPrefix(
+  static async setPrefix(
     this: ReturnModelType<typeof User>,
     name: string,
     prefix: string,
   ) {
     if (!PREFIXES.includes(prefix))
       throw new TechnicalError('prefix', TechnicalCause.NOT_EXIST)
-    return this.findByName(name).then((user) => {
-      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-      user.prefix = prefix
-      return user.save().then(() => user)
-    })
+    const user = await this.findByName(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+    user.prefix = prefix
+    await user.save()
+    return user
   }
 
-  public static async generateTestData(
+  static async generateTestData(
     this: ReturnModelType<typeof User>,
     testDocumentsCount: number = 4,
+    needRelation: boolean = true,
   ) {
-    let generatedUsers: DocumentType<User>[] = []
-    for (let i = 1; i < testDocumentsCount + 1; i++) {
-      let document = new this({
-        id: await this.getRandomID(),
-        credentials: {
-          email: await this.getRandomEmail(),
-          region: 'Europe',
-        },
-        profile: {
-          nickname: await this.getRandomNickname(),
-          username: await this.getRandomUsername(),
-        },
-      })
-      document.setPassword(generatePassword())
-      await document.save()
-      await TaskListModel.getForUser(document)
+    let users = []
+    for (let i = 1; i < testDocumentsCount + 1; i++)
+      users.push(await this._generateTestDocument())
 
-      generatedUsers.push(document)
+    if (!needRelation) return users
+
+    let promises = []
+
+    for (let user of users) {
+      await user._getTestRelations()
+      promises.push(this.findById(user))
     }
 
-    return generatedUsers
+    return Promise.all(promises) as unknown as Promise<DocumentType<User>[]>
   }
 
-  public static async getTestData(this: ReturnModelType<typeof User>) {
+  static async getTestData(this: ReturnModelType<typeof User>) {
     return this.find({
       'profile.username': { $regex: 'test_' },
       'credentials.email': { $regex: 'test_' },
-    })
+    }) as unknown as Promise<DocumentType<User>[]>
   }
 
-  public static async deleteTestData(this: ReturnModelType<typeof User>) {
+  static async deleteTestData(this: ReturnModelType<typeof User>) {
     let documents = await this.getTestData()
     for (let document of documents) {
       await TaskListModel.deleteForUser(document)
       await document.delete()
     }
+
+    return true
   }
 
-  public static async getGRI(
+  static async getGRI(
     this: ReturnModelType<typeof User>,
     name: string,
   ): Promise<number> {
@@ -154,16 +144,22 @@ export class User {
     return user.GRI
   }
 
+  setPrefix(this: DocumentType<User>, prefix: string) {
+    if (!PREFIXES.includes(prefix))
+      throw new TechnicalError('prefix', TechnicalCause.NOT_EXIST)
+    this.prefix = prefix
+  }
+
   /* PASSWORD */
 
-  public validatePassword(this: DocumentType<User>, password: string) {
+  validatePassword(this: DocumentType<User>, password: string) {
     if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     if (this.credentials.password !== generateHash(password))
       throw new TechnicalError('password', TechnicalCause.INVALID)
   }
 
-  public setPassword(this: DocumentType<User>, password: string) {
+  setPassword(this: DocumentType<User>, password: string) {
     if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     this.credentials.password = generateHash(password)
@@ -242,15 +238,16 @@ export class User {
 
     if (!this.hasSubscriber(name)) {
       user.addSubscriber(this.profile.username)
-      return user.save()
+      await user.save()
+      return true
     }
+    this.deleteSubscriber(name)
 
     user.addFriend(this.profile.username)
-    await user.save()
-
-    this.deleteSubscriber(name)
     this.addFriend(user.profile.username)
-    return this.save()
+
+    await Promise.all([user.save(), this.save()])
+    return true
   }
 
   async dropRelation(this: DocumentType<User>, name: string) {
@@ -264,11 +261,12 @@ export class User {
       throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
     user.deleteFriend(this.profile.username)
-    await user.save()
-
     this.deleteFriend(name)
+
     this.addSubscriber(name)
-    return this.save()
+
+    await Promise.all([user.save(), this.save()])
+    return true
   }
 
   /* GUILD */
@@ -354,7 +352,36 @@ export class User {
     return id
   }
 
-  private static async getRandomNickname() {
+  private static async _generateTestDocument(
+    this: ReturnModelType<typeof User>,
+  ) {
+    let testUserData = await Promise.all([
+      this.getRandomID(),
+      this._getRandomEmail(),
+      this._getRandomNickname(),
+      this._getRandomUsername(),
+    ])
+    let user = new this({
+      id: testUserData[0],
+      credentials: {
+        email: testUserData[1],
+        region: 'Europe',
+      },
+      profile: {
+        nickname: testUserData[2],
+        username: testUserData[3],
+      },
+    })
+    user.setPrefix('Test')
+    user.setPassword(generatePassword())
+
+    await user.save()
+    await TaskListModel.getForUser(user)
+
+    return user
+  }
+
+  private static async _getRandomNickname() {
     let name: string = `${generateName(1)}_${getRandom(1, 99)}`
 
     while (await UserModel.findOne({ 'profile.nickname': name }))
@@ -363,7 +390,7 @@ export class User {
     return name
   }
 
-  private static async getRandomUsername() {
+  private static async _getRandomUsername() {
     let name: string = `test_${generateName(1)}_${getRandom(1, 99)}`
     while (await UserModel.findOne({ 'profile.username': name }))
       name = `test_${generateName(1)}_${getRandom(1, 99)}`
@@ -371,11 +398,24 @@ export class User {
     return name
   }
 
-  private static async getRandomEmail() {
+  private static async _getRandomEmail() {
     let email: string = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
     while (await UserModel.findOne({ 'credentials.email': email }))
       email = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
 
     return email
+  }
+
+  private async _getTestRelations(
+    this: DocumentType<User>,
+    needFriendsCount: number = 4,
+  ) {
+    let users = await UserModel.getTestData()
+    for (let friendsCount = 0; friendsCount < needFriendsCount; friendsCount++)
+      await this.addRelation(users[friendsCount].profile.username)
+    await Promise.all([
+      users[0].addRelation(this.profile.username),
+      users[1].addRelation(this.profile.username),
+    ])
   }
 }

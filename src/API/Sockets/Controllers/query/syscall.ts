@@ -17,23 +17,23 @@ export async function syscall(request: DTO) {
   const query = request.content.query as unknown as SyscallQuery
   switch (typeof query.model) {
     case 'undefined': {
-      let results: Array<Promise<unknown>> = []
-      let names: Array<string> = []
+      let response = []
       for (let [name, model] of MODELS) {
         let val = model as any
         if (typeof val[query.execute.function] != 'function') continue
-        names.push(name)
-        results.push(
-          val[query.execute.function].call(model, ...query.execute.params),
-        )
+        response.push({
+          model: name,
+          result: await val[query.execute.function].call(
+            model,
+            ...query.execute.params,
+          ),
+        })
       }
 
-      return Promise.all(results).then((results) => {
-        let response: Array<{ model: string; result: unknown }> = []
-        for (let i = 0; i < names.length; i++)
-          response.push({ model: names[i], result: results[i] })
-        return response
-      })
+      let i = 0
+      for (let record of response) if (record.result == true) i++
+
+      return i == response.length ? true : response
     }
 
     case 'string': {
@@ -62,18 +62,17 @@ export async function syscall(request: DTO) {
           )
 
         case 'object':
-          return model.findOne(query.filter).then(async (document: any) => {
-            if (!document)
-              throw new TechnicalError('document', TechnicalCause.NOT_EXIST)
+          let document = await model.findOne(query.filter)
+          if (!document)
+            throw new TechnicalError('document', TechnicalCause.NOT_EXIST)
 
-            let result = await document[query.execute.function].call(
-              document,
-              ...query.execute.params,
-            )
-            await document.save()
+          let result = await document[query.execute.function].call(
+            document,
+            ...query.execute.params,
+          )
+          await document.save()
 
-            return result
-          })
+          return result
       }
     }
   }

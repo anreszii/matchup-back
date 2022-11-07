@@ -10,6 +10,7 @@ export class Credentials {
     unique: true,
     validate: {
       validator: function (v: string) {
+        if (v.startsWith('test_') && v.includes('@test')) return true
         return validator.isEmail(v)
       },
       message: () => `invalid email format`,

@@ -62,9 +62,9 @@ export class Filters implements Rating.SearchEngine.Filters {
     let results: { [key: string]: number } = {}
     for (let filter of this._filters) {
       if (!filter.isValid(lobby)) continue
-
       if (results[filter.priority] == undefined) results[filter.priority] = 0
-      else results[filter.priority]++
+      if (typeof results[filter.priority] == 'number')
+        results[filter.priority]++
     }
 
     return results

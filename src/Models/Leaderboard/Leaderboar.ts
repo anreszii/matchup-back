@@ -32,10 +32,9 @@ export class Leaderboard {
     return this.save()
   }
 
-  private _updateRecords() {
-    return this._createNewRecords().then((records) => {
-      this.records = records
-    })
+  private async _updateRecords() {
+    const records = await this._createNewRecords()
+    this.records = records
   }
 
   /**
@@ -65,25 +64,23 @@ export class Leaderboard {
   /**
    * @return неотсортированный массив Records для пользовательской модели
    */
-  private _createUserRecords() {
+  private async _createUserRecords() {
     let records: Record[] = []
-    return UserModel.find({}, 'profile raging').then((users) => {
-      for (let user of users)
-        records.push(this._createRecord(user.profile.username, user.GRI))
-      return records
-    })
+    const users = await UserModel.find({}, 'profile raging')
+    for (let user of users)
+      records.push(this._createRecord(user.profile.username, user.GRI))
+    return records
   }
 
   /**
    * @returns неотсортированный массив Records для модели гильдий
    */
-  private _createGuildRecords() {
+  private async _createGuildRecords() {
     let records: Record[] = []
-    return GuildModel.find({}, 'info').then((guilds) => {
-      for (let guild of guilds)
-        records.push(this._createRecord(guild.info.name, guild.info.MPT))
-      return records
-    })
+    const guilds = await GuildModel.find({}, 'info')
+    for (let guild of guilds)
+      records.push(this._createRecord(guild.info.name, guild.info.MPT))
+    return records
   }
 
   /**

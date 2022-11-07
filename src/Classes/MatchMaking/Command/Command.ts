@@ -27,13 +27,13 @@ export class Command implements Match.Lobby.Command.Instance {
     let member = await PLAYERS.get(name)
     if (!this.members.addMember(member)) return false
 
-    this.chat.addMember({ name }).then(async (status) => {
-      if (!status) return
+    let status = await this.chat.addMember({ name })
+    if (status)
       await this.chat.send({
         from: 'system',
-        content: `${member.name} joined team#${this.id}`,
+        content: `${member.name} joined command#${this.id}`,
       })
-    })
+
     this._checkGuildAfterJoin(member)
 
     if (!this._captain) this._captain = member.name
@@ -48,13 +48,12 @@ export class Command implements Match.Lobby.Command.Instance {
     let member = this.members.getByName(name)
     if (!member) return false
 
-    this.chat.deleteMember({ name }).then(async (status) => {
-      if (!status) return
+    let status = await this.chat.deleteMember({ name })
+    if (status)
       await this.chat.send({
         from: 'system',
-        content: `${member!.name} leaved team#${this.id}`,
+        content: `${member!.name} leaved command#${this.id}`,
       })
-    })
 
     if (member.teamID) this._deleteTeamOfMember(member.teamID)
     this._checkGuildAfterLeave()
