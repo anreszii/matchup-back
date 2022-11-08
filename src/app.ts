@@ -49,5 +49,5 @@ WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
 })
 
 app.listen(Number(process.env.HTTP_PORT!), () => {
-  console.log(`Example app listening on port 3000`)
+  console.log(`Example app listening on port ${process.env.HTTP_PORT}`)
 })

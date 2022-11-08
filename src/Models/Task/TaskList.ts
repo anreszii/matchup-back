@@ -103,6 +103,16 @@ export class TaskList {
     return counter
   }
 
+  public async getCompletedWeeklyTasksCount(this: DocumentType<TaskList>) {
+    let weekly = await this.getWeekly()
+    let counter = 0
+
+    for (let task of weekly)
+      if (task.isComplete && task.name != 'completedWeekly') counter++
+
+    return counter
+  }
+
   public async collectRewardsFromDaily(this: DocumentType<TaskList>) {
     let user = await UserModel.findById(this.owner)
     if (!user) {
