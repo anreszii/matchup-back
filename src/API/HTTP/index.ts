@@ -6,6 +6,7 @@ import { isMatchUpError, MatchUpError } from '../../error'
 let router = Router()
 
 router.use('/api/user', require('./user'))
+router.use('/api/vk', require('./vk'))
 
 router.use(function (
   errorObject: MatchUpError | MongoError.ValidationError | MongoServerError,

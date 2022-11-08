@@ -13,8 +13,10 @@ export type MODELS_ACTION_LIST =
 
   /* TaskList Model */
   | 'TaskList/getDaily'
-  | 'TaskList/collectRewardFromDaily'
   | 'TaskList/getWeekly'
+  | 'TaskList/getCompletedDailyTasksCount'
+  | 'TaskList/getCompletedWeeklyTasksCount'
+  | 'TaskList/collectRewardFromDaily'
   | 'TaskList/collectRewardFromWeekly'
   | 'TaskList/getForUser'
 
@@ -70,11 +72,13 @@ MODELS_ACTIONS.set('User/getTestData', 2)
 MODELS_ACTIONS.set('User/deleteTestData', 2)
 
 /* Task List Model Actions */
+MODELS_ACTIONS.set('TaskList/getDaily', 0)
+MODELS_ACTIONS.set('TaskList/getWeekly', 0)
+MODELS_ACTIONS.set('TaskList/getCompletedDailyTasksCount', 0)
+MODELS_ACTIONS.set('TaskList/getCompletedWeeklyTasksCount', 0)
 MODELS_ACTIONS.set('TaskList/collectRewardFromDaily', 0)
 MODELS_ACTIONS.set('TaskList/collectRewardFromWeekly', 0)
 MODELS_ACTIONS.set('TaskList/getForUser', 0)
-MODELS_ACTIONS.set('TaskList/getDaily', 0)
-MODELS_ACTIONS.set('TaskList/getWeekly', 0)
 
 /* Guild Model Actions */
 MODELS_ACTIONS.set('Guild/changeGuildName', 0)
