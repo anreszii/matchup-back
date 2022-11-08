@@ -68,8 +68,16 @@ export class Command implements Match.Lobby.Command.Instance {
     return name == this._captain
   }
 
+  becomeReady(name: string): boolean {
+    let member = this.members.getByName(name)
+    if (!member) return false
+
+    member.isReady = true
+    return true
+  }
+
   hasSpaceFor(size: number) {
-    return this._maxSize - this.playersCount - size > 0
+    return this._maxSize - this.playersCount >= size
   }
 
   has(name: string): boolean {
@@ -153,14 +161,6 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get isReady(): boolean {
     for (let member of this.members.toArray) if (!member.isReady) return false
-    return true
-  }
-
-  becomeReady(name: string): boolean {
-    let member = this.members.getByName(name)
-    if (!member) return false
-
-    member.isReady = true
     return true
   }
 

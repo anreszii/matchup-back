@@ -34,11 +34,22 @@ const Searcher = new SearchEngine(StandOff_Lobbies)
 setInterval(async () => {
   for (let lobby of StandOff_Lobbies.lobbies) {
     if (!lobby.chat) await createChatForLobby(lobby.id)
-    if (lobby.status == 'filled') sendReadyIventToLobby(lobby)
-    if (lobby.status == 'voting') sendVoteIventToLobby(lobby)
-    if (lobby.status == 'preparing' && lobby.readyToStart) {
-      sendStartIventToLobby(lobby)
-      await lobby.start()
+    switch (lobby.status) {
+      case 'searching':
+        sendSyncIventToLobby(lobby)
+        break
+      case 'filled':
+        sendReadyIventToLobby(lobby)
+        break
+      case 'voting':
+        sendVoteIventToLobby(lobby)
+        break
+      case 'preparing':
+        if (lobby.readyToStart) {
+          sendStartIventToLobby(lobby)
+          await lobby.start
+        }
+        break
     }
   }
 }, 1000 * 3)
@@ -106,7 +117,6 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   if (!lobby.chat) await createChatForLobby(lobby.id)
 
   await lobby.join(username)
-  sync_lobby(socket, [])
   return {
     lobbyID: lobby.id,
     chatID: lobby.chat!.id,
@@ -131,7 +141,8 @@ export async function leave_lobby(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  return lobby.leave(username)
+  await lobby.leave(username)
+  return true
 }
 CONTROLLERS.set('leave_lobby', leave_lobby)
 
@@ -154,8 +165,7 @@ export async function ready(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  if (!lobby.becomeReady(username))
-    throw new TechnicalError('member lobby', TechnicalCause.CAN_NOT_UPDATE)
+  lobby.becomeReady(username)
   return true
 }
 CONTROLLERS.set('get_ready', ready)
@@ -185,11 +195,7 @@ export async function vote(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  if (!lobby.vote(username, map))
-    throw new TechnicalError(
-      'member command role',
-      TechnicalCause.NEED_HIGHER_VALUE,
-    )
+  lobby.vote(username, map)
   sendVoteIventToLobby(lobby)
   return true
 }
@@ -457,13 +463,30 @@ function createFiltersForSoloSearch(
   return Filters
 }
 
-function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
+function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
+  const dto = new DTO({
+    label: 'sync',
+    lobby: lobby.id,
+    status: lobby.status,
+    players: lobby.players,
+  })
   for (let member of lobby.players) {
-    let dto = new DTO({ label: 'ready', lobby: lobby.id })
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
-      .emit('ready', dto.to.JSON)
+      .emit('lobby', dto.to.JSON)
   }
+}
+
+function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
+  const dto = new DTO({
+    label: 'ready',
+    lobby: lobby.id,
+    players: lobby.players,
+  })
+  for (let member of lobby.players)
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('lobby', dto.to.JSON)
 }
 
 function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
@@ -471,28 +494,27 @@ function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
     command1: lobby.firstCommand.captain,
     command2: lobby.secondCommand.captain,
   }
-  for (let member of lobby.players) {
-    let dto = new DTO({
-      label: 'vote',
-      captains,
-      maps: GAME_MAPS,
-      votes: lobby.votes,
-    })
+
+  const dto = new DTO({
+    label: 'vote',
+    captains,
+    maps: GAME_MAPS,
+    votes: lobby.votes,
+  })
+  for (let member of lobby.players)
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
-      .emit('ready', dto.to.JSON)
-  }
+      .emit('lobby', dto.to.JSON)
 }
 
 function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
-  for (let member of lobby.players) {
-    let dto = new DTO({
-      label: 'lobby start',
-    })
+  const dto = new DTO({
+    label: 'start',
+  })
+  for (let member of lobby.players)
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
-      .emit('ready', dto.to.JSON)
-  }
+      .emit('lobby', dto.to.JSON)
 }
 
 async function createChatForLobby(lobbyID: string) {

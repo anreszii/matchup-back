@@ -11,6 +11,7 @@ import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { TEAMS } from '../Team/Manager'
+import { TechnicalCause, TechnicalError } from '../../../error'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -67,50 +68,6 @@ export class Lobby implements Match.Lobby.Instance {
     return this._controller.stop()
   }
 
-  vote(name: string, map: string): boolean {
-    if (this.status != 'preparing' || this.map != undefined) return false
-    if (!GAME_MAPS.includes(map)) return false
-    if (
-      this.firstCommand.captain == name &&
-      !this._votes.find((value) => value.command == 'command1')
-    ) {
-      this._votes.push({ command: 'command1', map })
-      return true
-    }
-    if (
-      this.secondCommand.captain == name &&
-      !this._votes.find((value) => value.command == 'command2')
-    ) {
-      this._votes.push({ command: 'command2', map })
-      return true
-    }
-    return false
-  }
-
-  get isVotingStageEnd(): boolean {
-    if (this._map) return true
-    if (this._votes.length != 2) return false
-
-    this._map = this._mapFromVotes
-    return true
-  }
-
-  get votes() {
-    this.isVotingStageEnd
-    let result: { [key: string]: number } = {}
-    for (let i = 0; i < this._votes.length; i++) {
-      if (!result[this._votes[i].map]) result[this._votes[i].map] = 1
-      result[this._votes[i].map]++
-    }
-
-    return result
-  }
-
-  get map() {
-    if (this.status != 'started') return undefined
-    return this._map
-  }
-
   async move(
     name: string,
     command: Match.Lobby.Command.Instance | Match.Lobby.Command.Types | number,
@@ -119,7 +76,8 @@ export class Lobby implements Match.Lobby.Instance {
     for (let [type, command] of this.commands)
       if (command.has(name)) commandWithMember = command
 
-    if (!commandWithMember) return false
+    if (!commandWithMember)
+      throw new TechnicalError('lobby member', TechnicalCause.NOT_EXIST)
 
     if (typeof command == 'string')
       return COMMANDS.move(
@@ -147,7 +105,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async leave(name: string) {
-    if (this.status == 'started') return false
+    if (this.status != 'searching' && this.status != 'filled') return false
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id) return false
 
@@ -159,6 +117,31 @@ export class Lobby implements Match.Lobby.Instance {
     await this._leaveDiscord(member.name)
     this._status = 'searching'
     return true
+  }
+
+  vote(name: string, map: string): boolean {
+    if (this.status != 'preparing' || this.map != undefined)
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
+    if (!GAME_MAPS.includes(map))
+      throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
+    if (
+      this.firstCommand.captain == name &&
+      !this._votes.find((value) => value.command == 'command1')
+    ) {
+      this._votes.push({ command: 'command1', map })
+      return true
+    }
+    if (
+      this.secondCommand.captain == name &&
+      !this._votes.find((value) => value.command == 'command2')
+    ) {
+      this._votes.push({ command: 'command2', map })
+      return true
+    }
+    throw new TechnicalError(
+      'member command role',
+      TechnicalCause.NEED_HIGHER_VALUE,
+    )
   }
 
   canAddTeam(id: number): boolean {
@@ -181,13 +164,31 @@ export class Lobby implements Match.Lobby.Instance {
 
   becomeReady(name: string): boolean {
     for (let [type, command] of this._commands)
-      if (command.becomeReady(name)) {
-        if (this.firstCommand.isReady && this.secondCommand.isReady)
-          this.start().then()
-        return true
-      }
+      if (command.becomeReady(name)) return true
+    throw new TechnicalError('lobby member', TechnicalCause.NOT_EXIST)
+  }
 
-    return false
+  get isVotingStageEnd(): boolean {
+    if (this._map) return true
+    if (this._votes.length != 2) return false
+
+    this._map = this._mapFromVotes
+    return true
+  }
+
+  get votes() {
+    let result: { [key: string]: number } = {}
+    for (let i = 0; i < this._votes.length; i++) {
+      if (!result[this._votes[i].map]) result[this._votes[i].map] = 1
+      result[this._votes[i].map]++
+    }
+
+    return result
+  }
+
+  get map() {
+    if (this.status != 'started') return undefined
+    return this._map
   }
 
   get readyToStart() {
