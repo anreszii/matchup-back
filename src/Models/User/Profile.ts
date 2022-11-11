@@ -31,7 +31,7 @@ export class Profile {
   username!: string
   @prop({ required: true, default: 0 })
   balance!: number
-  @prop()
+  @prop({_id: false})
   avatar?: Image
   @prop({ required: true, default: new Relations(), _id: false })
   relations!: Relations

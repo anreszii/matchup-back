@@ -21,8 +21,6 @@ export class Rating {
   LC!: number //Lose Counter
   @prop({ required: true, default: 0 })
   DC!: number //Draw Counter
-  @prop({ required: true, default: 0 })
-  KC!: number //kill Counter
 
   public integrate(
     statistic: Match.Member.Statistic,

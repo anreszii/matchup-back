@@ -1,5 +1,5 @@
 import { IEntity } from '../Manager'
-import { Chat, Match } from '../index'
+import { IChat, Match } from '../index'
 
 export interface Group<T> extends IEntity<T> {
   join(name: string): Promise<boolean>
@@ -7,8 +7,7 @@ export interface Group<T> extends IEntity<T> {
 
   hasSpaceFor(size: number): boolean
 
-  get chat(): Chat.Instance
-  set chat(chat: Chat.Instance)
+  get chat(): IChat.Controller
 
   get GRI(): number
   get size(): number

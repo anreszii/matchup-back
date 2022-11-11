@@ -1,7 +1,6 @@
 import type { Match } from '../../../Interfaces'
 import { OneTypeArray } from '../../OneTypeArray'
 import { Command } from './Command'
-import { CHATS } from '../../Chat/Manager'
 import { PLAYERS } from '../MemberManager'
 import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
 import { TEAMS } from '../Team/Manager'
@@ -16,9 +15,7 @@ class CommandManager implements Match.Lobby.Command.Manager {
     maxSize?: number,
   ): Match.Lobby.Command.Instance {
     let command = new Command(this._commands.freeSpace, lobbyID, type, maxSize)
-
     this._commands.addOne(command)
-    command.chat = this._createChatForCommand(command)
 
     return command
   }
@@ -100,13 +97,6 @@ class CommandManager implements Match.Lobby.Command.Manager {
     for (let command of this._commands.toArray) tmp.push(command.id)
 
     return tmp
-  }
-
-  private _createChatForCommand(command: Match.Lobby.Command.Instance) {
-    return CHATS.spawn('gamesocket.io', `command#${command.id}`, {
-      namespace: process.env.CLIENT_NAMESPACE!,
-      room: `command#${command.id}`,
-    })
   }
 }
 

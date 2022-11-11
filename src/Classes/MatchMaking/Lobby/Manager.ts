@@ -23,7 +23,7 @@ export class LobbyManager implements Match.Manager.Instance {
         throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
     })
 
-    let lobby = new Lobby(ID, type, 5, this._controller)
+    let lobby = new Lobby(ID, type, 2, this._controller)
     lobby.discord = this._dsClient
 
     this._lobbyMap.set(ID, lobby)

@@ -14,7 +14,7 @@ export const enum roles {
   moderator = 1,
   member = 0,
 }
-export class Member {
+export class GuildMember {
   @prop({ required: true })
   name!: string
   @prop({ required: true, ref: () => User })

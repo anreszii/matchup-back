@@ -38,7 +38,7 @@ export async function create_team(socket: WebSocket, params: unknown[]) {
   await team.join(username)
   return {
     teamID: team.id,
-    chatID: `team#${team.chat.id}`,
+    chatID: team.chat.id,
   }
 }
 CONTROLLERS.set('create_team', create_team)
@@ -75,7 +75,7 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
   if (!team) throw new TechnicalError('teamID', TechnicalCause.NOT_EXIST)
 
   await team.join(username)
-  return `team#${team.chat.id}`
+  return team.chat.id
 }
 CONTROLLERS.set('join_team', join_team)
 
@@ -99,7 +99,7 @@ export async function leave_team(socket: WebSocket, params: unknown[]) {
 CONTROLLERS.set('leave_team', leave_team)
 
 /**
- * Событие для проверки членов команды, в которой состоит пользователь.</br>
+ * Событие для проверки команды, в которой состоит пользователь.</br>
  *
  * В случае возвращает объект:
  * ```ts
@@ -119,6 +119,7 @@ export async function check_team(socket: WebSocket, params: unknown[]) {
   if (!team) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
 
   return {
+    id: team.id,
     members: team.members.toArray,
     captain: team.captainName,
     GRI: team.GRI,
@@ -134,6 +135,6 @@ CONTROLLERS.set('check_team', check_team)
  * @event
  */
 export async function get_teams(socket: WebSocket, params: unknown[]) {
-  return TEAMS.IDs
+  return TEAMS.toArray
 }
 CONTROLLERS.set('get_teams', get_teams)

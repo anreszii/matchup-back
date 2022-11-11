@@ -1,4 +1,4 @@
-import type { Chat, Match, Rating } from '../../../Interfaces/index'
+import type { IChat, Match, Rating } from '../../../Interfaces/index'
 
 import { COMMANDS } from '../Command/Manager'
 import { PLAYERS } from '../MemberManager'
@@ -12,6 +12,7 @@ import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
+import { CLIENT_CHATS } from '../../Chat/Manager'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -27,7 +28,7 @@ export class Lobby implements Match.Lobby.Instance {
     map: string
   }[] = []
   private _map?: string
-  private _chat!: Chat.Instance
+  private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
 
@@ -37,6 +38,7 @@ export class Lobby implements Match.Lobby.Instance {
     private _maxCommandSize: number,
     private _controller: Match.Controller,
   ) {
+    CLIENT_CHATS.spawn('lobby', _id).then((chat) => (this._chat = chat))
     this._game = _controller.gameName
     this._commands.set(
       'spectators',
@@ -90,6 +92,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async join(name: string) {
+    await this._checkChat()
     if (this._status != 'searching') return false
     let member = await PLAYERS.get(name)
 
@@ -97,14 +100,14 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.addMembers(member))) return false
     if (!this._joinCommand(member)) return false
 
-    await this._joinChat(member.name)
+    await this.chat.join(member.name)
     await this._joinDiscrod(member.name)
-    if (this.firstCommand.size + this.secondCommand.size == 10)
-      this._status = 'filled'
+    if (this.playersCount == 10) this._status = 'filled'
     return true
   }
 
   async leave(name: string) {
+    await this._checkChat()
     if (this.status != 'searching' && this.status != 'filled') return false
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id) return false
@@ -113,7 +116,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(name))) return false
     if (!this._leaveCommand(member)) return false
 
-    await this._leaveChat(member.name)
+    await this.chat.leave(member.name)
     await this._leaveDiscord(member.name)
     this._status = 'searching'
     return true
@@ -271,11 +274,11 @@ export class Lobby implements Match.Lobby.Instance {
     return this._discordClient
   }
 
-  get chat(): Chat.Instance {
+  get chat(): IChat.Controller {
     return this._chat
   }
 
-  set chat(instance: Chat.Instance) {
+  set chat(instance: IChat.Controller) {
     this._chat = instance
   }
 
@@ -363,26 +366,6 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private _joinChat(name: string) {
-    return this._chat.addMember({ name }).then(async (status) => {
-      if (status)
-        await this._chat.send({
-          from: 'system',
-          content: `member ${name} joined lobby#${this._id}`,
-        })
-    })
-  }
-
-  private _leaveChat(name: string) {
-    return this._chat.deleteMember({ name }).then(async (status) => {
-      if (!status) return
-      await this._chat.send({
-        from: name,
-        content: `member ${name} leaved lobby#${this.id}`,
-      })
-    })
-  }
-
   private _joinDiscrod(name: string) {
     return this.discord.guildWithFreeChannelsForVoice.then(async (guild) => {
       if (!guild) return
@@ -422,6 +405,13 @@ export class Lobby implements Match.Lobby.Instance {
 
     if (this._status == 'preparing' && !this._prepareStageStarted)
       this._prepareStageStarted = new Date()
+  }
+
+  private async _checkChat() {
+    if (this._chat) return
+
+    this._chat = await CLIENT_CHATS.spawn('lobby', this._id)
+    for (let member of this._members.values()) this._chat.join(member.name)
   }
 
   private get _maxTeamSize() {

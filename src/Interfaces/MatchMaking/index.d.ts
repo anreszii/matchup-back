@@ -24,7 +24,6 @@ export declare namespace Match {
       get votes(): { [key: string]: number }
       get isVotingStageEnd(): boolean
       get map(): string | undefined
-
       move(
         name: string,
         command: Command.Instance | Command.Types | number,

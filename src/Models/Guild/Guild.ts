@@ -1,7 +1,7 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { UserModel, GuildModel } from '../index'
 import { Info } from './GuildInfo'
-import { Member, roles } from './Member'
+import { GuildMember, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 import { generateGuildName } from '../../Utils/nameGenerator'
 import { getRandom } from '../../Utils/math'
@@ -10,8 +10,8 @@ import { TechnicalCause, TechnicalError } from '../../error'
 export class Guild {
   @prop({ required: true, default: [], type: () => String })
   subscribers!: string[]
-  @prop({ required: true, default: [], type: () => Member })
-  memberList!: Member[]
+  @prop({ required: true, default: [], type: () => GuildMember })
+  memberList!: GuildMember[]
   @prop({ required: true })
   info!: Info
   @prop({ required: false })
@@ -107,7 +107,7 @@ export class Guild {
         if (User.GRI < this.info.requiredMPR)
           throw new TechnicalError('mpr', TechnicalCause.NEED_HIGHER_VALUE)
 
-        let member = new Member()
+        let member = new GuildMember()
         ;(member.name = memberName), (member.id = User)
         member.role = roles.member
 

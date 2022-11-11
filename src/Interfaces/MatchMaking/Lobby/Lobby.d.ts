@@ -1,5 +1,5 @@
 import type { Match } from '../index'
-import type { IEntity, Chat, Rating } from '../../index'
+import type { IEntity, IChat, Rating } from '../../index'
 export declare interface ILobby extends IEntity<string> {
   join(name: string): Promise<boolean>
   leave(name: string): Promise<boolean>
@@ -10,8 +10,8 @@ export declare interface ILobby extends IEntity<string> {
   get type(): Match.Lobby.Type
   get members(): Match.Member.List
 
-  get chat(): Chat.Instance
-  set chat(instance: Chat.Instance)
+  get chat(): IChat.Controller
+  set chat(instance: IChat.Controller)
 
   get region(): Rating.SearchEngine.SUPPORTED_REGIONS
   set region(region: Rating.SearchEngine.SUPPORTED_REGIONS)

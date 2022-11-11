@@ -2,7 +2,6 @@ import type { Match } from '../../../Interfaces'
 import { OneTypeArray } from '../../OneTypeArray'
 import { Team } from './Team'
 import { PLAYERS } from '../MemberManager'
-import { CHATS } from '../../Chat/Manager'
 
 class TeamManager implements Match.Member.Team.Manager {
   private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()
@@ -11,8 +10,6 @@ class TeamManager implements Match.Member.Team.Manager {
     let team = new Team(this._teams.freeSpace)
 
     this._teams.addOne(team)
-    team.chat = this._createChatForTeam(team)
-
     return team
   }
 
@@ -52,13 +49,6 @@ class TeamManager implements Match.Member.Team.Manager {
     for (let team of this._teams.toArray) tmp.push(team.id)
 
     return tmp
-  }
-
-  private _createChatForTeam(team: Match.Member.Team.Instance) {
-    return CHATS.spawn('gamesocket.io', `team#${team.id}`, {
-      namespace: process.env.CLIENT_NAMESPACE!,
-      room: `team#${team.id}`,
-    })
   }
 }
 

@@ -5,8 +5,6 @@ import { clientServer } from '../../clientSocketServer'
 
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../../../error'
-
-import { CHATS } from '../../../../Classes/Chat/Manager'
 import { DiscordClient } from '../../../../Classes/Discord/Client'
 
 import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
@@ -33,7 +31,6 @@ const Searcher = new SearchEngine(StandOff_Lobbies)
 
 setInterval(async () => {
   for (let lobby of StandOff_Lobbies.lobbies) {
-    if (!lobby.chat) await createChatForLobby(lobby.id)
     switch (lobby.status) {
       case 'searching':
         sendSyncIventToLobby(lobby)
@@ -108,13 +105,12 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   } else Filters = createFiltersForSoloSearch(member, region)
 
   let type = params[1]
-  if (isCorrectType(type)) {
-    Filters.byRegime(type)
-  }
+  if (!isCorrectType(type))
+    throw new TechnicalError('regime type', TechnicalCause.INVALID)
+  Filters.byRegime(type)
 
   let lobby = await Searcher.findLobby(Filters)
   if (!lobby.region) lobby.region = region
-  if (!lobby.chat) await createChatForLobby(lobby.id)
 
   await lobby.join(username)
   return {
@@ -515,26 +511,4 @@ function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
       .emit('lobby', dto.to.JSON)
-}
-
-async function createChatForLobby(lobbyID: string) {
-  let lobby = StandOff_Lobbies.get(lobbyID)!
-  lobby.chat = CHATS.spawn('gamesocket.io', `lobby#${lobbyID}`, {
-    namespace: process.env.CLIENT_NAMESPACE!,
-    room: `lobby#${lobbyID}`,
-  })
-
-  updateLobbyChatMembers(StandOff_Lobbies.get(lobbyID)!)
-  return lobby.chat
-}
-
-async function updateLobbyChatMembers(lobby: Match.Lobby.Instance) {
-  for (let member of lobby.members.values()) {
-    let status = await lobby.chat!.addMember({ name: member.name })
-    if (status)
-      await lobby.chat!.send({
-        from: 'system',
-        content: `member ${member.name} joined lobby#${lobby.id}`,
-      })
-  }
 }
