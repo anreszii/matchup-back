@@ -211,4 +211,58 @@ router.post('/end_match', validateToken, async (req, res, next) => {
   }
 })
 
+/**
+ * Путь для загрузки изображения результатов матча
+ * Входящие параметры:
+ * token - jwt
+ * mp: number
+ * @category_match
+ * @event
+ */
+router.post('/add_mp', validateToken, async (req, res, next) => {
+  try {
+    let username = req.body.payload.username as string
+    let user = await UserModel.findByName(username)
+    if (!user || user.role != 'admin')
+      throw new TechnicalError('user', TechnicalCause.INVALID)
+
+    let mp = req.body.mp
+    if (!mp || typeof mp != 'number' || mp < 0)
+      throw new TechnicalError('mp', TechnicalCause.INVALID_FORMAT)
+    user.addMP(mp)
+    await user.save()
+
+    res.status(200).json({ balance: user.profile.balance })
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * Путь для загрузки изображения результатов матча
+ * Входящие параметры:
+ * token - jwt
+ * status: 'default' | 'privileged' | 'admin'
+ * @category_match
+ * @event
+ */
+router.post('/set_status', validateToken, async (req, res, next) => {
+  try {
+    let username = req.body.payload.username as string
+    let user = await UserModel.findByName(username)
+    if (!user || user.role != 'admin')
+      throw new TechnicalError('user', TechnicalCause.INVALID)
+
+    let status = req.body.status
+    if (!status || typeof status != 'string')
+      throw new TechnicalError('mp', TechnicalCause.INVALID_FORMAT)
+    user.profile.tag = status
+    await user.save()
+
+    res.status(200).json({ user: user })
+  } catch (e) {
+    next(e)
+  }
+})
+
 module.exports = router
