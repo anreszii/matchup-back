@@ -212,7 +212,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
 })
 
 /**
- * Путь для загрузки изображения результатов матча
+ * Путь для пополнения баланса
  * Входящие параметры:
  * token - jwt
  * mp: number
@@ -239,7 +239,7 @@ router.post('/add_mp', validateToken, async (req, res, next) => {
 })
 
 /**
- * Путь для загрузки изображения результатов матча
+ * Путь для смены статуса пользователя
  * Входящие параметры:
  * token - jwt
  * status: 'default' | 'privileged' | 'admin'
