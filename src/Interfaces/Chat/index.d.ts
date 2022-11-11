@@ -1,42 +1,22 @@
-import { IManager } from '../'
-import { IChat } from './Chat'
-import { IChatController } from './Controller'
-import { IChatMember } from './Member'
-import { IChatMessage } from './Message'
+import { IEntity, IManager } from '../Manager'
 
-/**
- * @TODO
- * - Восстановление чата из БД ( Controller )
- * - Роли внутри чата ( Member )
- * - Добавление/удаление пользователей ()
- * - Проверки на удаление чата
- * - Отпарвка сообщений ( Message )
- * - Удаление сообщений ( Message )
- * - Изменение сообщений ( Message )
- */
+export declare namespace IChat {
+  interface Manager extends IManager<Controller, string> {}
 
-export declare namespace Chat {
-  interface Instance extends IChat {}
-  interface Member extends IChatMember {}
-  interface Message extends IChatMessage {}
-  namespace Controller {
-    interface Instance extends IChatController {}
-    namespace Factory {
-      type supportedControllers = 'gamesocket.io'
-      abstract class Interface {
-        static create(
-          controllerName: supportedControllers,
-          options?: { [key: string]: string },
-        ): Chat.Controller.Instance
-      }
-    }
+  interface Controller extends IEntity<string> {
+    get type(): Type
+    get id(): string
+    get members(): Array<string>
+    join(user: string): Promise<true> | never
+    leave(user: string): Promise<true> | never
+    message(msg: Message): Promise<true> | never
+    delete(): Promise<true> | never
   }
-  interface Manager extends IManager<Chat.Instance, string> {
-    spawn(
-      controller: Chat.Controller.Factory.supportedControllers,
-      ID: string,
-      options?: { [key: string]: string },
-    ): Chat.Instance
+
+  interface Message {
+    author: string
+    content: string
   }
-  type userRole = 'user' | 'moderator'
+
+  type Type = 'private' | 'command' | 'team' | 'lobby' | 'guild'
 }

@@ -1,35 +1,49 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
+import { Types } from 'mongoose'
+import { v4 as uuid } from 'uuid'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { IChat } from '../../Interfaces/index'
 import { UserModel } from '../index'
-import { Member } from './Member'
+import { ChatMember } from './Member'
 import { Message } from './Message'
 
-export type CHAT_TYPE = 'private' | 'command' | 'lobby' | 'guild'
-
-class ServiceInformation {
+class ChatServiceInformation {
   @prop({ required: true, unique: true })
   id!: string
+  @prop({ required: true })
+  entityId!: string
   @prop({ required: true, default: new Date() })
   createdAt!: Date
   @prop({ required: true })
-  type!: CHAT_TYPE
+  type!: IChat.Type
 }
 
-class Chat {
+export class Chat {
   @prop({
     required: true,
-    type: () => ServiceInformation,
-    default: new ServiceInformation(),
+    type: () => ChatServiceInformation,
+    default: new ChatServiceInformation(),
     _id: false,
   })
-  info!: ServiceInformation
-  @prop({ required: true, type: () => Member, default: [], _id: false })
-  members!: Member[]
+  info!: ChatServiceInformation
+  @prop({
+    required: true,
+    type: () => ChatMember,
+    default: [{ name: 'system' }],
+    _id: false,
+  })
+  members!: Types.Array<ChatMember>
   @prop({ required: true, type: () => Message, default: [], _id: false })
-  history!: Message[]
+  history!: Types.Array<Message>
 
-  static async spawn(this: ReturnModelType<typeof Chat>, type: CHAT_TYPE) {
+  static async spawn(
+    this: ReturnModelType<typeof Chat>,
+    type: IChat.Type,
+    id: string,
+  ) {
     let chat = new this()
+    chat.info.id = `${type}-${uuid()}`
+    chat.info.entityId = id
     chat.info.type = type
 
     await chat.save()
@@ -44,7 +58,7 @@ class Chat {
   }
 
   async join(this: DocumentType<Chat>, memberName: string) {
-    if (this.has(memberName)) return true
+    if (this.hasMember(memberName)) return true
     const user = await UserModel.findOne(
       { 'profile.username': memberName },
       '_id',
@@ -58,36 +72,32 @@ class Chat {
   }
 
   async leave(this: DocumentType<Chat>, memberName: string) {
-    if (!this.has(memberName)) return true
+    if (!this.hasMember(memberName)) return true
 
-    let index = this.members.indexOf(this.get(memberName))
+    let index = this.members.indexOf(this.getMember(memberName))
     this.members.splice(index, 1)
     await this.save()
 
     return true
   }
 
-  async message(this: DocumentType<Chat>, author: string, content: string) {
-    if (!this.has(author))
+  async message(this: DocumentType<Chat>, message: IChat.Message) {
+    if (!this.hasMember(message.author))
       throw new TechnicalError('chat member', TechnicalCause.NOT_EXIST)
 
-    let message = new Message()
-    message.author = author
-    message.content = content
-
-    this.history.push(message)
+    this.history.push(new Message(message.author, message.content))
     await this.save()
 
     return true
   }
 
-  get(memberName: string) {
+  getMember(memberName: string) {
     for (let i = 0; i < this.members.length; i++)
       if (this.members[i].name == memberName) return this.members[i]
     throw new TechnicalError('chat member', TechnicalCause.NOT_EXIST)
   }
 
-  has(memberName: string) {
+  hasMember(memberName: string) {
     for (let i = 0; i < this.members.length; i++)
       if (this.members[i].name == memberName) return true
     return false

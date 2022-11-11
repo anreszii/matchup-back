@@ -1,4 +1,5 @@
 export type API_ACTION_LIST =
+  /* LOBBY */
   | 'get_lobby_count'
   | 'find_lobby'
   | 'join_to_lobby'
@@ -11,12 +12,17 @@ export type API_ACTION_LIST =
   | 'vote'
   | 'sync_lobby'
   | 'change_command'
+  /* TEAM */
   | 'create_team'
   | 'join_team'
   | 'leave_team'
   | 'check_team'
   | 'get_teams'
-  | 'chat'
+  /* CHAT */
+  | 'chat_message'
+  | 'chat_join'
+  | 'chat_leave'
+  /* USER */
   | 'add_relation'
   | 'drop_relation'
 
@@ -36,7 +42,9 @@ API_ACTIONS.set('create_team', 0)
 API_ACTIONS.set('join_team', 0)
 API_ACTIONS.set('leave_team', 0)
 API_ACTIONS.set('get_teams', 0)
-API_ACTIONS.set('chat', 0)
+API_ACTIONS.set('chat_message', 0)
+API_ACTIONS.set('chat_join', 0)
+API_ACTIONS.set('chat_leave', 0)
 API_ACTIONS.set('add_relation', 0)
 API_ACTIONS.set('drop_relation', 0)
 

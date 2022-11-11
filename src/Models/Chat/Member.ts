@@ -1,9 +1,9 @@
 import { prop, Ref } from '@typegoose/typegoose'
-import { User } from 'discord.js'
+import { User } from '../User/User'
 
-export class Member {
-  @prop({ required: true, ref: () => User })
-  id: Ref<User>
+export class ChatMember {
+  @prop({ ref: () => User })
+  id?: Ref<User>
   @prop({ required: true })
   name!: string
 }

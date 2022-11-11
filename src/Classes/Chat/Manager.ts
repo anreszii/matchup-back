@@ -1,45 +1,42 @@
-import type { Chat } from '../../Interfaces'
-import { ChatInstance } from '../Chat/Instance'
-import { Factory } from './Controllers'
+import { Namespace } from 'gamesocket.io'
+import { clientServer } from '../../API/Sockets/clientSocketServer'
+import { IChat } from '../../Interfaces/index'
+import { ChatModel } from '../../Models/index'
+import { Chat } from './Chat'
 
-export class ChatManager implements Chat.Manager {
-  private static _chatMap: Map<string, Chat.Instance> = new Map()
+class ChatManager implements IChat.Manager {
+  private _chats: Map<string, Chat> = new Map()
+  constructor(private _namespace: Namespace) {}
+  async spawn(type: IChat.Type, id: string): Promise<IChat.Controller> {
+    const document = await ChatModel.spawn(type, id)
+    const chat = new Chat(document, this._namespace)
 
-  constructor() {}
-
-  spawn(
-    controllerClassName: Chat.Controller.Factory.supportedControllers,
-    ID: string,
-    options?: { [key: string]: string },
-  ): Chat.Instance {
-    if (!ID) throw new Error('Chat ID required')
-    let controller = Factory.create(controllerClassName, options)
-    let newChat = ChatManager._chatMap.get(ID)
-
-    if (newChat) return newChat
-    newChat = new ChatInstance(ID, controller)
-    ChatManager._chatMap.set(ID, newChat)
-
-    return newChat
+    this._chats.set(chat.id, chat)
+    return chat
   }
 
-  get(ID: string): Chat.Instance | undefined {
-    return ChatManager._chatMap.get(ID)
+  async get(ID: string): Promise<IChat.Controller> {
+    if (this._chats.has(ID)) return this._chats.get(ID)!
+
+    return this._getFromDocuments(ID)
   }
 
   has(ID: string): boolean {
-    return ChatManager._chatMap.has(ID)
+    return this._chats.has(ID)
   }
 
-  drop(ID: string): boolean {
-    let chat = ChatManager._chatMap.get(ID)
-    if (!chat) return false
+  async drop(ID: string): Promise<boolean> {
+    let chat = await this.get(ID)
+    return chat.delete()
+  }
 
-    chat.controller.delete().then((status) => {
-      if (!status) throw new Error('chat deleting error')
-    })
-    return ChatManager._chatMap.delete(ID)
+  private async _getFromDocuments(ID: string) {
+    const document = await ChatModel.get(ID)
+    const chat = new Chat(document, this._namespace)
+
+    this._chats.set(chat.id, chat)
+    return chat
   }
 }
 
-export const CHATS = new ChatManager()
+export const CLIENT_CHATS = new ChatManager(clientServer)

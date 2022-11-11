@@ -11,6 +11,7 @@ import { Guild } from './Guild/Guild'
 import { Rating } from './MatchMaking/Rating'
 import { MatchList } from './MatchMaking/MatchList'
 import { ReportList } from './MatchMaking/Reports'
+import { Chat } from './Chat/Chat'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -22,6 +23,7 @@ export const MatchListModel = getModelForClass(MatchList)
 export const OrderListModel = getModelForClass(OrderList)
 export const StaticTaskModel = getModelForClass(StaticTask)
 export const DynamicTaskModel = getModelForClass(DynamicTask)
+export const ChatModel = getModelForClass(Chat)
 
 export * from './Orders/Orders'
 export * from './Task/Types/Static'
@@ -33,6 +35,7 @@ export * from './Guild/Guild'
 export * from './MatchMaking/Rating'
 export * from './MatchMaking/MatchList'
 export * from './MatchMaking/Reports'
+export * from './Chat/Chat'
 
 export const MODELS: Map<string, ModelType<any, any>> = new Map()
 MODELS.set(UserModel.modelName, UserModel)
@@ -45,3 +48,4 @@ MODELS.set(MatchListModel.modelName, MatchListModel)
 MODELS.set(OrderListModel.modelName, OrderListModel)
 MODELS.set(StaticTaskModel.modelName, StaticTaskModel)
 MODELS.set(DynamicTaskModel.modelName, DynamicTaskModel)
+MODELS.set(ChatModel.modelName, ChatModel)
