@@ -3,7 +3,7 @@ import { validateToken, generateToken } from '../../Token'
 
 import { MatchListModel, UserModel } from '../../Models'
 
-import { Match } from '../../Interfaces/index'
+import { Match, USER_ROLE } from '../../Interfaces/index'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { validatePasswordFormat } from '../../validation/password'
 import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
@@ -213,7 +213,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
 
 /**
  * Путь для пополнения баланса
- * Входящие параметры:
+ * Входные параметры:
  * token - jwt
  * mp: number
  * @category_match
@@ -240,7 +240,7 @@ router.post('/add_mp', validateToken, async (req, res, next) => {
 
 /**
  * Путь для смены статуса пользователя
- * Входящие параметры:
+ * Входные параметры:
  * token - jwt
  * status: 'default' | 'privileged' | 'admin'
  * @category_match
@@ -256,7 +256,7 @@ router.post('/set_status', validateToken, async (req, res, next) => {
     let status = req.body.status
     if (!status || typeof status != 'string')
       throw new TechnicalError('mp', TechnicalCause.INVALID_FORMAT)
-    user.profile.tag = status
+    user.role = status as USER_ROLE
     await user.save()
 
     res.status(200).json({ user: user })
