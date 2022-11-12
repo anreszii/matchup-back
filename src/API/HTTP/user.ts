@@ -4,11 +4,17 @@ import { validateToken, generateToken } from '../../Token'
 import { MatchListModel, UserModel } from '../../Models'
 
 import { Match, USER_ROLE } from '../../Interfaces/index'
-import { TechnicalCause, TechnicalError } from '../../error'
+import {
+  ServerCause,
+  ServerError,
+  TechnicalCause,
+  TechnicalError,
+} from '../../error'
 import { validatePasswordFormat } from '../../validation/password'
 import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
 import { Mail, SMTP } from '../../Utils/smtp'
 import { generatePassword } from '../../Utils/passwordGenerator'
+require('dotenv').config()
 
 let router = Router()
 
@@ -214,19 +220,23 @@ router.post('/end_match', validateToken, async (req, res, next) => {
 /**
  * Путь для пополнения баланса
  * Входные параметры:
- * token - jwt
+ * pass: string
+ * name: string
  * mp: number
  * @category_match
  * @event
  */
-router.post('/add_mp', validateToken, async (req, res, next) => {
+router.post('/add_mp', async (req, res, next) => {
   try {
-    let username = req.body.payload.username as string
-    let user = await UserModel.findByName(username)
-    if (!user || user.role != 'admin')
-      throw new TechnicalError('user', TechnicalCause.INVALID)
+    let { name, mp, pass } = req.body
+    if (pass != process.env.ROUTE_PASS)
+      throw new ServerError(ServerCause.INVALID_ROUTE)
 
-    let mp = req.body.mp
+    if (!name || typeof name != 'string')
+      throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
+    let user = await UserModel.findByName(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+
     if (!mp || typeof mp != 'number' || mp < 0)
       throw new TechnicalError('mp', TechnicalCause.INVALID_FORMAT)
     user.addMP(mp)
@@ -241,21 +251,23 @@ router.post('/add_mp', validateToken, async (req, res, next) => {
 /**
  * Путь для смены статуса пользователя
  * Входные параметры:
- * token - jwt
+ * pass: string
+ * name: string
  * status: 'default' | 'privileged' | 'admin'
  * @category_match
  * @event
  */
-router.post('/set_status', validateToken, async (req, res, next) => {
+router.post('/set_status', async (req, res, next) => {
   try {
-    let username = req.body.payload.username as string
-    let user = await UserModel.findByName(username)
-    if (!user || user.role != 'admin')
-      throw new TechnicalError('user', TechnicalCause.INVALID)
-
-    let status = req.body.status
+    let { status, pass, name } = req.body.status
+    if (pass != process.env.ROUTE_PASS)
+      throw new ServerError(ServerCause.INVALID_ROUTE)
+    if (!name || typeof name != 'string')
+      throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
+    let user = await UserModel.findByName(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     if (!status || typeof status != 'string')
-      throw new TechnicalError('mp', TechnicalCause.INVALID_FORMAT)
+      throw new TechnicalError('status', TechnicalCause.INVALID_FORMAT)
     user.role = status as USER_ROLE
     await user.save()
 
