@@ -1,243 +1,410 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
-import { UserModel, GuildModel } from '../index'
-import { Info } from './GuildInfo'
-import { GuildMember, roles } from './Member'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
-import { generateGuildName } from '../../Utils/nameGenerator'
-import { getRandom } from '../../Utils/math'
+import { CLIENT_CHATS } from '../../Classes/Chat/Manager'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { User, UserModel } from '../index'
+import { PrivateInfo, PublicInfo, Terms } from './Info'
+import { GuildMemberData } from './Member'
+import { PERMISSION } from './Permissions'
 
-export class Guild {
-  @prop({ required: true, default: [], type: () => String })
-  subscribers!: string[]
-  @prop({ required: true, default: [], type: () => GuildMember })
-  memberList!: GuildMember[]
+class Guild {
+  @prop({ required: true, default: new PublicInfo(), _id: false })
+  public!: PublicInfo
+  @prop()
+  private!: PrivateInfo
   @prop({ required: true })
-  info!: Info
-  @prop({ required: false })
-  isPrivate!: boolean
+  terms!: Terms
+  @prop({
+    required: true,
+    unique: true,
+    _id: false,
+    default: new Map().set('owner', new Set([PERMISSION.ALL])),
+  })
+  roles!: Map<string, Set<PERMISSION>>
+  @prop()
+  members!: Map<string, GuildMemberData>
 
-  static async generateTestData(
+  static async create(
     this: ReturnModelType<typeof Guild>,
-    testDocumentsCount: number = 2,
+    owner: string,
+    info: Exclude<Partial<PublicInfo>, 'GRI'>,
+    terms?: Partial<Terms>,
   ) {
-    let guilds = []
-    for (let i = 1; i < testDocumentsCount + 1; i++)
-      guilds.push(await this._generateTestDocument())
-
-    return guilds
-  }
-
-  static async getTestData(this: ReturnModelType<typeof Guild>) {
-    return this.find({
-      'info.name': { $regex: 'test_' },
-      'info.tag': { $regex: 'T' },
-    })
-  }
-
-  static async deleteTestData(this: ReturnModelType<typeof Guild>) {
-    let documents = await this.getTestData()
-    for (let document of documents) await document.delete()
-    return true
-  }
-
-  static async new(
-    this: ReturnModelType<typeof Guild>,
-    tag: string,
-    guildName: string,
-    ownerName: string,
-  ) {
-    let user = await UserModel.findByName(ownerName)
+    const user = await UserModel.findByName(owner)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+
     user.buy(PRICE_OF_GUILD_CREATION)
     await user.save()
 
-    let guild = new this({
-      info: { name: guildName, tag: tag },
-      memberlist: [{ role: 'owner', name: ownerName }],
-    })
+    const guild = new this()
+    await guild._createChat()
+    const { name, tag, description } = info
+    if (!name || !tag)
+      throw new TechnicalError(
+        'guild public info',
+        TechnicalCause.INVALID_FORMAT,
+      )
 
-    await guild.validate()
-    return guild.save()
+    guild.public.name = name
+    guild.public.tag = tag
+    if (typeof description == 'string') guild.public.description = description
+
+    guild.terms = new Terms()
+    if (!terms) return guild.save()
+
+    const { private: privateStatus, minimalGRI, invitationOnly } = terms
+    if (typeof privateStatus == 'boolean') guild.terms.private = privateStatus
+    if (guild.terms.private == false) return guild.save()
+    if (typeof minimalGRI == 'number' && minimalGRI >= 0)
+      guild.terms.minimalGRI = minimalGRI
+    if (typeof invitationOnly == 'boolean')
+      guild.terms.invitationOnly = invitationOnly
+
+    guild.members.set(name, { id: user.id, mpr: user.GRI, role: 'owner' })
+    await guild.save()
+
+    user.guild = guild
+    await user.save()
+    return true
   }
 
-  static async findByName(
+  static async drop(
     this: ReturnModelType<typeof Guild>,
-    guildName: string,
+    owner: string,
+    password: string,
   ) {
-    return this.findOne({ 'info.name': guildName }).exec()
+    let guild = await this._getGuildByUser(owner)
+    await guild._validateOwner(owner, password)
+
+    await this.deleteOne({ _id: guild._id })
+    return true
   }
 
-  static async findByTag(this: ReturnModelType<typeof Guild>, tag: string) {
-    return this.findOne({ 'info.tag': tag }).exec()
+  async join(this: DocumentType<Guild>, name: string) {
+    if (this.members.size >= 50)
+      throw new TechnicalError('members', TechnicalCause.NEED_LOWER_VALUE)
+    let user = await UserModel.findByName(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+
+    if (!this.terms.private) return this._addMember(user)
+    if (!this.terms.invitationOnly) return this._addRequest(user)
+    return this._addByInvite(user)
   }
 
-  findMemberByName(name: string) {
-    for (let i = 0; i < this.memberList.length; i++)
-      if (this.memberList[i].name == name) return this.memberList[i]
+  async invite(this: DocumentType<Guild>, executor: string, name: string) {
+    this._checkMemberPermissions(executor, PERMISSION.INVITE)
+    let user = await UserModel.findByName(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+    return this._addInvite(user)
   }
 
-  deleteMemberByName(name: string): boolean {
-    for (let i = 0; i < this.memberList.length; i++)
-      if (this.memberList[i].name == name) {
-        this.memberList.splice(i, 1)
-        return true
-      }
-    return false
-  }
-
-  hasMember(name: string) {
-    for (let i = 0; i < this.memberList.length; i++)
-      if (this.memberList[i].name == name) return true
-
-    return false
-  }
-
-  async join(this: DocumentType<Guild>, memberName: string) {
-    let User = await UserModel.findByName(memberName)
-    if (!User) return
-
-    switch (this.isPrivate) {
-      case true: {
-        this.subscribers.push(memberName)
-        break
-      }
-
-      case false: {
-        if (User.GRI < this.info.requiredMPR)
-          throw new TechnicalError('mpr', TechnicalCause.NEED_HIGHER_VALUE)
-
-        let member = new GuildMember()
-        ;(member.name = memberName), (member.id = User)
-        member.role = roles.member
-
-        this.memberList.push(member)
-
-        User.joinGuild(this._id)
-        await User.save()
-        break
-      }
-    }
-    return this.save()
-  }
-
-  async leave(this: DocumentType<Guild>, memberName: string) {
-    if (this.deleteMemberByName(memberName)) {
-      let User = await UserModel.findByName(memberName)
-      User.leaveGuild()
-      await User.save()
-      return this.save()
-    }
-  }
-
-  async changeMemberRole(
+  async acceptRequest(
     this: DocumentType<Guild>,
-    executorName: string,
-    memberName: string,
-    newRole: roles,
+    executor: string,
+    name: string,
   ) {
-    let executor = this.findMemberByName(executorName)
-    let member = this.findMemberByName(memberName)
-    if (!executor || !member)
+    this._checkMemberPermissions(executor, PERMISSION.ACCEPT_REQUEST)
+    if (!this.private.requests.has(name))
+      throw new TechnicalError('request', TechnicalCause.NOT_EXIST)
+    this.members.set(name, this.private.requests.get(name)!)
+    this.private.requests.delete(name)
+
+    return true
+  }
+
+  async leave(this: DocumentType<Guild>, name: string) {
+    return this._removeMember(name)
+  }
+
+  async rejectRequest(
+    this: DocumentType<Guild>,
+    executor: string,
+    name: string,
+  ) {
+    this._checkMemberPermissions(executor, PERMISSION.ACCEPT_REQUEST)
+    if (!this.private.requests.has(name)) return true
+
+    this.private.requests.delete(name)
+    return true
+  }
+
+  async kick(this: DocumentType<Guild>, executor: string, name: string) {
+    this._checkMemberPermissions(executor, PERMISSION.KICK)
+    return this._removeMember(name)
+  }
+
+  async createRole(
+    this: DocumentType<Guild>,
+    executor: string,
+    name: string,
+    permissions: PERMISSION[],
+  ) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
+    this.roles.set(name, new Set(permissions))
+    await this.save()
+
+    return true
+  }
+
+  async changeRole(
+    this: DocumentType<Guild>,
+    executor: string,
+    name: string,
+    newRole: { name: string; permissions: PERMISSION[] },
+  ) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
+    let role = this.roles.get(name)
+    if (!role) throw new TechnicalError('role', TechnicalCause.NOT_EXIST)
+    if (newRole.name) this._changeRoleName(name, newRole.name)
+    if (newRole.permissions)
+      this._changeRolePermissions(name, newRole.permissions)
+
+    await this.save()
+    return true
+  }
+
+  async deleteRole(this: DocumentType<Guild>, executor: string, name: string) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
+    if (!this.roles.has(name)) return true
+    this.roles.delete(name)
+    await this.save()
+
+    return true
+  }
+
+  async giveRole(
+    this: DocumentType<Guild>,
+    executor: string,
+    member: string,
+    role: string,
+  ) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
+    if (role == 'owner')
+      throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
+    if (!this.roles.has(role))
+      throw new TechnicalError('role', TechnicalCause.NOT_EXIST)
+    if (!this.members.has(member))
       throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
 
-    if (!executor.hasRightToExecute('changeRole'))
-      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
+    this.members.get(member)!.role = role
+    await this.save()
 
-    if (executor.role <= newRole || member.role == newRole)
-      throw new TechnicalError('access lebe', TechnicalCause.NEED_HIGHER_VALUE)
-    member.role = newRole
-    return this.save()
+    return true
   }
 
-  async changeGuildName(
+  async changeOwner(
     this: DocumentType<Guild>,
-    executorName: string,
-    newName: string,
+    executor: string,
+    executorPassword: string,
+    member: string,
   ) {
-    let executor = this.findMemberByName(executorName)
-    if (!executor) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
+    if (!this.members.has(executor) || !this.members.has(member))
+      throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
 
-    if (!executor.hasRightToExecute('changeName'))
-      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
+    this._validateOwner(executor, executorPassword)
+    let owner = this.members.get(executor)!
+    owner.role = undefined
 
-    if (newName == this.info.name) return false
-    if (await GuildModel.findByName(newName))
-      throw new TechnicalError('guild', TechnicalCause.ALREADY_EXIST)
+    this.members.get(member)!.role = 'owner'
+    await this.save()
 
-    this.info.name = newName
-    await this.validate()
-    return this.save()
+    return true
   }
 
-  async changeTagName(
+  async changeName(this: DocumentType<Guild>, executor: string, name: string) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_NAME)
+    if (typeof name != 'string' || name.length == 0 || name.length > 20)
+      throw new TechnicalError('tag', TechnicalCause.INVALID_FORMAT)
+    this.public.name = name
+    await this.save()
+
+    return true
+  }
+
+  async changeTag(this: DocumentType<Guild>, executor: string, tag: string) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_TAG)
+    if (typeof tag != 'string' || tag.length == 0 || tag.length > 5)
+      throw new TechnicalError('tag', TechnicalCause.INVALID_FORMAT)
+    this.public.tag = tag
+    await this.save()
+
+    return true
+  }
+
+  async changeTerms(
     this: DocumentType<Guild>,
-    executorName: string,
-    newTag: string,
+    executor: string,
+    terms: Partial<Terms>,
   ) {
-    let executor = this.findMemberByName(executorName)
-    if (!executor) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_TERMS)
+    if (typeof terms.private == 'boolean') this.terms.private = terms.private
+    if (typeof terms.minimalGRI == 'number' && terms.minimalGRI > 0)
+      this.terms.minimalGRI = terms.minimalGRI
+    if (typeof terms.invitationOnly == 'boolean')
+      this.terms.invitationOnly = terms.invitationOnly
+    await this.save()
 
-    if (!executor.hasRightToExecute('changeTag'))
-      throw new TechnicalError('access level', TechnicalCause.NEED_HIGHER_VALUE)
-
-    if (newTag == this.info.tag) return false
-    if (await GuildModel.findByTag(newTag))
-      throw new TechnicalError('guild', TechnicalCause.ALREADY_EXIST)
-
-    this.info.tag = newTag
-    await this.validate()
-    return this.save()
+    return true
   }
 
-  async makePrivate(this: DocumentType<Guild>) {
-    this.isPrivate = true
-    return this.save()
-  }
-
-  async makePublic(this: DocumentType<Guild>) {
-    this.isPrivate = false
-    return this.save()
-  }
-
-  private static async _generateTestDocument(
-    this: ReturnModelType<typeof Guild>,
+  private async _addMember(
+    this: DocumentType<Guild>,
+    user: DocumentType<User>,
   ) {
-    let users = await UserModel.generateTestData(5, false)
+    if (this.terms.minimalGRI && user.GRI < this.terms.minimalGRI)
+      throw new TechnicalError('user GRI', TechnicalCause.NEED_HIGHER_VALUE)
 
-    let owner = users[0]
-    owner.profile.balance = 10000
-    await owner.save()
+    this.members.set(user.profile.username, { id: user.id, mpr: user.GRI })
+    await this.save()
 
-    users.splice(0, 1)
-    let nameAndTag = await Promise.all([
-      this._getRandomGuildTag(),
-      this._getRandomGuildName(),
-    ])
+    user.guild = this
+    await user.save()
 
-    let guild = await this.new(
-      nameAndTag[0],
-      nameAndTag[1],
-      owner.profile.username,
+    return true
+  }
+
+  private async _addRequest(
+    this: DocumentType<Guild>,
+    user: DocumentType<User>,
+  ) {
+    if (this.terms.minimalGRI && user.GRI < this.terms.minimalGRI)
+      throw new TechnicalError('user GRI', TechnicalCause.NEED_HIGHER_VALUE)
+
+    this.private.requests.set(user.profile.username, {
+      id: user.id,
+      mpr: user.GRI,
+    })
+    await this.save()
+    return true
+  }
+
+  private async _addInvite(
+    this: DocumentType<Guild>,
+    user: DocumentType<User>,
+  ) {
+    this.private.invites.set(user.profile.username, {
+      id: user.id,
+      mpr: user.GRI,
+    })
+    await this.save()
+
+    user.guild = this
+    await user.save()
+
+    return true
+  }
+
+  private async _addByInvite(
+    this: DocumentType<Guild>,
+    user: DocumentType<User>,
+  ) {
+    if (!this.private.invites.has(user.profile.username))
+      throw new TechnicalError('invite', TechnicalCause.NOT_EXIST)
+    this.members.set(
+      user.profile.username,
+      this.private.invites.get(user.profile.username)!,
     )
-    for (let user of users) await guild.join(user.profile.username)
+    this.private.invites.delete(user.profile.username)
+    await this.save()
+    return true
+  }
+
+  private async _removeMember(this: DocumentType<Guild>, name: string) {
+    if (!this.members.has(name)) return true
+    this.members.delete(name)
+    await this.save()
+    return true
+  }
+
+  private _checkMemberPermissions(name: string, permission: PERMISSION) {
+    let memberPermissions = this._getMemberPermissions(name)
+    if (
+      !memberPermissions ||
+      !(
+        memberPermissions.has(PERMISSION.ALL) &&
+        memberPermissions.has(permission)
+      )
+    )
+      throw new TechnicalError(
+        'member permission',
+        TechnicalCause.NEED_HIGHER_VALUE,
+      )
+  }
+
+  private _getMemberPermissions(name: string) {
+    let member = this.members.get(name)
+    if (!member || !member.role)
+      throw new TechnicalError('member role', TechnicalCause.NEED_HIGHER_VALUE)
+    let permissions = this._getPermissions(member.role)
+    if (member.role && !permissions) member.role = undefined
+    return permissions
+  }
+
+  private _getPermissions(name: string | undefined) {
+    if (!name) return
+    return this.roles.get(name)
+  }
+
+  private _changeRoleName(old: string, updated: string) {
+    if (old == 'owner')
+      throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
+    let permissions = this.roles.get(old)
+    if (!permissions) throw new TechnicalError('role', TechnicalCause.NOT_EXIST)
+    for (let member of this.members.values())
+      if (member.role == old) member.role == updated
+
+    this.roles.delete(old)
+    this.roles.set(updated, permissions)
+  }
+
+  private _changeRolePermissions(
+    name: string,
+    newPermissions: PERMISSION[] | PERMISSION,
+  ) {
+    let permissions = this.roles.get(name)
+    if (!permissions) throw new TechnicalError('role', TechnicalCause.NOT_EXIST)
+    if (newPermissions instanceof Array) {
+      if (newPermissions.includes(PERMISSION.ALL))
+        throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
+      this.roles.set(name, new Set(newPermissions))
+      return true
+    }
+
+    if (newPermissions == PERMISSION.ALL)
+      throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
+    permissions.add(newPermissions)
+    return true
+  }
+
+  private static async _getGuildByUser(
+    this: ReturnModelType<typeof Guild>,
+    user: string,
+  ) {
+    let document = await UserModel.findByName(user)
+    if (!document || !document.guild)
+      throw new TechnicalError('user', TechnicalCause.INVALID)
+    let guild = await this.findById(document.guild)
+    if (!guild) throw new TechnicalError('guild', TechnicalCause.NOT_EXIST)
 
     return guild
   }
 
-  private static async _getRandomGuildTag(this: ReturnModelType<typeof Guild>) {
-    let tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
-    while (await this.findByTag(tag))
-      tag = `T${getRandom(0, 9)}${getRandom(0, 9)}`
-    return tag
+  private async _validateOwner(
+    this: DocumentType<Guild>,
+    owner: string,
+    password: string,
+  ) {
+    let member = this.members.get(owner)
+    if (!member || member.role != 'owner')
+      throw new TechnicalError('owner', TechnicalCause.INVALID)
+
+    this._checkMemberPermissions(owner, PERMISSION.ALL)
+    let document = await UserModel.findByName(owner)
+    if (!document) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+    document.validatePassword(password)
   }
 
-  private static async _getRandomGuildName(
-    this: ReturnModelType<typeof Guild>,
-  ) {
-    let name = `test_${generateGuildName()}#${getRandom(1, 99)}`
-    while (await this.findByName(name))
-      name = `test_${generateGuildName()}#${getRandom(1, 99)}`
-    return name
+  private async _createChat(this: DocumentType<Guild>) {
+    this.private.chat = (await CLIENT_CHATS.spawn('guild', this._id)).id
   }
 }

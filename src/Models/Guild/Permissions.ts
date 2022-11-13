@@ -1,0 +1,11 @@
+export const enum PERMISSION {
+  ALL = 0,
+  INVITE = 1,
+  ACCEPT_REQUEST = 2,
+  REJECT_REQUEST = 3,
+  CHANGE_NAME = 4,
+  CHANGE_TAG = 5,
+  CHANGE_TERMS = 6,
+  CHANGE_ROLES = 7,
+  KICK = 8,
+}
