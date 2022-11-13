@@ -47,9 +47,10 @@ export async function HQuery(escort: IDataEscort) {
     let model = MODELS.get(query.model)
     if (!model) throw new TechnicalError('model', TechnicalCause.NOT_EXIST)
 
+    let result: unknown
     switch (query.method) {
       case 'get':
-        let result = await get(model, request)
+        result = await get(model, request)
         if (result == true)
           response = new DTO({
             label: request.label,
