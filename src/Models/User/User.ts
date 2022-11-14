@@ -1,5 +1,4 @@
 import type { USER_ROLE } from '../../Interfaces'
-import type { Types } from 'mongoose'
 
 import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 
@@ -8,7 +7,7 @@ import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
 import { UserLevel as Level } from './BattlePassLevel'
 
-import { GuildModel, TaskListModel, UserModel } from '../'
+import { TaskListModel, UserModel } from '../'
 import { Guild } from '../Guild/Guild'
 import { PREFIXES } from '../../configs/prefixes'
 
@@ -92,7 +91,7 @@ export class User {
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     user.prefix = prefix
     await user.save()
-    return user
+    return true
   }
 
   static async generateTestData(
@@ -269,22 +268,6 @@ export class User {
     return true
   }
 
-  /* GUILD */
-
-  public joinGuild(this: DocumentType<User>, guildID: Types.ObjectId) {
-    GuildModel.findById(guildID).then((Guild) => {
-      if (!Guild || !Guild.hasMember(this.profile.username))
-        throw new TechnicalError('guild', TechnicalCause.NOT_EXIST)
-
-      this.guild = guildID
-    })
-  }
-
-  public leaveGuild(this: DocumentType<User>) {
-    if (!this.guild) throw new TechnicalError('guild', TechnicalCause.REQUIRED)
-    this.guild = undefined
-  }
-
   /* SIMPLE ACTIONS */
 
   public get GRI() {
@@ -381,26 +364,26 @@ export class User {
     return user
   }
 
-  private static async _getRandomNickname() {
+  private static async _getRandomNickname(this: ReturnModelType<typeof User>) {
     let name: string = `${generateName(1)}_${getRandom(1, 99)}`
 
-    while (await UserModel.findOne({ 'profile.nickname': name }))
+    while (await this.findOne({ 'profile.nickname': name }))
       name = `${generateName(1)}_${getRandom(1, 99)}`
 
     return name
   }
 
-  private static async _getRandomUsername() {
+  private static async _getRandomUsername(this: ReturnModelType<typeof User>) {
     let name: string = `test_${generateName(1)}_${getRandom(1, 99)}`
-    while (await UserModel.findOne({ 'profile.username': name }))
+    while (await this.findOne({ 'profile.username': name }))
       name = `test_${generateName(1)}_${getRandom(1, 99)}`
 
     return name
   }
 
-  private static async _getRandomEmail() {
+  private static async _getRandomEmail(this: ReturnModelType<typeof User>) {
     let email: string = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
-    while (await UserModel.findOne({ 'credentials.email': email }))
+    while (await this.findOne({ 'credentials.email': email }))
       email = `test_${generateName(1)}${getRandom(1, 1000)}@test.com`
 
     return email

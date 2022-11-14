@@ -79,7 +79,7 @@ export class Leaderboard {
     let records: Record[] = []
     const guilds = await GuildModel.find({}, 'info')
     for (let guild of guilds)
-      records.push(this._createRecord(guild.info.name, guild.info.MPT))
+      records.push(this._createRecord(guild.public.name, guild.public.GRI))
     return records
   }
 

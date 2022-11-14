@@ -9,7 +9,6 @@ export function generateName(length: number) {
     dictionaries: [colors, adjectives, animals],
     length,
     style: 'capital',
-    seed: 'testSeed',
     separator: '',
   }) // RedBigDonkey
 }

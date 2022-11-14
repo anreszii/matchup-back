@@ -14,7 +14,7 @@ class PlayersManager implements Match.Member.Manager {
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     let guild = user.guild ? await GuildModel.findById(user.guild) : undefined
-    if (guild) guildName = guild.info.name
+    if (guild) guildName = guild.public.name
 
     let member = {
       id,

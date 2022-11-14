@@ -1,4 +1,5 @@
 import { prop } from '@typegoose/typegoose'
+import { Image } from '../Image'
 import { GuildMemberData } from './Member'
 
 export class PublicInfo {
@@ -14,14 +15,16 @@ export class PublicInfo {
   GRI!: number
   @prop({ required: true, default: 'Добро пожаловать!' })
   description!: string
+  @prop({ type: () => Image })
+  profileImage?: Image
 }
 
 export class Terms {
   @prop({ required: true, default: false })
   private!: boolean
-  @prop({ required: true })
+  @prop()
   minimalGRI?: number
-  @prop({ required: true })
+  @prop()
   invitationOnly?: boolean
 }
 
@@ -29,8 +32,18 @@ type Name = string
 export class PrivateInfo {
   @prop({ required: true, default: 'none' })
   chat!: string
-  @prop({ required: true, default: [], type: () => String, _id: false })
+  @prop({
+    required: true,
+    default: [],
+    type: () => GuildMemberData,
+    _id: false,
+  })
   invites!: Map<Name, GuildMemberData>
-  @prop({ required: true, default: new Map(), type: () => String, _id: false })
+  @prop({
+    required: true,
+    default: new Map(),
+    type: () => GuildMemberData,
+    _id: false,
+  })
   requests!: Map<Name, GuildMemberData>
 }

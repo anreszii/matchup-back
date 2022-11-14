@@ -1,34 +1,60 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
-import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 import { CLIENT_CHATS } from '../../Classes/Chat/Manager'
-import { TechnicalCause, TechnicalError } from '../../error'
-import { User, UserModel } from '../index'
+
 import { PrivateInfo, PublicInfo, Terms } from './Info'
+import { Image } from '../Image'
+import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
+
 import { GuildMemberData } from './Member'
 import { PERMISSION } from './Permissions'
 
-class Guild {
-  @prop({ required: true, default: new PublicInfo(), _id: false })
+import { generateGuildName } from '../../Utils/nameGenerator'
+import { getRandom } from '../../Utils/math'
+
+import { User, UserModel } from '../index'
+import { TechnicalCause, TechnicalError } from '../../error'
+
+type PartialInfoWithRequiredNameAndTag = Required<
+  Pick<PublicInfo, 'name' | 'tag'>
+> &
+  Partial<Omit<PublicInfo, 'GRI' | 'name' | 'tag'>>
+export class Guild {
+  @prop({
+    required: true,
+    default: new PublicInfo(),
+    _id: false,
+    type: () => PublicInfo,
+  })
   public!: PublicInfo
-  @prop()
+  @prop({
+    required: true,
+    default: new PrivateInfo(),
+    _id: false,
+    type: () => PrivateInfo,
+  })
   private!: PrivateInfo
-  @prop({ required: true })
+  @prop({ required: true, _id: false, type: () => Terms })
   terms!: Terms
   @prop({
     required: true,
-    unique: true,
     _id: false,
-    default: new Map().set('owner', new Set([PERMISSION.ALL])),
+    default: new Map([['owner', Array.from(new Set([PERMISSION.ALL]))]]),
+    type: () => Array,
   })
-  roles!: Map<string, Set<PERMISSION>>
-  @prop()
+  roles!: Map<string, PERMISSION[]>
+  @prop({
+    required: true,
+    default: new Map(),
+    type: () => GuildMemberData,
+  })
   members!: Map<string, GuildMemberData>
 
-  static async create(
+  static async createGuild(
     this: ReturnModelType<typeof Guild>,
     owner: string,
-    info: Exclude<Partial<PublicInfo>, 'GRI'>,
+    info: PartialInfoWithRequiredNameAndTag,
     terms?: Partial<Terms>,
+    image?: Image,
   ) {
     const user = await UserModel.findByName(owner)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
@@ -49,7 +75,18 @@ class Guild {
     guild.public.tag = tag
     if (typeof description == 'string') guild.public.description = description
 
+    if (image) guild.public.profileImage = image
+
     guild.terms = new Terms()
+    guild.members.set(user.profile.username, {
+      id: user._id,
+      mpr: user.GRI,
+      role: 'owner',
+    })
+
+    user.guild = guild
+    await user.save()
+
     if (!terms) return guild.save()
 
     const { private: privateStatus, minimalGRI, invitationOnly } = terms
@@ -60,15 +97,12 @@ class Guild {
     if (typeof invitationOnly == 'boolean')
       guild.terms.invitationOnly = invitationOnly
 
-    guild.members.set(name, { id: user.id, mpr: user.GRI, role: 'owner' })
     await guild.save()
 
-    user.guild = guild
-    await user.save()
-    return true
+    return guild
   }
 
-  static async drop(
+  static async deleteGuild(
     this: ReturnModelType<typeof Guild>,
     owner: string,
     password: string,
@@ -77,6 +111,31 @@ class Guild {
     await guild._validateOwner(owner, password)
 
     await this.deleteOne({ _id: guild._id })
+    return true
+  }
+
+  static async generateTestData(
+    this: ReturnModelType<typeof Guild>,
+    testDocumentsCount: number = 1,
+  ) {
+    let guilds = []
+    for (let i = 1; i < testDocumentsCount + 1; i++)
+      guilds.push(await this._generateTestDocument())
+
+    return guilds
+  }
+
+  static async getTestData(this: ReturnModelType<typeof Guild>) {
+    return this.find({
+      'public.name': { $regex: 'test_' },
+      'public.tag': { $regex: 'T#' },
+    }) as unknown as Promise<DocumentType<Guild>[]>
+  }
+
+  static async deleteTestData(this: ReturnModelType<typeof Guild>) {
+    let documents = await this.getTestData()
+    for (let document of documents) await document.delete()
+
     return true
   }
 
@@ -140,7 +199,7 @@ class Guild {
     permissions: PERMISSION[],
   ) {
     this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
-    this.roles.set(name, new Set(permissions))
+    this.roles.set(name, Array.from(new Set(permissions)))
     await this.save()
 
     return true
@@ -254,7 +313,7 @@ class Guild {
     if (this.terms.minimalGRI && user.GRI < this.terms.minimalGRI)
       throw new TechnicalError('user GRI', TechnicalCause.NEED_HIGHER_VALUE)
 
-    this.members.set(user.profile.username, { id: user.id, mpr: user.GRI })
+    this.members.set(user.profile.username, { id: user._id, mpr: user.GRI })
     await this.save()
 
     user.guild = this
@@ -271,7 +330,7 @@ class Guild {
       throw new TechnicalError('user GRI', TechnicalCause.NEED_HIGHER_VALUE)
 
     this.private.requests.set(user.profile.username, {
-      id: user.id,
+      id: user._id,
       mpr: user.GRI,
     })
     await this.save()
@@ -283,7 +342,7 @@ class Guild {
     user: DocumentType<User>,
   ) {
     this.private.invites.set(user.profile.username, {
-      id: user.id,
+      id: user._id,
       mpr: user.GRI,
     })
     await this.save()
@@ -321,8 +380,8 @@ class Guild {
     if (
       !memberPermissions ||
       !(
-        memberPermissions.has(PERMISSION.ALL) &&
-        memberPermissions.has(permission)
+        memberPermissions.includes(PERMISSION.ALL) ||
+        memberPermissions.includes(permission)
       )
     )
       throw new TechnicalError(
@@ -366,13 +425,13 @@ class Guild {
     if (newPermissions instanceof Array) {
       if (newPermissions.includes(PERMISSION.ALL))
         throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
-      this.roles.set(name, new Set(newPermissions))
+      this.roles.set(name, Array.from(new Set(newPermissions)))
       return true
     }
 
     if (newPermissions == PERMISSION.ALL)
       throw new TechnicalError('role', TechnicalCause.CAN_NOT_UPDATE)
-    permissions.add(newPermissions)
+    this.roles.set(name, Array.from(new Set(permissions).add(newPermissions)))
     return true
   }
 
@@ -387,6 +446,54 @@ class Guild {
     if (!guild) throw new TechnicalError('guild', TechnicalCause.NOT_EXIST)
 
     return guild
+  }
+
+  private static async _generateTestDocument(
+    this: ReturnModelType<typeof Guild>,
+  ) {
+    const owner = (await UserModel.generateTestData(1, false))[0]
+
+    owner.profile.balance += PRICE_OF_GUILD_CREATION
+    await owner.save()
+
+    let [name, tag] = await Promise.all([
+      this._getRandomName(),
+      this._getRandomTag(),
+    ])
+
+    let guild = await this.createGuild(owner.profile.username, { name, tag })
+
+    const users = await UserModel.generateTestData(5, false)
+    for (let user of users) {
+      switch (getRandom(1, 2)) {
+        case 1:
+          await guild.join(user.profile.username)
+          break
+        case 2:
+          await guild.invite(owner.profile.username, user.profile.username)
+          break
+      }
+    }
+
+    return guild
+  }
+
+  private static async _getRandomName(this: ReturnModelType<typeof Guild>) {
+    let name: string = `test_${generateGuildName()}#${getRandom(1, 99)}`
+
+    while (await this.findOne({ 'public.name': name }))
+      name = `test_${generateGuildName()}_${getRandom(1, 99)}`
+
+    return name
+  }
+
+  private static async _getRandomTag(this: ReturnModelType<typeof Guild>) {
+    let tag: string = `T#${getRandom(0, 9)}${getRandom(0, 9)}`
+
+    while (await this.findOne({ 'public.tag': tag }))
+      tag = `T#${getRandom(0, 9)}${getRandom(0, 9)}`
+
+    return tag
   }
 
   private async _validateOwner(

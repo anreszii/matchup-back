@@ -27,13 +27,24 @@ export type MODELS_ACTION_LIST =
   | 'DynamicTask/getType'
 
   /* Guild Model */
+  | 'Guild/createGuild'
+  | 'Guild/deleteGuild'
   | 'Guild/join'
+  | 'Guild/invite'
+  | 'Guild/acceptRequest'
   | 'Guild/leave'
-  | 'Guild/changeGuildName'
+  | 'Guild/rejectRequest'
+  | 'Guild/createRole'
+  | 'Guild/changeRole'
+  | 'Guild/deleteRole'
+  | 'Guild/giveRole'
+  | 'Guild/changeOwner'
+  | 'Guild/changeName'
+  | 'Guild/changeTag'
+  | 'Guild/changeTerms'
   | 'Guild/generateTestData'
   | 'Guild/getTestData'
   | 'Guild/deleteTestData'
-  | 'Guild/changeTagName'
 
   /* Match List Model */
   | 'MatchList/log'
@@ -81,10 +92,21 @@ MODELS_ACTIONS.set('TaskList/collectRewardFromWeekly', 0)
 MODELS_ACTIONS.set('TaskList/getForUser', 0)
 
 /* Guild Model Actions */
-MODELS_ACTIONS.set('Guild/changeGuildName', 0)
-MODELS_ACTIONS.set('Guild/changeTagName', 0)
+MODELS_ACTIONS.set('Guild/createGuild', 0)
+MODELS_ACTIONS.set('Guild/deleteGuild', 0)
 MODELS_ACTIONS.set('Guild/join', 0)
+MODELS_ACTIONS.set('Guild/invite', 0)
+MODELS_ACTIONS.set('Guild/acceptRequest', 0)
 MODELS_ACTIONS.set('Guild/leave', 0)
+MODELS_ACTIONS.set('Guild/rejectRequest', 0)
+MODELS_ACTIONS.set('Guild/createRole', 0)
+MODELS_ACTIONS.set('Guild/changeRole', 0)
+MODELS_ACTIONS.set('Guild/deleteRole', 0)
+MODELS_ACTIONS.set('Guild/giveRole', 0)
+MODELS_ACTIONS.set('Guild/changeOwner', 0)
+MODELS_ACTIONS.set('Guild/changeName', 0)
+MODELS_ACTIONS.set('Guild/changeTag', 0)
+MODELS_ACTIONS.set('Guild/changeTerms', 0)
 MODELS_ACTIONS.set('Guild/generateTestData', 2)
 MODELS_ACTIONS.set('Guild/getTestData', 2)
 MODELS_ACTIONS.set('Guild/deleteTestData', 2)
