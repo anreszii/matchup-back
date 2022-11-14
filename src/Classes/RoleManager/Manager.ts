@@ -17,6 +17,7 @@ export abstract class Manager<R extends string, A extends string>
     if (!~requiredAccessLevel) return false
     let roleAccessLevel = this._getAccessLevel(name)
 
+    if (!~roleAccessLevel) return false
     if (typeof roleAccessLevel == 'number')
       return roleAccessLevel >= requiredAccessLevel
 

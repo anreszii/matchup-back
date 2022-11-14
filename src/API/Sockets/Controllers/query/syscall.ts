@@ -44,7 +44,7 @@ export async function syscall(request: DTO) {
       if (!isValidModelAction(action))
         throw new TechnicalError('action', TechnicalCause.NOT_EXIST)
 
-      const hasAccess = ModelsRoleManager.hasAccess(
+      const hasAccess = await ModelsRoleManager.hasAccess(
         request.content.username as string,
         action as MODELS_ACTION_LIST,
       )
