@@ -209,7 +209,7 @@ export class Guild {
     this: DocumentType<Guild>,
     executor: string,
     name: string,
-    newRole: { name: string; permissions: PERMISSION[] },
+    newRole: { name?: string; permissions?: PERMISSION[] },
   ) {
     this._checkMemberPermissions(executor, PERMISSION.CHANGE_ROLES)
     let role = this.roles.get(name)
