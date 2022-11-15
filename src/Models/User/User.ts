@@ -1,6 +1,12 @@
 import type { USER_ROLE } from '../../Interfaces'
 
-import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
+import {
+  prop,
+  ReturnModelType,
+  DocumentType,
+  Ref,
+  getModelForClass,
+} from '@typegoose/typegoose'
 
 import { Profile } from './Profile'
 import { Credentials } from './Credentials'
@@ -9,7 +15,6 @@ import { UserLevel as Level } from './BattlePassLevel'
 
 import { TaskListModel, UserModel } from '../'
 import { Guild } from '../Guild/Guild'
-import { PREFIXES } from '../../configs/prefixes'
 
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { generateName } from '../../Utils/nameGenerator'
@@ -18,6 +23,13 @@ import { RelationRecord } from './Relations'
 import { BPLevelModel } from '../Task/BattlePassLevel'
 import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
+
+class Prefixes {
+  @prop({ required: true })
+  name!: string
+}
+
+const PREFIXES = getModelForClass(Prefixes)
 
 export class User {
   @prop({
@@ -76,8 +88,19 @@ export class User {
     )
   }
 
+  static async addPrefix(prefix: string) {
+    if (await PREFIXES.findOne({ name: prefix }))
+      throw new TechnicalError('prefix', TechnicalCause.ALREADY_EXIST)
+    await PREFIXES.create({ name: prefix })
+    return true
+  }
+
   static async getPrefixes() {
-    return PREFIXES
+    let toArr = []
+    let prefixes = await PREFIXES.find({})
+    for (let prefix of prefixes) toArr.push(prefix.name)
+
+    return toArr
   }
 
   static async setPrefix(
@@ -85,7 +108,7 @@ export class User {
     name: string,
     prefix: string,
   ) {
-    if (!PREFIXES.includes(prefix))
+    if (!(await PREFIXES.findOne({ name: prefix })))
       throw new TechnicalError('prefix', TechnicalCause.NOT_EXIST)
     const user = await this.findByName(name)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
@@ -143,8 +166,8 @@ export class User {
     return user.GRI
   }
 
-  setPrefix(this: DocumentType<User>, prefix: string) {
-    if (!PREFIXES.includes(prefix))
+  async setPrefix(this: DocumentType<User>, prefix: string) {
+    if (!(await PREFIXES.findOne({ name: prefix })))
       throw new TechnicalError('prefix', TechnicalCause.NOT_EXIST)
     this.prefix = prefix
   }
