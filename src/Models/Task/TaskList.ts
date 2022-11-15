@@ -65,7 +65,7 @@ export class TaskList {
   }
 
   public async getDaily(this: DocumentType<TaskList>) {
-    let wasCleared = this._clearCurrentDailyTasksIfCountInvalid()
+    let wasCleared = await this._clearCurrentDailyTasksIfCountInvalid()
     if (!wasCleared) return this._findCurrentDailyTasks()
 
     let tasks = await this._createDailyTasks()
@@ -76,7 +76,7 @@ export class TaskList {
   }
 
   public async getWeekly(this: DocumentType<TaskList>) {
-    let wasCleared = this._clearCurrentWeeklyTasksIfCountInvalid()
+    let wasCleared = await this._clearCurrentWeeklyTasksIfCountInvalid()
     if (!wasCleared) return this._findCurrentWeeklyTasks()
 
     let tasks = await this._createWeeklyTasks()
@@ -295,25 +295,23 @@ export class TaskList {
     return Promise.all(promises)
   }
 
-  private static _checkUserList(
+  private static async _checkUserList(
     this: ReturnModelType<typeof TaskList>,
     owner: DocumentType<User> | Types.ObjectId,
   ) {
-    return this.findOne({ owner }).then((user) => {
-      return user ?? false
-    })
+    let user = await this.findOne({ owner })
+    return user
   }
 
-  private _findCurrentDailyTasks(this: DocumentType<TaskList>) {
+  private async _findCurrentDailyTasks(this: DocumentType<TaskList>) {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
     for (let i = 0; i < this.tasks.length; i++) {
       let taskID = this.tasks[i]
       if (!taskID) continue
 
-      TaskModel.findById(taskID).then((task) => {
-        if (!task || task.isExpired || !task.expires) return
-        if (this._isDailyTask(task)) dailyTasks.push(task)
-      })
+      let task = await TaskModel.findById(taskID)
+      if (!task || task.isExpired || !task.expires) continue
+      if (this._isDailyTask(task)) dailyTasks.push(task)
     }
 
     return dailyTasks
@@ -322,26 +320,27 @@ export class TaskList {
   /** В случае, если количество ежедневных заданий меньше трех, или не было сгенерировано задание на выполнение ежедневных заданий, удаляет их
    *  @returns true, если задания были удалены, false в противном случае
    */
-  private _clearCurrentDailyTasksIfCountInvalid(this: DocumentType<TaskList>) {
-    let dailyTasks = this._findCurrentDailyTasks()
+  private async _clearCurrentDailyTasksIfCountInvalid(
+    this: DocumentType<TaskList>,
+  ) {
+    let dailyTasks = await this._findCurrentDailyTasks()
     if (dailyTasks.length == 4) return false
 
     let promises = []
     for (let task of dailyTasks) promises.push(task.delete())
-    if (promises.length != 0) Promise.all(promises).then()
+    if (promises.length != 0) await Promise.all(promises)
     return true
   }
 
-  private _findCurrentWeeklyTasks(this: DocumentType<TaskList>) {
+  private async _findCurrentWeeklyTasks(this: DocumentType<TaskList>) {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
     for (let i = 0; i < this.tasks.length; i++) {
       let taskID = this.tasks[i]
       if (!taskID) continue
 
-      TaskModel.findById(taskID).then((task) => {
-        if (!task || task.isExpired || !task.expires) return
-        if (this._isWeeklyTask(task)) dailyTasks.push(task)
-      })
+      let task = await TaskModel.findById(taskID)
+      if (!task || task.isExpired || !task.expires) continue
+      if (this._isWeeklyTask(task)) dailyTasks.push(task)
     }
 
     return dailyTasks
@@ -350,13 +349,15 @@ export class TaskList {
   /** В случае, если количество еженедельных заданий меньше жвух, или не было сгенерировано задание на выполнение еженедельных заданий, удаляет их
    *  @returns true, если задания были удалены, false в противном случае
    */
-  private _clearCurrentWeeklyTasksIfCountInvalid(this: DocumentType<TaskList>) {
-    let weeklyTasks = this._findCurrentWeeklyTasks()
+  private async _clearCurrentWeeklyTasksIfCountInvalid(
+    this: DocumentType<TaskList>,
+  ) {
+    let weeklyTasks = await this._findCurrentWeeklyTasks()
     if (weeklyTasks.length == 2) return false
 
     let promises = []
     for (let task of weeklyTasks) promises.push(task.delete())
-    if (promises.length != 0) Promise.all(promises).then()
+    if (promises.length != 0) await Promise.all(promises)
     return true
   }
 
