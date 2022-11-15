@@ -4,6 +4,7 @@ import {
   DynamicTaskModel,
   StaticTaskModel,
   STATIC_TASK,
+  TaskListModel,
   UserModel,
 } from '../index'
 import { TaskData } from './TaskData'
@@ -213,23 +214,14 @@ export class TaskList {
     let rewards = []
     let completedTaskCounter = 0
     let taskRewards: Reward[] | undefined
-    let completeDailyTask: DocumentType<Task> | undefined
     for (let task of daily) {
       if (!task.isComplete) continue
-      if (task.flags.static && task.name == 'completedWeekly') {
-        completeDailyTask = task
-        continue
-      }
+
       taskRewards = await task.complete()
       if (!taskRewards) continue
       completedTaskCounter++
       rewards.push(taskRewards)
     }
-
-    completeDailyTask!.addProgess(completedTaskCounter)
-    taskRewards = await completeDailyTask!.complete()
-
-    rewards.push(taskRewards)
     for (let tmp of rewards) {
       for (let reward of tmp as Reward[]) {
         switch (reward.type) {
@@ -360,7 +352,7 @@ export class TaskList {
    */
   private _clearCurrentWeeklyTasksIfCountInvalid(this: DocumentType<TaskList>) {
     let weeklyTasks = this._findCurrentWeeklyTasks()
-    if (weeklyTasks.length == 3) return false
+    if (weeklyTasks.length == 2) return false
 
     let promises = []
     for (let task of weeklyTasks) promises.push(task.delete())
@@ -422,7 +414,7 @@ export class TaskList {
     let promises = []
     let task
 
-    while (dailyTasks.length != 3) {
+    while (dailyTasks.length != 2) {
       task = await this._createRandomWeeklyTask(usedNames)
       if (!task) return
 
@@ -430,13 +422,6 @@ export class TaskList {
       usedNames.push(task.name)
       promises.push(task.save())
     }
-
-    let completeWeeklyTasks = await this._createTaskToCompleteAllWeekly
-    if (!completeWeeklyTasks)
-      throw new ServerError(ServerCause.FAIL_TASK_GENERATION)
-
-    dailyTasks.push(completeWeeklyTasks)
-    promises.push(completeWeeklyTasks.save())
 
     await Promise.all(promises)
     return dailyTasks
@@ -477,24 +462,7 @@ export class TaskList {
             format: data.expirationType!,
           }
 
-          return task
-        })
-      })
-    })
-  }
-
-  private get _createTaskToCompleteAllWeekly() {
-    return StaticTaskModel.getType('completedWeekly').then((data) => {
-      if (!data) return null
-      return this._ownerName.then((username) => {
-        return this._create('completedWeeky', data.points).then((task) => {
-          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
-
-          task.expirationTime = {
-            amount: 1,
-            format: data.expirationType!,
-          }
+          task.flags.static = true
           return task
         })
       })
