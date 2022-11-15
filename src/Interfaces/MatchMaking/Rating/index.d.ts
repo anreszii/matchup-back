@@ -17,6 +17,7 @@ export declare namespace Rating {
 
       use(lobby: Match.Lobby.Instance): { [key: string]: number }
       get count(): { [key: string]: number }
+      get values(): Filter[]
     }
 
     interface Finder {
@@ -31,10 +32,13 @@ export declare namespace Rating {
     }
 
     type FILTER_PRIORITY = 'optional' | 'required'
+    type FILTER_TYPE = 'GRI' | 'STATUS' | 'GUILD' | 'REGIME' | 'REGION' | 'TEAM'
 
     interface Filter {
       isValid(lobby: Match.Lobby.Instance): boolean
       get priority(): FILTER_PRIORITY
+      get type(): FILTER_TYPE
+      get value(): unknown
     }
   }
 }

@@ -10,4 +10,12 @@ export class GuildFilter implements Rating.SearchEngine.Filter {
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {
     return 'required'
   }
+
+  get type(): Rating.SearchEngine.FILTER_TYPE {
+    return 'GUILD'
+  }
+
+  get value(): unknown {
+    return
+  }
 }

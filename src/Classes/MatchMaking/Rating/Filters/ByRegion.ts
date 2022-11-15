@@ -15,4 +15,12 @@ export class RegionFilter implements Rating.SearchEngine.Filter {
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {
     return 'required'
   }
+
+  get type(): Rating.SearchEngine.FILTER_TYPE {
+    return 'REGION'
+  }
+
+  get value(): unknown {
+    return this._region
+  }
 }

@@ -8,11 +8,19 @@ export class RegimeFilter implements Rating.SearchEngine.Filter {
     return lobby.type == this._type
   }
 
-  set type(value: Match.Lobby.Type) {
+  set lobbyType(value: Match.Lobby.Type) {
     this._type = value
   }
 
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {
     return 'required'
+  }
+
+  get type(): Rating.SearchEngine.FILTER_TYPE {
+    return 'REGIME'
+  }
+
+  get value() {
+    return this._type
   }
 }

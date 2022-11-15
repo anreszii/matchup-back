@@ -8,4 +8,12 @@ export class StatusFilter implements Rating.SearchEngine.Filter {
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {
     return 'required'
   }
+
+  get type(): Rating.SearchEngine.FILTER_TYPE {
+    return 'STATUS'
+  }
+
+  get value(): unknown {
+    return 'searching'
+  }
 }

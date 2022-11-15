@@ -20,6 +20,7 @@ class PlayersManager implements Match.Member.Manager {
       id,
       name,
       isReady: false,
+      GRI: user.GRI,
       guildName,
       prefix: user.prefix,
     } as Match.Member.Instance

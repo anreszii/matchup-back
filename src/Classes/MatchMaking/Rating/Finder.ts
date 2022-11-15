@@ -4,7 +4,7 @@ import { inRange } from '../../../Utils/math'
 
 export class Finder implements Rating.SearchEngine.Finder {
   private _searchZone: Rating.SearchEngine.SEARCH_ZONE = 0
-  private _maxWaitingTime: number = MINUTE_IN_MS * 5
+  private _maxWaitingTime: number = MINUTE_IN_MS * 2
 
   constructor(
     private _lobbies: Match.Lobby.Instance[],

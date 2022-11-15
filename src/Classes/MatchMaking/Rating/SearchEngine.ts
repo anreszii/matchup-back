@@ -10,8 +10,11 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
   ): Promise<Match.Lobby.Instance> {
     let finder = new Finder(this._manager.lobbies, filters)
     return finder.find().then((result) => {
-      if (!result) return this._manager.spawn()
-      return result
+      if (result) return result
+      for (let filter of filters.values)
+        if (filter.type == 'REGIME')
+          return this._manager.spawn(filter.value as string)
+      return this._manager.spawn()
     })
   }
 

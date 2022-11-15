@@ -44,7 +44,7 @@ export class Filters implements Rating.SearchEngine.Filters {
 
   byRegime(type: Match.Lobby.Type): Rating.SearchEngine.Filters {
     let filter = new RegimeFilter()
-    filter.type = type
+    filter.lobbyType = type
 
     this._addFilter(filter)
     return this
