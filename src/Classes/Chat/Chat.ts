@@ -35,7 +35,12 @@ export class Chat implements IChat.Controller {
   }
 
   async message(message: IChat.Message): Promise<true> {
-    let dto = new DTO({ label: 'message', id: this.id, message })
+    let dto = new DTO({
+      label: 'message',
+      id: this.id,
+      type: this.type,
+      message,
+    })
     this._document.message(message)
     this._namespace.control(this.id).emit('chat', dto.to.JSON)
 
