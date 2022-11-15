@@ -51,8 +51,20 @@ export class DynamicTask implements DYNAMIC_TASK {
   public static getType(
     this: ReturnModelType<typeof DynamicTask>,
     name: string,
+    expirationType?: expType,
   ) {
-    return this.find({ name })
+    return this.findOne({
+      name,
+      expType: expirationType,
+    })
+  }
+
+  public static async hasType(
+    this: ReturnModelType<typeof DynamicTask>,
+    name: string,
+  ) {
+    if (!(await this.findOne({ name }))) return false
+    return true
   }
 
   public static async getRandomDaily(

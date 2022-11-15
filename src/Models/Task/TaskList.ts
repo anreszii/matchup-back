@@ -1,18 +1,23 @@
 import { prop, Ref, DocumentType, ReturnModelType } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
-
 import {
-  DYNAMIC_DATA,
-  STATIC_DATA,
+  DynamicTaskModel,
+  StaticTaskModel,
   STATIC_TASK,
-} from '../../configs/task_reward'
-import { DynamicTaskModel, StaticTaskModel, UserModel } from '../index'
+  UserModel,
+} from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
 import { Task } from './Task'
 import { TaskModel } from '../'
-import { TechnicalCause, TechnicalError } from '../../error'
+import {
+  ServerCause,
+  ServerError,
+  TechnicalCause,
+  TechnicalError,
+} from '../../error'
 import { Reward } from '../Reward'
+import { expType } from './ExpirationTime'
 
 export class TaskList {
   @prop({ required: true, ref: () => User })
@@ -261,15 +266,17 @@ export class TaskList {
     return collectedReward
   }
 
-  public async createTask(this: DocumentType<TaskList>, name: string) {
+  public async createTask(
+    this: DocumentType<TaskList>,
+    name: string,
+    expType: expType,
+  ) {
     let data: STATIC_TASK | undefined
 
-    if (DYNAMIC_DATA.has(name)) {
-      let dataSet = DYNAMIC_DATA.get(name)!
-      data = TaskData.getDataFrom(dataSet)
-    } else if (STATIC_DATA.has(name)) {
-      data = STATIC_DATA.get(name)!
-    }
+    let DynamicSet = await DynamicTaskModel.getType(name, expType)
+    let StaticSet = await StaticTaskModel.getType(name, expType)
+    if (DynamicSet) data = TaskData.getDataFrom(DynamicSet)
+    else if (StaticSet) data = StaticSet
     if (!data) return
 
     let task = await this._create(name, data.points)
@@ -377,6 +384,8 @@ export class TaskList {
     }
 
     let completeDailyTask = await this._createTaskToCompleteAllDaily
+    if (!completeDailyTask)
+      throw new ServerError(ServerCause.FAIL_TASK_GENERATION)
 
     dailyTasks.push(completeDailyTask)
     promises.push(completeDailyTask.save())
@@ -423,6 +432,8 @@ export class TaskList {
     }
 
     let completeWeeklyTasks = await this._createTaskToCompleteAllWeekly
+    if (!completeWeeklyTasks)
+      throw new ServerError(ServerCause.FAIL_TASK_GENERATION)
 
     dailyTasks.push(completeWeeklyTasks)
     promises.push(completeWeeklyTasks.save())
@@ -454,34 +465,38 @@ export class TaskList {
   }
 
   private get _createTaskToCompleteAllDaily() {
-    let data = StaticTaskModel.getType('completedDaily')!
-    return this._ownerName.then((username) => {
-      return this._create('completedDaily', data.points).then((task) => {
-        if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-        if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+    return StaticTaskModel.getType('completedDaily').then((data) => {
+      if (!data) return null
+      return this._ownerName.then((username) => {
+        return this._create('completedDaily', data.points).then((task) => {
+          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
-        task.expirationTime = {
-          amount: 1,
-          format: data.expirationType!,
-        }
+          task.expirationTime = {
+            amount: 1,
+            format: data.expirationType!,
+          }
 
-        return task
+          return task
+        })
       })
     })
   }
 
   private get _createTaskToCompleteAllWeekly() {
-    let data = StaticTaskModel.getType('completedWeekly')!
-    return this._ownerName.then((username) => {
-      return this._create('completedWeeky', data.points).then((task) => {
-        if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-        if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+    return StaticTaskModel.getType('completedWeekly').then((data) => {
+      if (!data) return null
+      return this._ownerName.then((username) => {
+        return this._create('completedWeeky', data.points).then((task) => {
+          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
 
-        task.expirationTime = {
-          amount: 1,
-          format: data.expirationType!,
-        }
-        return task
+          task.expirationTime = {
+            amount: 1,
+            format: data.expirationType!,
+          }
+          return task
+        })
       })
     })
   }

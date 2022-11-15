@@ -19,6 +19,7 @@ export const enum ServerCause {
   UNKNOWN_ERROR = 500,
   OLD_API = 501,
   FAIL_TEST_DATA_GENERATION = 502,
+  FAIL_TASK_GENERATION = 503,
 
   INVALID_ROUTE = 300,
   INVALID_DTO = 301,
@@ -28,6 +29,7 @@ export const SERVER_ERRORS_DESCRIPTIONS: Map<ServerCause, string> = new Map([
   [500, 'unknown error'],
   [501, 'old api'],
   [502, 'failed to generate test data'],
+  [503, 'failed to generate user task'],
   [300, 'invalid route'],
   [301, 'invalid dto'],
 ])

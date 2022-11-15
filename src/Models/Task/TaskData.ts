@@ -1,5 +1,5 @@
-import type { DYNAMIC_TASK } from '../../configs/task_reward'
 import type { DocumentType } from '@typegoose/typegoose'
+import type { DYNAMIC_TASK } from '../index'
 import { getRounded, minMax } from '../../Utils/math'
 
 export class TaskData {

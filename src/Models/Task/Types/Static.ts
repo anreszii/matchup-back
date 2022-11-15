@@ -37,11 +37,23 @@ export class StaticTask {
     await newType.save()
   }
 
-  public static getType(
+  public static async hasType(
     this: ReturnModelType<typeof StaticTask>,
     name: string,
   ) {
-    return this.find({ name })
+    if (!(await this.findOne({ name }))) return false
+    return true
+  }
+
+  public static getType(
+    this: ReturnModelType<typeof StaticTask>,
+    name: string,
+    expirationType?: expType,
+  ) {
+    return this.findOne({
+      name,
+      expType: expirationType,
+    })
   }
 
   private static _validateNewType(type: DocumentType<StaticTask>) {
