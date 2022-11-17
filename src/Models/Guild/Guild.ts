@@ -54,7 +54,6 @@ export class Guild {
     owner: string,
     info: PartialInfoWithRequiredNameAndTag,
     terms?: Partial<Terms>,
-    image?: Image,
   ) {
     const user = await UserModel.findByName(owner)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
@@ -74,8 +73,6 @@ export class Guild {
     guild.public.name = name
     guild.public.tag = tag
     if (typeof description == 'string') guild.public.description = description
-
-    if (image) guild.public.profileImage = image
 
     guild.terms = new Terms()
     guild.members.set(user.profile.username, {

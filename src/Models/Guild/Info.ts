@@ -1,4 +1,4 @@
-import { prop } from '@typegoose/typegoose'
+import { prop, Ref } from '@typegoose/typegoose'
 import { Image } from '../Image'
 import { GuildMemberData } from './Member'
 
@@ -15,8 +15,8 @@ export class PublicInfo {
   GRI!: number
   @prop({ required: true, default: 'Добро пожаловать!' })
   description!: string
-  @prop({ type: () => Image })
-  profileImage?: Image
+  @prop()
+  profileImage?: string
 }
 
 export class Terms {

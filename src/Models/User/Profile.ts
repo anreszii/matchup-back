@@ -1,4 +1,4 @@
-import { prop } from '@typegoose/typegoose'
+import { prop, Ref } from '@typegoose/typegoose'
 import { Image } from '../Image.js'
 import { Relations } from './Relations.js'
 
@@ -31,8 +31,8 @@ export class Profile {
   username!: string
   @prop({ required: true, default: 0 })
   balance!: number
-  @prop({_id: false})
-  avatar?: Image
+  @prop()
+  avatar?: string
   @prop({ required: true, default: new Relations(), _id: false })
   relations!: Relations
   @prop()
