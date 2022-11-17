@@ -1,11 +1,10 @@
 import { getModelForClass, prop } from '@typegoose/typegoose'
-import { Types } from 'mongoose'
 
 export class Image {
   @prop({ required: true })
-  public buffer!: Buffer
+  buffer!: Buffer
   @prop({ required: true })
-  public mimeType!: string
+  mimeType!: string
 }
 
 export const ImageModel = getModelForClass(Image)

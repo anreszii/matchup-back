@@ -23,6 +23,7 @@ import { RelationRecord } from './Relations'
 import { BPLevelModel } from '../Task/BattlePassLevel'
 import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
+import { ImageModel } from '../Image'
 
 class Prefixes {
   @prop({ required: true })
@@ -193,9 +194,19 @@ export class User {
   /* SUBSCRIBERS */
 
   async getSubscribers() {
+    let promises: Promise<DocumentType<User>>[] = []
     let result: RelationRecord[] = []
     for (let subscriber of this.profile.relations.subscribers)
-      result.push(new RelationRecord(subscriber))
+      promises.push(UserModel.findByName(subscriber))
+
+    let users = await Promise.all(promises)
+    for (let user of users)
+      result.push(
+        new RelationRecord(
+          user.profile.username,
+          user.profile.avatar as unknown as string | undefined,
+        ),
+      )
 
     return result
   }
@@ -222,9 +233,19 @@ export class User {
   /* FRIENDS */
 
   async getFriends() {
+    let promises: Promise<DocumentType<User>>[] = []
     let result: RelationRecord[] = []
     for (let friend of this.profile.relations.friends)
-      result.push(new RelationRecord(friend))
+      promises.push(UserModel.findByName(friend))
+
+    let users = await Promise.all(promises)
+    for (let user of users)
+      result.push(
+        new RelationRecord(
+          user.profile.username,
+          user.profile.avatar as unknown as string | undefined,
+        ),
+      )
 
     return result
   }
@@ -293,33 +314,45 @@ export class User {
 
   /* SIMPLE ACTIONS */
 
-  public get GRI() {
+  get GRI() {
     return this.rating.GRI
   }
 
-  public buy(this: DocumentType<User>, itemPrice: number) {
+  buy(this: DocumentType<User>, itemPrice: number) {
     if (itemPrice < 0)
       throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
     this.profile.balance -= itemPrice
   }
 
-  public addEXP(amount: number) {
+  addEXP(amount: number) {
     this.level.currentEXP += amount
   }
 
-  public addMP(amount: number) {
+  addMP(amount: number) {
     this.profile.balance += amount
   }
 
   /* BATTLEPASS */
 
-  public checkLevel(this: DocumentType<User>) {
+  checkLevel(this: DocumentType<User>) {
     let level = this.level
     if (this.level.currentEXP >= this.level.currentRequiredEXP)
       this._updateLevel()
 
     return { previous: level, current: this.level }
   }
+
+  /* IMAGE */
+
+  async setAvatar(this: DocumentType<User>, image: typeof Image) {
+    let avatar = await ImageModel.create(image)
+    this.profile.avatar = avatar._id
+
+    await Promise.all([this.save(), avatar.save()])
+    return true
+  }
+
+  /* PRIVATE */
 
   private _updateLevel(this: DocumentType<User>) {
     this._collectRewardsFromBP()
