@@ -1,5 +1,6 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { TechnicalCause, TechnicalError } from '../../../error'
+import { shuffle } from '../../../Utils/shuffle'
 import { expType } from '../ExpirationTime'
 import { TaskTypeReward } from './Reward'
 
@@ -71,16 +72,18 @@ export class DynamicTask implements DYNAMIC_TASK {
     this: ReturnModelType<typeof DynamicTask>,
     usedTasksNames?: Array<string>,
   ) {
-    const taskTypeList = await this.find()
-    for (let taskType of taskTypeList) {
+    const types = shuffle(await this.find())
+    for (let i = 0; i < types.length; i++) {
+      let type = types[i]
       if (
-        taskType.expirationType == 'day' &&
-        !usedTasksNames?.includes(taskType.name)
-      )
+        type.expirationType == 'day' &&
+        !usedTasksNames?.includes(type.name)
+      ) {
         return {
-          name: taskType.name,
-          data: taskType as DYNAMIC_TASK & { expirationType: 'day' },
+          name: type.name,
+          data: type as DYNAMIC_TASK & { expirationType: 'day' },
         }
+      }
     }
   }
 
@@ -88,16 +91,18 @@ export class DynamicTask implements DYNAMIC_TASK {
     this: ReturnModelType<typeof DynamicTask>,
     usedTasksNames?: Array<string>,
   ) {
-    const taskTypeList = await this.find()
-    for (let taskType of taskTypeList) {
+    const types = shuffle(await this.find())
+    for (let i = 0; i < types.length; i++) {
+      let type = types[i]
       if (
-        taskType.expirationType == 'week' &&
-        !usedTasksNames?.includes(taskType.name)
-      )
+        type.expirationType == 'week' &&
+        !usedTasksNames?.includes(type.name)
+      ) {
         return {
-          name: taskType.name,
-          data: taskType as DYNAMIC_TASK & { expirationType: 'week' },
+          name: type.name,
+          data: type as DYNAMIC_TASK & { expirationType: 'week' },
         }
+      }
     }
   }
 
