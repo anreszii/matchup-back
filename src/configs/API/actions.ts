@@ -22,6 +22,7 @@ export type API_ACTION_LIST =
   | 'chat_message'
   | 'chat_join'
   | 'chat_leave'
+  | 'chat_load_history'
   /* IMAGE */
   | 'load_image'
   | 'upload_image'
@@ -48,6 +49,7 @@ API_ACTIONS.set('get_teams', 0)
 API_ACTIONS.set('chat_message', 0)
 API_ACTIONS.set('chat_join', 0)
 API_ACTIONS.set('chat_leave', 0)
+API_ACTIONS.set('chat_load_history', 0)
 API_ACTIONS.set('add_relation', 0)
 API_ACTIONS.set('drop_relation', 0)
 API_ACTIONS.set('load_image', 0)

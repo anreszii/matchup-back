@@ -34,7 +34,7 @@ export class Chat {
   })
   members!: Types.Array<ChatMember>
   @prop({ required: true, type: () => Message, default: [], _id: false })
-  history!: IChat.Message[]
+  history!: Message[]
 
   static async spawn(
     this: ReturnModelType<typeof Chat>,
@@ -89,6 +89,31 @@ export class Chat {
     await this.save()
 
     return true
+  }
+
+  load_history(first_date: number, second_date: number) {
+    let bottom, top
+    switch (first_date >= second_date) {
+      case true:
+        top = first_date
+        bottom = second_date
+        break
+      case false:
+        top = second_date
+        bottom = first_date
+        break
+      default:
+        bottom = top = first_date
+    }
+
+    let messages: Message[] = []
+    for (let message of this.history) {
+      let createdAt = message.info.createdAt.getTime()
+      if (bottom <= createdAt && createdAt <= top) messages.push(message)
+      if (createdAt > top) break
+    }
+
+    return messages
   }
 
   getMember(memberName: string) {

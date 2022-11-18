@@ -2,6 +2,7 @@ import type { WebSocket } from 'uWebSockets.js'
 import { CLIENT_CHATS } from '../../../../Classes/Chat/Manager'
 import { Message } from '../../../../Classes/Chat/Message'
 import { TechnicalCause, TechnicalError } from '../../../../error'
+import { ChatModel } from '../../../../Models/index'
 import { CONTROLLERS } from '../../Handlers/dark-side'
 
 /**
@@ -93,7 +94,7 @@ export async function join(socket: WebSocket, params: unknown[]) {
   await chat.join(username)
   return true
 }
-CONTROLLERS.set('chat_join', message)
+CONTROLLERS.set('chat_join', join)
 
 /**
  * Событие для выхода из известного чата.</br>
@@ -123,4 +124,38 @@ export async function leave(socket: WebSocket, params: unknown[]) {
   await chat.leave(username)
   return true
 }
-CONTROLLERS.set('chat_leave', message)
+CONTROLLERS.set('chat_leave', leave)
+
+/**
+ * Событие для выхода из известного чата.</br>
+ * Используемый пакет:
+ *
+ * @param params - ['chatId: {string}']
+ *
+ * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
+ * ```ts
+ * {
+ *  complete: true
+ * }
+ * ```
+ * @category Basic
+ * @event
+ */
+export async function load_history(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+
+  let chatID = params[0]
+  if (typeof chatID != 'string')
+    throw new TechnicalError('chat', TechnicalCause.INVALID_FORMAT)
+
+  let chat = await ChatModel.get(chatID)
+  if (!chat) throw new TechnicalError('chat', TechnicalCause.NOT_EXIST)
+
+  if (typeof params[1] != 'string' || typeof params[2])
+    throw new TechnicalError('date', TechnicalCause.INVALID_FORMAT)
+  let first_date = new Date(params[1] as string)
+  let second_date = new Date(params[2] as string)
+
+  return chat.load_history(first_date.getTime(), second_date.getTime())
+}
+CONTROLLERS.set('chat_load_history', load_history)
