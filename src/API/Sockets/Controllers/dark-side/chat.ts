@@ -21,6 +21,7 @@ import { CONTROLLERS } from '../../Handlers/dark-side'
  * ```jts
  * {
  *  id:string,
+ *  type: string,
  *  message:
  *  {
  *    author: string,

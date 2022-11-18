@@ -1,4 +1,5 @@
 import { prop, Ref } from '@typegoose/typegoose'
+import { Image } from '../Image'
 import { User } from '../User/User'
 
 export class ChatMember {
@@ -6,4 +7,8 @@ export class ChatMember {
   id?: Ref<User>
   @prop({ required: true })
   name!: string
+  @prop()
+  avatar?: string
+  @prop()
+  prefix?: string
 }

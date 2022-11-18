@@ -1,12 +1,19 @@
 import { IChat } from '../../Interfaces/index'
 
 export class Message implements IChat.Message {
-  constructor(private _author: string, private _content: string) {}
-  get author(): string {
+  private _author: IChat.Author
+  private _content: string
+  constructor(author: string, content: string) {
+    this._author = {
+      name: author,
+    }
+    this._content = content
+  }
+  get author() {
     return this._author
   }
 
-  get content(): string {
+  get content() {
     return this._content
   }
 }

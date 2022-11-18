@@ -34,7 +34,7 @@ export class Chat {
   })
   members!: Types.Array<ChatMember>
   @prop({ required: true, type: () => Message, default: [], _id: false })
-  history!: Types.Array<Message>
+  history!: IChat.Message[]
 
   static async spawn(
     this: ReturnModelType<typeof Chat>,
@@ -82,10 +82,10 @@ export class Chat {
   }
 
   async message(this: DocumentType<Chat>, message: IChat.Message) {
-    if (!this.hasMember(message.author))
+    if (!this.hasMember(message.author.name))
       throw new TechnicalError('chat member', TechnicalCause.NOT_EXIST)
 
-    this.history.push(new Message(message.author, message.content))
+    this.history.push(new Message(message))
     await this.save()
 
     return true

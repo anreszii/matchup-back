@@ -14,9 +14,17 @@ export declare namespace IChat {
   }
 
   interface Message {
-    author: string
+    author: Author,
     content: string
   }
+
+  type Author = {
+    name: string,
+    avatar?: string
+    prefix?: string
+  }
+
+  type PossibleString = string | undefined
 
   type Type = 'private' | 'command' | 'team' | 'lobby' | 'guild'
 }

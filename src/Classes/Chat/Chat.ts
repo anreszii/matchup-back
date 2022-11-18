@@ -4,6 +4,7 @@ import type { IChat } from '../../Interfaces/index'
 import { Chat as DBChat } from '../../Models/Chat/Chat'
 import { DTO } from '../DTO/DTO'
 import { Message } from './Message'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class Chat implements IChat.Controller {
   private _members: Array<string> = []
@@ -34,7 +35,14 @@ export class Chat implements IChat.Controller {
     return true
   }
 
-  async message(message: IChat.Message): Promise<true> {
+  async message(message: Message): Promise<true> {
+    let member = this._document.getMember(message.author.name)
+    if (!member)
+      throw new TechnicalError('chat member', TechnicalCause.NOT_EXIST)
+
+    message.author.avatar = member.avatar
+    message.author.prefix = member.prefix
+
     let dto = new DTO({
       label: 'message',
       id: this.id,

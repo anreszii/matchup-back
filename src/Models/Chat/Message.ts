@@ -1,6 +1,7 @@
-import { prop } from '@typegoose/typegoose'
+import { prop, Ref } from '@typegoose/typegoose'
 import { v4 as uuid } from 'uuid'
 import { IChat } from '../../Interfaces/index'
+import { Image } from '../Image'
 
 class ServiceInformation {
   @prop({ required: true })
@@ -10,13 +11,13 @@ class ServiceInformation {
 }
 
 export class Message implements IChat.Message {
-  constructor(author: string, content: string) {
+  constructor(message: IChat.Message) {
     this.info = {
       id: uuid(),
       createdAt: new Date(),
     }
-    this.author = author
-    this.content = content
+    this.author = message.author
+    this.content = message.content
   }
   @prop({
     required: true,
@@ -25,8 +26,8 @@ export class Message implements IChat.Message {
     _id: false,
   })
   info!: ServiceInformation
-  @prop({ required: true })
-  author!: string
+  @prop({ required: true, _id: false })
+  author!: IChat.Author
   @prop({ required: true, default: '' })
   content!: string
 }
