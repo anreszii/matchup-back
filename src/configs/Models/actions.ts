@@ -11,6 +11,7 @@ export type MODELS_ACTION_LIST =
   | 'User/deleteTestData'
   | 'User/getFriends'
   | 'User/getSubscribers'
+  | 'User/setPassword'
 
   /* TaskList Model */
   | 'TaskList/getDaily'
@@ -42,10 +43,14 @@ export type MODELS_ACTION_LIST =
   | 'Guild/changeOwner'
   | 'Guild/changeName'
   | 'Guild/changeTag'
+  | 'Guild/changeImage'
   | 'Guild/changeTerms'
   | 'Guild/generateTestData'
   | 'Guild/getTestData'
   | 'Guild/deleteTestData'
+  | 'Guild/ban'
+  | 'Guild/kick'
+  | 'Guild/addToBlackList'
 
   /* Match List Model */
   | 'MatchList/log'
@@ -77,6 +82,7 @@ MODELS_ACTIONS.set('User/addRelation', 0)
 MODELS_ACTIONS.set('User/dropRelation', 0)
 MODELS_ACTIONS.set('User/getFriends', 0)
 MODELS_ACTIONS.set('User/getSubscribers', 0)
+MODELS_ACTIONS.set('User/setPassword', 0)
 MODELS_ACTIONS.set('User/getPrefixes', 2)
 MODELS_ACTIONS.set('User/addPrefix', 2)
 MODELS_ACTIONS.set('User/setPrefix', 2)
@@ -108,7 +114,11 @@ MODELS_ACTIONS.set('Guild/giveRole', 0)
 MODELS_ACTIONS.set('Guild/changeOwner', 0)
 MODELS_ACTIONS.set('Guild/changeName', 0)
 MODELS_ACTIONS.set('Guild/changeTag', 0)
+MODELS_ACTIONS.set('Guild/changeImage', 0)
 MODELS_ACTIONS.set('Guild/changeTerms', 0)
+MODELS_ACTIONS.set('Guild/kick', 0)
+MODELS_ACTIONS.set('Guild/ban', 0)
+MODELS_ACTIONS.set('Guild/addToBlackList', 0)
 MODELS_ACTIONS.set('Guild/generateTestData', 2)
 MODELS_ACTIONS.set('Guild/getTestData', 2)
 MODELS_ACTIONS.set('Guild/deleteTestData', 2)
