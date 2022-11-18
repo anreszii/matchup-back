@@ -22,13 +22,13 @@ CONTROLLERS.set('load_image', load_image)
 /**
  * Контроллер для выгрузки изображения в БД. Возвращает ID записанного изображения
  *
- * @param params - ["buffer"]
+ * @param params - ["base64 Image"]
  */
 export async function upload_image(socket: WebSocket, params: unknown[]) {
-  let buffer = params[0]
-  if (!(buffer instanceof Buffer))
+  if (typeof params[0] != 'string')
     throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
 
+  let buffer = Buffer.from(params[0], 'base64')
   return (await ImageModel.create({ buffer, mimeType: 'image/png' }))._id
 }
 CONTROLLERS.set('upload_image', load_image)
