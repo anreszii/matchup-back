@@ -46,4 +46,6 @@ export class PrivateInfo {
     _id: false,
   })
   requests!: Map<Name, GuildMemberData>
+  @prop({ required: true, default: [], _id: false })
+  blackList!: string[]
 }

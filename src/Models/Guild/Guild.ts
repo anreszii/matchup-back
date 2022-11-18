@@ -2,7 +2,7 @@ import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { CLIENT_CHATS } from '../../Classes/Chat/Manager'
 
 import { PrivateInfo, PublicInfo, Terms } from './Info'
-import { Image } from '../Image'
+import { Image, ImageModel } from '../Image'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
 import { GuildMemberData } from './Member'
@@ -169,7 +169,9 @@ export class Guild {
   }
 
   async leave(this: DocumentType<Guild>, name: string) {
-    return this._removeMember(name)
+    this._removeMember(name)
+    await this.save()
+    return true
   }
 
   async rejectRequest(
@@ -186,7 +188,29 @@ export class Guild {
 
   async kick(this: DocumentType<Guild>, executor: string, name: string) {
     this._checkMemberPermissions(executor, PERMISSION.KICK)
-    return this._removeMember(name)
+    this._removeMember(name)
+    await this.save()
+    return true
+  }
+
+  async ban(this: DocumentType<Guild>, executor: string, name: string) {
+    this._checkMemberPermissions(executor, PERMISSION.KICK)
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_BLACK_LIST)
+    this._removeMember(name)
+    this._addToBlackList(name)
+    await this.save()
+    return true
+  }
+
+  async addToBlackList(
+    this: DocumentType<Guild>,
+    executor: string,
+    name: string,
+  ) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_BLACK_LIST)
+    this._addToBlackList(name)
+    await this.save()
+    return true
   }
 
   async createRole(
@@ -268,7 +292,7 @@ export class Guild {
   }
 
   async changeName(this: DocumentType<Guild>, executor: string, name: string) {
-    this._checkMemberPermissions(executor, PERMISSION.CHANGE_NAME)
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
     if (typeof name != 'string' || name.length == 0 || name.length > 20)
       throw new TechnicalError('tag', TechnicalCause.INVALID_FORMAT)
     this.public.name = name
@@ -278,10 +302,21 @@ export class Guild {
   }
 
   async changeTag(this: DocumentType<Guild>, executor: string, tag: string) {
-    this._checkMemberPermissions(executor, PERMISSION.CHANGE_TAG)
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
     if (typeof tag != 'string' || tag.length == 0 || tag.length > 5)
       throw new TechnicalError('tag', TechnicalCause.INVALID_FORMAT)
     this.public.tag = tag
+    await this.save()
+
+    return true
+  }
+
+  async changeImage(this: DocumentType<Guild>, executor: string, ID: string) {
+    this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
+    let image = await ImageModel.findById(ID)
+    if(!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
+
+    this.public.profileImage = ID
     await this.save()
 
     return true
@@ -365,10 +400,17 @@ export class Guild {
     return true
   }
 
-  private async _removeMember(this: DocumentType<Guild>, name: string) {
-    if (!this.members.has(name)) return true
+  private async _removeMember(name: string) {
+    if (!this.members.has(name))
+      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     this.members.delete(name)
-    await this.save()
+    return true
+  }
+
+  private async _addToBlackList(name: string) {
+    if (this.members.has(name))
+      throw new TechnicalError('user', TechnicalCause.ALREADY_EXIST)
+    this.private.blackList.push(name)
     return true
   }
 
