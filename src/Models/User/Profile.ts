@@ -1,5 +1,4 @@
-import { prop, Ref } from '@typegoose/typegoose'
-import { Image } from '../Image.js'
+import { prop } from '@typegoose/typegoose'
 import { Relations } from './Relations.js'
 
 export class Profile {

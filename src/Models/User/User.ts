@@ -344,11 +344,13 @@ export class User {
 
   /* IMAGE */
 
-  async setAvatar(this: DocumentType<User>, image: typeof Image) {
-    let avatar = await ImageModel.create(image)
-    this.profile.avatar = avatar._id
+  async setAvatar(this: DocumentType<User>, ID: string) {
+    let image = await ImageModel.findById(ID)
+    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
 
-    await Promise.all([this.save(), avatar.save()])
+    this.profile.avatar = ID
+    await this.save()
+
     return true
   }
 

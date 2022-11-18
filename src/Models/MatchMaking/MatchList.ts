@@ -1,7 +1,7 @@
 import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 import { MemberRecord } from './Member'
 import type { Match } from '../../Interfaces'
-import { Image, ImageModel } from '../Image'
+import { ImageModel } from '../Image'
 import { MapScore } from './MapScore'
 import { v4 } from 'uuid'
 import { getRandom } from '../../Utils/math'
@@ -18,8 +18,8 @@ export class MatchList {
   public members!: MemberRecord[]
   @prop({ required: true, _id: false })
   public score!: MapScore
-  @prop({ ref: () => Image })
-  public screen?: Ref<Image>
+  @prop()
+  public screen?: string
 
   public static log(
     this: ReturnModelType<typeof MatchList>,
@@ -27,9 +27,9 @@ export class MatchList {
     game: string,
     members: MemberRecord[],
     score: MapScore,
-    image?: Image,
+    image?: string,
   ) {
-    let document = new this({ id, game, members, score, image })
+    let document = new this({ id, game, members, score, screen: image })
     return document.save()
   }
 
@@ -55,17 +55,14 @@ export class MatchList {
     return this.save()
   }
 
-  async setScreen(
-    this: DocumentType<MatchList>,
-    buffer: Buffer,
-    mimeType: string,
-  ) {
-    this.screen = await ImageModel.create({
-      buffer,
-      mimeType,
-    })
+  async setScreen(this: DocumentType<MatchList>, ID: string) {
+    let image = await ImageModel.findById(ID)
+    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
 
-    return this.save()
+    this.screen = ID
+    await this.save()
+
+    return true
   }
 
   public static async generateTestData(

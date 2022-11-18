@@ -168,10 +168,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     if (!req.files) throw new TechnicalError('image', TechnicalCause.REQUIRED)
     let image = req.files[Object.keys(req.files)[0]]
     if (!image) throw new TechnicalError('image', TechnicalCause.REQUIRED)
-    if (
-      image instanceof Array ||
-      (image.mimetype != 'image/jpeg' && image.mimetype != 'image/png')
-    )
+    if (typeof image != 'string')
       throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
 
     let { match_id } = req.body
@@ -184,7 +181,7 @@ router.post('/end_match', validateToken, async (req, res, next) => {
     let matchData = await MatchListModel.findOne({ id: match_id })
     if (!matchData) throw new TechnicalError('match_id', TechnicalCause.INVALID)
 
-    matchData.setScreen(image.data, image.mimetype)
+    matchData.setScreen(image)
     matchData.save()
 
     let promises = []
