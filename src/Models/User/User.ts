@@ -181,13 +181,14 @@ export class User {
 
     if (this.credentials.password !== generateHash(password))
       throw new TechnicalError('password', TechnicalCause.INVALID)
+    return true
   }
 
   setPassword(this: DocumentType<User>, password: string) {
     if (!password) throw new TechnicalError('password', TechnicalCause.REQUIRED)
 
     this.credentials.password = generateHash(password)
-    return
+    return true
   }
 
   /* RELATIONS */

@@ -12,6 +12,7 @@ export type MODELS_ACTION_LIST =
   | 'User/getFriends'
   | 'User/getSubscribers'
   | 'User/setPassword'
+  | 'User/validatePassword'
   | 'User/setAvatar'
   | 'User/isPremium'
   | 'User/extendPremium'
@@ -85,11 +86,16 @@ export type MODELS_ACTION_LIST =
 export const MODELS_ACTIONS: Map<MODELS_ACTION_LIST, number> = new Map()
 /* User Model Actions */
 MODELS_ACTIONS.set('User/checkLevel', 0)
+
 MODELS_ACTIONS.set('User/addRelation', 0)
 MODELS_ACTIONS.set('User/dropRelation', 0)
+
 MODELS_ACTIONS.set('User/getFriends', 0)
 MODELS_ACTIONS.set('User/getSubscribers', 0)
+
 MODELS_ACTIONS.set('User/setPassword', 0)
+MODELS_ACTIONS.set('User/validatePassword', 0)
+
 MODELS_ACTIONS.set('User/setAvatar', 0)
 MODELS_ACTIONS.set('User/isPremium', 0)
 MODELS_ACTIONS.set('User/extendPremium', 0)
@@ -97,6 +103,7 @@ MODELS_ACTIONS.set('User/extendPremium', 0)
 MODELS_ACTIONS.set('User/getPrefixes', 2)
 MODELS_ACTIONS.set('User/addPrefix', 2)
 MODELS_ACTIONS.set('User/setPrefix', 2)
+
 MODELS_ACTIONS.set('User/generateTestData', 2)
 MODELS_ACTIONS.set('User/getTestData', 2)
 MODELS_ACTIONS.set('User/deleteTestData', 2)
