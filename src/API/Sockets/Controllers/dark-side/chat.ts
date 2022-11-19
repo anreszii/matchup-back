@@ -33,7 +33,7 @@ import { CONTROLLERS } from '../../Handlers/dark-side'
  * @category Chat
  * @event
  */
-export async function message(socket: WebSocket, params: unknown[]) {
+export async function chat_message(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
   let chatID = params[0]
@@ -52,7 +52,7 @@ export async function message(socket: WebSocket, params: unknown[]) {
 
   return true
 }
-CONTROLLERS.set('chat_message', message)
+CONTROLLERS.set('chat_message', chat_message)
 
 /**
  * Событие для повторного входа в известный чат.</br>
@@ -81,7 +81,7 @@ CONTROLLERS.set('chat_message', message)
  * @category Chat
  * @event
  */
-export async function join(socket: WebSocket, params: unknown[]) {
+export async function chat_join(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
   let chatID = params[0]
@@ -94,24 +94,18 @@ export async function join(socket: WebSocket, params: unknown[]) {
   await chat.join(username)
   return true
 }
-CONTROLLERS.set('chat_join', join)
+CONTROLLERS.set('chat_join', chat_join)
 
 /**
  * Событие для выхода из известного чата.</br>
  * Используемый пакет:
  *
  * @param params - ['chatId: {string}']
- *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```ts
- * {
- *  complete: true
- * }
- * ```
- * @category Basic
+
+ * @category Chat
  * @event
  */
-export async function leave(socket: WebSocket, params: unknown[]) {
+export async function chat_leave(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
 
   let chatID = params[0]
@@ -124,21 +118,15 @@ export async function leave(socket: WebSocket, params: unknown[]) {
   await chat.leave(username)
   return true
 }
-CONTROLLERS.set('chat_leave', leave)
+CONTROLLERS.set('chat_leave', chat_leave)
 
 /**
- * Событие для выхода из известного чата.</br>
+ * Событие для просмотра истории чата по времени.</br>
  * Используемый пакет:
  *
- * @param params - ['chatId: {string}']
+ * @param params - ["2022-01-01", "(new Date()).getTime()"]
  *
- * В случае успеха создает одноименный ивент и отправляет на него JSON объект:
- * ```ts
- * {
- *  complete: true
- * }
- * ```
- * @category Basic
+ * @category Chat
  * @event
  */
 export async function load_history(socket: WebSocket, params: unknown[]) {
