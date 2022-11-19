@@ -12,6 +12,7 @@ import { Rating } from './MatchMaking/Rating'
 import { MatchList } from './MatchMaking/MatchList'
 import { ReportList } from './MatchMaking/Reports'
 import { Chat } from './Chat/Chat'
+import { PERIODS } from './User/Premium'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -49,3 +50,4 @@ MODELS.set(OrderListModel.modelName, OrderListModel)
 MODELS.set(StaticTaskModel.modelName, StaticTaskModel)
 MODELS.set(DynamicTaskModel.modelName, DynamicTaskModel)
 MODELS.set(ChatModel.modelName, ChatModel)
+MODELS.set(PERIODS.modelName, PERIODS)

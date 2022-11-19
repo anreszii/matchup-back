@@ -58,8 +58,10 @@ export class Guild {
     const user = await UserModel.findByName(owner)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
-    user.buy(PRICE_OF_GUILD_CREATION)
-    await user.save()
+    if (!(await user.isPremium())) {
+      user.buy(PRICE_OF_GUILD_CREATION)
+      await user.save()
+    }
 
     const guild = new this()
     await guild._createChat()
@@ -314,7 +316,7 @@ export class Guild {
   async changeImage(this: DocumentType<Guild>, executor: string, ID: string) {
     this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
     let image = await ImageModel.findById(ID)
-    if(!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
+    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
 
     this.public.profileImage = ID
     await this.save()

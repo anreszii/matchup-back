@@ -13,6 +13,8 @@ export type MODELS_ACTION_LIST =
   | 'User/getSubscribers'
   | 'User/setPassword'
   | 'User/setAvatar'
+  | 'User/isPremium'
+  | 'User/extendPremium'
 
   /* TaskList Model */
   | 'TaskList/getDaily'
@@ -85,6 +87,9 @@ MODELS_ACTIONS.set('User/getFriends', 0)
 MODELS_ACTIONS.set('User/getSubscribers', 0)
 MODELS_ACTIONS.set('User/setPassword', 0)
 MODELS_ACTIONS.set('User/setAvatar', 0)
+MODELS_ACTIONS.set('User/isPremium', 0)
+MODELS_ACTIONS.set('User/extendPremium', 0)
+
 MODELS_ACTIONS.set('User/getPrefixes', 2)
 MODELS_ACTIONS.set('User/addPrefix', 2)
 MODELS_ACTIONS.set('User/setPrefix', 2)

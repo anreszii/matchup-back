@@ -4,7 +4,6 @@ import {
   DynamicTaskModel,
   StaticTaskModel,
   STATIC_TASK,
-  TaskListModel,
   UserModel,
 } from '../index'
 import { TaskData } from './TaskData'
@@ -176,21 +175,7 @@ export class TaskList {
       }
     }
 
-    user.addEXP(collectedReward.exp)
     user.addMP(collectedReward.mp)
-    let result = user.checkLevel()
-    if (result.previous.currentBPLevel != result.current.currentBPLevel) {
-      collectedReward.levels +=
-        result.current.currentBPLevel - result.previous.currentBPLevel
-      switch (result.previous.reward?.type) {
-        case 'mp':
-          collectedReward.mp += result.previous.reward.amount
-          break
-        case 'exp':
-          collectedReward.exp += result.previous.reward.amount
-          break
-      }
-    }
     await user.save()
 
     return collectedReward
@@ -212,14 +197,12 @@ export class TaskList {
     }
 
     let rewards = []
-    let completedTaskCounter = 0
     let taskRewards: Reward[] | undefined
     for (let task of daily) {
       if (!task.isComplete) continue
 
       taskRewards = await task.complete()
       if (!taskRewards) continue
-      completedTaskCounter++
       rewards.push(taskRewards)
     }
     for (let tmp of rewards) {
@@ -238,21 +221,7 @@ export class TaskList {
       }
     }
 
-    user.addEXP(collectedReward.exp)
     user.addMP(collectedReward.mp)
-    let result = user.checkLevel()
-    if (result.previous.currentBPLevel != result.current.currentBPLevel) {
-      collectedReward.levels +=
-        result.current.currentBPLevel - result.previous.currentBPLevel
-      switch (result.previous.reward?.type) {
-        case 'mp':
-          collectedReward.mp += result.previous.reward.amount
-          break
-        case 'exp':
-          collectedReward.exp += result.previous.reward.amount
-          break
-      }
-    }
     await user.save()
 
     return collectedReward
@@ -303,6 +272,24 @@ export class TaskList {
     return user
   }
 
+  /** В случае, если количество ежедневных заданий меньше трех, или не было сгенерировано задание на выполнение ежедневных заданий, удаляет их
+   *  @returns true, если задания были удалены, false в противном случае
+   */
+  private async _clearCurrentDailyTasksIfCountInvalid(
+    this: DocumentType<TaskList>,
+  ) {
+    let correctTaskCount = (await this._getCorrectTaskCount()).day
+    if (correctTaskCount > 1) correctTaskCount++ //если ежедневное не одно, то будет существовать результирующее задание
+
+    let dailyTasks = await this._findCurrentDailyTasks()
+    if (dailyTasks.length == correctTaskCount) return false
+
+    let promises = []
+    for (let task of dailyTasks) promises.push(task.delete())
+    if (promises.length != 0) await Promise.all(promises)
+    return true
+  }
+
   private async _findCurrentDailyTasks(this: DocumentType<TaskList>) {
     let dailyTasks: Array<DocumentType<Task>> = new Array()
     for (let i = 0; i < this.tasks.length; i++) {
@@ -317,17 +304,18 @@ export class TaskList {
     return dailyTasks
   }
 
-  /** В случае, если количество ежедневных заданий меньше трех, или не было сгенерировано задание на выполнение ежедневных заданий, удаляет их
+  /** В случае, если количество еженедельных заданий меньше жвух, или не было сгенерировано задание на выполнение еженедельных заданий, удаляет их
    *  @returns true, если задания были удалены, false в противном случае
    */
-  private async _clearCurrentDailyTasksIfCountInvalid(
+  private async _clearCurrentWeeklyTasksIfCountInvalid(
     this: DocumentType<TaskList>,
   ) {
-    let dailyTasks = await this._findCurrentDailyTasks()
-    if (dailyTasks.length == 4) return false
+    let correctTaskCount = (await this._getCorrectTaskCount()).week
+    let weeklyTasks = await this._findCurrentWeeklyTasks()
+    if (weeklyTasks.length == correctTaskCount) return false
 
     let promises = []
-    for (let task of dailyTasks) promises.push(task.delete())
+    for (let task of weeklyTasks) promises.push(task.delete())
     if (promises.length != 0) await Promise.all(promises)
     return true
   }
@@ -346,42 +334,29 @@ export class TaskList {
     return dailyTasks
   }
 
-  /** В случае, если количество еженедельных заданий меньше жвух, или не было сгенерировано задание на выполнение еженедельных заданий, удаляет их
-   *  @returns true, если задания были удалены, false в противном случае
-   */
-  private async _clearCurrentWeeklyTasksIfCountInvalid(
-    this: DocumentType<TaskList>,
-  ) {
-    let weeklyTasks = await this._findCurrentWeeklyTasks()
-    if (weeklyTasks.length == 2) return false
-
-    let promises = []
-    for (let task of weeklyTasks) promises.push(task.delete())
-    if (promises.length != 0) await Promise.all(promises)
-    return true
-  }
-
   private async _createDailyTasks(this: DocumentType<TaskList>) {
+    let correctTaskCount = (await this._getCorrectTaskCount()).day
     let usedNames: Array<string> = []
     let dailyTasks = []
     let promises = []
     let task
 
-    while (dailyTasks.length != 3) {
+    while (dailyTasks.length != correctTaskCount) {
       task = await this._createRandomDailyTask(usedNames)
-      if (!task) return
 
       dailyTasks.push(task)
       usedNames.push(task.name)
       promises.push(task.save())
     }
 
-    let completeDailyTask = await this._createTaskToCompleteAllDaily
-    if (!completeDailyTask)
-      throw new ServerError(ServerCause.FAIL_TASK_GENERATION)
+    if (correctTaskCount > 1) {
+      let completeDailyTask = await this._createTaskToCompleteAllDaily()
+      if (!completeDailyTask)
+        throw new ServerError(ServerCause.FAIL_TASK_GENERATION)
 
-    dailyTasks.push(completeDailyTask)
-    promises.push(completeDailyTask.save())
+      dailyTasks.push(completeDailyTask)
+      promises.push(completeDailyTask.save())
+    }
 
     await Promise.all(promises)
     return dailyTasks
@@ -392,11 +367,12 @@ export class TaskList {
     usedTasksNames: Array<string>,
   ) {
     let task = await DynamicTaskModel.getRandomDaily(usedTasksNames)
-    if (!task) return
+    if (!task)
+      throw new TechnicalError('day task', TechnicalCause.CAN_NOT_CREATE)
 
     let data = TaskData.getDataFrom(task.data)
 
-    let createdTask = await this._create(task.name, data.points)
+    let createdTask = this._create(task.name, data.points)
     if (data.reward.mp && data.reward.mp > 0) createdTask.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0)
       createdTask.exp = data.reward.exp
@@ -410,22 +386,22 @@ export class TaskList {
   }
 
   private async _createWeeklyTasks(this: DocumentType<TaskList>) {
+    let correctTaskCount = (await this._getCorrectTaskCount()).week
     let usedNames: Array<string> = []
-    let dailyTasks = []
+    let weekTasks = []
     let promises = []
     let task
 
-    while (dailyTasks.length != 2) {
+    while (weekTasks.length != correctTaskCount) {
       task = await this._createRandomWeeklyTask(usedNames)
-      if (!task) return
 
-      dailyTasks.push(task)
+      weekTasks.push(task)
       usedNames.push(task.name)
       promises.push(task.save())
     }
 
     await Promise.all(promises)
-    return dailyTasks
+    return weekTasks
   }
 
   private async _createRandomWeeklyTask(
@@ -433,11 +409,12 @@ export class TaskList {
     usedTasksNames: Array<string>,
   ) {
     let task = await DynamicTaskModel.getRandomWeekly(usedTasksNames)
-    if (!task) return
+    if (!task)
+      throw new TechnicalError('week task', TechnicalCause.CAN_NOT_CREATE)
 
     let data = TaskData.getDataFrom(task.data)
 
-    let createdTask = await this._create(task.name, data.points)
+    let createdTask = this._create(task.name, data.points)
     if (data.reward.mp && data.reward.mp > 0) createdTask.mp = data.reward.mp
     if (data.reward.exp && data.reward.exp > 0)
       createdTask.exp = data.reward.exp
@@ -450,35 +427,60 @@ export class TaskList {
     return createdTask
   }
 
-  private get _createTaskToCompleteAllDaily() {
-    return StaticTaskModel.getType('completedDaily').then((data) => {
-      if (!data) return null
-      return this._ownerName.then((username) => {
-        return this._create('completedDaily', data.points).then((task) => {
-          if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
-          if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
-
-          task.expirationTime = {
-            amount: 1,
-            format: data.expirationType!,
-          }
-
-          task.flags.static = true
-          return task
-        })
-      })
-    })
+  private async _getCorrectTaskCount(this: DocumentType<TaskList>) {
+    switch (await this._ownerIsPremium()) {
+      case true:
+        return { week: 2, day: 3 }
+      case false:
+        return { week: 1, day: 1 }
+    }
   }
 
-  private async _create(taskName: string, requiredPoints: number) {
-    let task = await TaskModel.create({
-      owner: this.owner,
-      name: taskName,
-      progress: {
-        currentPoints: 0,
-        requiredPoints,
-      },
-    })
+  private async _createTaskToCompleteAllDaily(this: DocumentType<TaskList>) {
+    let data = await StaticTaskModel.getType('completedDaily')
+    if (!data) return null
+
+    let task = this._create('completedDaily', data.points)
+
+    if (data.reward.mp && data.reward.mp > 0) task.mp = data.reward.mp
+    if (data.reward.exp && data.reward.exp > 0) task.exp = data.reward.exp
+
+    task.expirationTime = {
+      amount: 1,
+      format: data.expirationType!,
+    }
+
+    task.flags.static = true
+    return task
+  }
+
+  private async _getOwnerName(this: DocumentType<TaskList>) {
+    return (await this._getOwner()).profile.username
+  }
+
+  private async _ownerIsPremium(this: DocumentType<TaskList>) {
+    return (await this._getOwner()).isPremium()
+  }
+
+  private async _getOwner(this: DocumentType<TaskList>) {
+    let owner = await UserModel.findById(this.owner)
+    if (!owner) {
+      this.delete()
+      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+    }
+
+    return owner
+  }
+
+  private _create(taskName: string, requiredPoints: number) {
+    let task = new TaskModel()
+    task.owner = this.owner
+    task.name = taskName
+    task.progress = {
+      currentPoints: 0,
+      requiredPoints,
+    }
+
     this.tasks.push(task._id)
     return task
   }
@@ -491,12 +493,5 @@ export class TaskList {
   private _isWeeklyTask(task: DocumentType<Task>) {
     if (!task.expires || task.expires.expirationType != 'week') return false
     return true
-  }
-
-  private get _ownerName() {
-    return UserModel.findById(this.owner).then((user) => {
-      if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-      return user.profile.username
-    })
   }
 }

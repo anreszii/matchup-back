@@ -11,7 +11,6 @@ import {
 import { Profile } from './Profile'
 import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
-import { UserLevel as Level } from './BattlePassLevel'
 
 import { TaskListModel, UserModel } from '../'
 import { Guild } from '../Guild/Guild'
@@ -20,10 +19,10 @@ import { generatePassword } from '../../Utils/passwordGenerator'
 import { generateName } from '../../Utils/nameGenerator'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { RelationRecord } from './Relations'
-import { BPLevelModel } from '../Task/BattlePassLevel'
 import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
 import { ImageModel } from '../Image'
+import { PERIODS, Premium } from './Premium'
 
 class Prefixes {
   @prop({ required: true })
@@ -50,16 +49,18 @@ export class User {
   profile!: Profile
   @prop({
     required: true,
-    default: new Level(),
-    _id: false,
-  })
-  level!: Level
-  @prop({
-    required: true,
+    type: () => Rating,
     default: new Rating(),
     _id: false,
   })
   rating!: Rating
+  @prop({
+    required: true,
+    type: () => Premium,
+    default: new Premium(),
+    _id: false,
+  })
+  premium!: Premium
   @prop({ required: true, default: 'default' })
   role!: USER_ROLE
   @prop()
@@ -313,37 +314,6 @@ export class User {
   }
 
   /* SIMPLE ACTIONS */
-
-  get GRI() {
-    return this.rating.GRI
-  }
-
-  buy(this: DocumentType<User>, itemPrice: number) {
-    if (itemPrice < 0)
-      throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
-    this.profile.balance -= itemPrice
-  }
-
-  addEXP(amount: number) {
-    this.level.currentEXP += amount
-  }
-
-  addMP(amount: number) {
-    this.profile.balance += amount
-  }
-
-  /* BATTLEPASS */
-
-  checkLevel(this: DocumentType<User>) {
-    let level = this.level
-    if (this.level.currentEXP >= this.level.currentRequiredEXP)
-      this._updateLevel()
-
-    return { previous: level, current: this.level }
-  }
-
-  /* IMAGE */
-
   async setAvatar(this: DocumentType<User>, ID: string) {
     let image = await ImageModel.findById(ID)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
@@ -354,36 +324,37 @@ export class User {
     return true
   }
 
+  async isPremium(this: DocumentType<User>) {
+    await this._checkPremium()
+    return this.premium.isPremium
+  }
+
+  async extendPremium(this: DocumentType<User>, period: number) {
+    let premiumPeriod = await PERIODS.findByPeriod(period)
+    if (!premiumPeriod)
+      throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
+
+    this.buy(premiumPeriod.price)
+    this._extendPremiumStatus(period)
+    await this.save()
+    return true
+  }
+
+  buy(this: DocumentType<User>, itemPrice: number) {
+    if (itemPrice < 0)
+      throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
+    this.profile.balance -= itemPrice
+  }
+
+  addMP(amount: number) {
+    this.profile.balance += amount
+  }
+
+  get GRI() {
+    return this.rating.GRI
+  }
+
   /* PRIVATE */
-
-  private _updateLevel(this: DocumentType<User>) {
-    this._collectRewardsFromBP()
-    BPLevelModel.findOne({
-      level: this.level.currentBPLevel + 1,
-    }).then((newLevel) => {
-      if (!newLevel) return
-      this.level.currentRequiredEXP = newLevel.requiredEXP
-      this.level.currentBPLevel += 1
-      this.level.reward = newLevel.reward
-    })
-  }
-
-  private _collectRewardsFromBP(this: DocumentType<User>) {
-    let reward = this.level.reward
-    if (!reward) return
-    switch (reward.type) {
-      case 'mp': {
-        this.addMP(reward.amount)
-        break
-      }
-      case 'exp': {
-        this.addEXP(reward.amount)
-        break
-      }
-    }
-
-    this.level.reward = undefined
-  }
 
   private static async getRandomID() {
     let id = getRandom(5000000, 100000000000000)
@@ -458,5 +429,25 @@ export class User {
       users[0].addRelation(this.profile.username),
       users[1].addRelation(this.profile.username),
     ])
+  }
+
+  private async _checkPremium(this: DocumentType<User>) {
+    if (!this.premium.isPremium) return
+    if (
+      !this.premium.expiresIn ||
+      0 >= this.premium.expiresIn.getTime() - Date.now()
+    ) {
+      this.premium.isPremium = false
+      await this.save()
+      return
+    }
+  }
+
+  private async _extendPremiumStatus(this: DocumentType<User>, days: number) {
+    let now = new Date()
+    now.setDate(now.getDate() + days)
+
+    this.premium.expiresIn = now
+    this.premium.isPremium = true
   }
 }

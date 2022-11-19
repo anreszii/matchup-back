@@ -59,35 +59,32 @@ export class Task {
   public set expirationTime(expires: expirationTime) {
     if (this.expires)
       throw new TechnicalError('expiration time', TechnicalCause.ALREADY_EXIST)
-
     let { amount, format } = expires
 
-    let date = new Date().getTime()
-    let resultInMs = undefined
-
+    let date = new Date()
     switch (format) {
       case 'hour': {
-        resultInMs = date + amount * HOUR_IN_MS
+        date.setTime(date.getHours() + amount)
         break
       }
 
       case 'day': {
-        resultInMs = date + amount * DAY_IN_MS
+        date.setTime(date.getDate() + amount)
         break
       }
 
       case 'week': {
-        resultInMs = date + amount * WEEK_IN_MS
+        date.setTime(date.getTime() + 7 * amount)
         break
       }
 
       case 'year': {
-        resultInMs = date + amount * YEAR_IN_MS
+        date.setTime(date.getDate() + 365 * amount)
         break
       }
 
       default: {
-        resultInMs = date + amount
+        date.setTime(date.getDate() * amount)
         break
       }
     }
@@ -95,7 +92,7 @@ export class Task {
     let expiration = new ExpirationTime()
 
     expiration.expirationType = format
-    expiration.expirationDate = new Date(resultInMs)
+    expiration.expirationDate = date
 
     this.expires = expiration
   }
