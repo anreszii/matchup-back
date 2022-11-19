@@ -4,7 +4,6 @@ import { Relations } from './Relations.js'
 export class Profile {
   @prop({
     required: [true, 'nickname required'],
-    unique: true,
     validate: {
       validator: function (v: string) {
         if (v.startsWith('test_')) return true
