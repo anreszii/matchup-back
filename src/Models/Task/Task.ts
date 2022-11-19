@@ -64,27 +64,27 @@ export class Task {
     let date = new Date()
     switch (format) {
       case 'hour': {
-        date.setTime(date.getHours() + amount)
+        date.setUTCHours(date.getUTCHours() + amount)
         break
       }
 
       case 'day': {
-        date.setTime(date.getDate() + amount)
+        date.setUTCDate(date.getUTCDate() + amount)
         break
       }
 
       case 'week': {
-        date.setTime(date.getTime() + 7 * amount)
+        date.setUTCDate(date.getUTCDate() + 7 * amount)
         break
       }
 
       case 'year': {
-        date.setTime(date.getDate() + 365 * amount)
+        date.setUTCMonth(date.getUTCMonth() + 12 * amount)
         break
       }
 
       default: {
-        date.setTime(date.getDate() * amount)
+        date.setUTCDate(date.getUTCDate() + amount)
         break
       }
     }
