@@ -1,7 +1,7 @@
-import { prop, Ref } from '@typegoose/typegoose'
+import { prop } from '@typegoose/typegoose'
 import { v4 as uuid } from 'uuid'
 import { IChat } from '../../Interfaces/index'
-import { Image } from '../Image'
+import { Author } from './Author'
 
 class ServiceInformation {
   @prop({ required: true })
@@ -26,8 +26,8 @@ export class Message implements IChat.Message {
     _id: false,
   })
   info!: ServiceInformation
-  @prop({ required: true, _id: false })
-  author!: IChat.Author
+  @prop({ required: true, _id: false, type: () => Author })
+  author!: Author
   @prop({ required: true, default: '' })
   content!: string
 }
