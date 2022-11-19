@@ -1,4 +1,5 @@
 import { getModelForClass, prop, ReturnModelType } from '@typegoose/typegoose'
+import { TechnicalCause, TechnicalError } from '../../error'
 
 export class Premium {
   @prop({ required: true, default: false })
@@ -19,6 +20,7 @@ class PremiumPeriods {
   price!: number
   @prop({
     required: true,
+    unique: true,
     validate: {
       validator: function (v: number) {
         return v > 0
@@ -32,6 +34,16 @@ class PremiumPeriods {
     period: number,
   ) {
     return this.findOne({ periodInDays: period })
+  }
+
+  static async createPeriod(
+    this: ReturnModelType<typeof PremiumPeriods>,
+    period: number,
+    price: number,
+  ) {
+    if (await this.findByPeriod(period))
+      throw new TechnicalError('period', TechnicalCause.ALREADY_EXIST)
+    await this.create({ price, period })
   }
 }
 

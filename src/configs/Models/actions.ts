@@ -16,6 +16,9 @@ export type MODELS_ACTION_LIST =
   | 'User/isPremium'
   | 'User/extendPremium'
 
+  /* PREMIUM CONFIG */
+  | 'PremiumPeriods/createPeriod'
+
   /* TaskList Model */
   | 'TaskList/getDaily'
   | 'TaskList/getWeekly'
@@ -96,6 +99,9 @@ MODELS_ACTIONS.set('User/setPrefix', 2)
 MODELS_ACTIONS.set('User/generateTestData', 2)
 MODELS_ACTIONS.set('User/getTestData', 2)
 MODELS_ACTIONS.set('User/deleteTestData', 2)
+
+/* PREMIUM CONFIG */
+MODELS_ACTIONS.set('PremiumPeriods/createPeriod', 2)
 
 /* Task List Model Actions */
 MODELS_ACTIONS.set('TaskList/getDaily', 0)
