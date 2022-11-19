@@ -27,13 +27,13 @@ class PremiumPeriods {
       },
     },
   })
-  periodInDays!: number
+  periodInMonths!: number
 
   static async findByPeriod(
     this: ReturnModelType<typeof PremiumPeriods>,
     period: number,
   ) {
-    return this.findOne({ periodInDays: period })
+    return this.findOne({ periodInMonths: period })
   }
 
   static async createPeriod(
@@ -43,7 +43,21 @@ class PremiumPeriods {
   ) {
     if (await this.findByPeriod(period))
       throw new TechnicalError('period', TechnicalCause.ALREADY_EXIST)
-    await this.create({ price, period })
+    await this.create({ price, periodInMonths: period })
+    return true
+  }
+
+  static async changePrice(
+    this: ReturnModelType<typeof PremiumPeriods>,
+    period: number,
+    price: number,
+  ) {
+    const document = await this.findByPeriod(period)
+    if (!document) throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
+
+    document.price = price
+    await document.save()
+    return true
   }
 }
 

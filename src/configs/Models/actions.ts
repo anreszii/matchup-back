@@ -18,6 +18,7 @@ export type MODELS_ACTION_LIST =
 
   /* PREMIUM CONFIG */
   | 'PremiumPeriods/createPeriod'
+  | 'PremiumPeriods/changePrice'
 
   /* TaskList Model */
   | 'TaskList/getDaily'
@@ -102,6 +103,7 @@ MODELS_ACTIONS.set('User/deleteTestData', 2)
 
 /* PREMIUM CONFIG */
 MODELS_ACTIONS.set('PremiumPeriods/createPeriod', 2)
+MODELS_ACTIONS.set('PremiumPeriods/changePrice', 2)
 
 /* Task List Model Actions */
 MODELS_ACTIONS.set('TaskList/getDaily', 0)

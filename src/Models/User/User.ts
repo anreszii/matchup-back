@@ -443,9 +443,9 @@ export class User {
     }
   }
 
-  private async _extendPremiumStatus(this: DocumentType<User>, days: number) {
+  private async _extendPremiumStatus(this: DocumentType<User>, months: number) {
     let now = new Date()
-    now.setDate(now.getDate() + days)
+    now.setMonth(now.getMonth() + months)
 
     this.premium.expiresIn = now
     this.premium.isPremium = true
