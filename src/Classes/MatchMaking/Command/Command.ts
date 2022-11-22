@@ -14,6 +14,7 @@ export class Command implements Match.Lobby.Command.Instance {
   private _captain!: string
   private _teamIDs: Set<number> = new Set()
   private _keyGuild?: string
+  private _deleted = false
 
   constructor(
     private _commandID: number,
@@ -21,6 +22,17 @@ export class Command implements Match.Lobby.Command.Instance {
     private _commandType: Match.Lobby.Command.Types,
     private _maxSize: number = 5,
   ) {}
+
+  async delete(): Promise<true> {
+    for (let member of this._members.toArray) {
+      this.chat.leave(member.name)
+      member.isReady = false
+      member.commandID = undefined
+    }
+    this.chat.delete()
+    this._deleted = true
+    return true
+  }
 
   async join(name: string): Promise<boolean> {
     await this._checkChat()
@@ -100,6 +112,10 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get id() {
     return this._commandID
+  }
+
+  get readyToDrop(): boolean {
+    return this._deleted
   }
 
   get lobbyID(): string {

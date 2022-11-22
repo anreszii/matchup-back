@@ -10,16 +10,16 @@ export declare namespace IChat {
     join(user: string): Promise<true> | never
     leave(user: string): Promise<true> | never
     message(msg: Message): Promise<true> | never
-    delete(): Promise<true> | never
+    drop(): Promise<true> | never
   }
 
   interface Message {
-    author: Author,
+    author: Author
     content: string
   }
 
   type Author = {
-    name: string,
+    name: string
     avatar?: string
     prefix?: string
   }

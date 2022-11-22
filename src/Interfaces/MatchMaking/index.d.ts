@@ -32,7 +32,14 @@ export declare namespace Match {
       get commands(): Map<Command.Types, Command.Instance>
       set discord(client: DiscordClient)
       get discord(): DiscordClient
+
+      set counter(value: Counter)
       get isReady(): boolean
+    }
+
+    type Counter = {
+      searching: number
+      playing: number
     }
 
     type Type = 'training' | 'arcade' | 'rating'
@@ -56,7 +63,7 @@ export declare namespace Match {
         isCaptain(member: string | Member.Instance): boolean
         move(name: string, command: Instance | Types | number): Promise<boolean>
         has(name: string): boolean
-        get(name: string): Member.Instance | null
+        get(name: string): Member.InstanceData | null
 
         get lobbyID(): string
         get type(): Types
@@ -65,7 +72,7 @@ export declare namespace Match {
         get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
-        get players(): Member.Instance[]
+        get players(): Member.InstanceData[]
 
         get playersCount(): number
         get teamPlayersCount(): number
@@ -88,6 +95,8 @@ export declare namespace Match {
     }
     interface Instance extends IMatchMember {}
 
+    interface InstanceData extends Omit<Instance, 'readyToDrop' | 'delete'> {}
+
     namespace Team {
       interface Manager extends IManager<Team.Instance, number> {
         findByUserName(username: string): Promise<Team.Instance | undefined>
@@ -102,20 +111,20 @@ export declare namespace Match {
       }
     }
 
-    interface List extends OneTypeArray<Instance> {
-      isMember(entity: unknown): entity is Instance
+    interface List extends OneTypeArray<Member.InstanceData> {
+      isMember(entity: unknown): entity is Member.InstanceData
 
       hasMember(name: string): boolean
 
-      addMember(member: Instance): boolean
+      addMember(member: Member.InstanceData): boolean
 
       deleteMember(name: string): boolean
 
-      getByName(name: string): Member.Instance | null
+      getByName(name: string): Member.InstanceData | null
 
       get count(): number
 
-      get members(): Member.Instance[]
+      get members(): Member.InstanceData[]
       get membersCount(): number
     }
     interface Statistic extends IStatistic {}

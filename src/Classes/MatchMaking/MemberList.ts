@@ -3,7 +3,7 @@ import { UNDEFINED_MEMBER } from '../../configs/match_manager'
 import { OneTypeArray } from '../OneTypeArray'
 
 export class MemberList
-  extends OneTypeArray<Match.Member.Instance>
+  extends OneTypeArray<Match.Member.InstanceData>
   implements Match.Member.List
 {
   constructor() {
@@ -63,8 +63,8 @@ export class MemberList
     return this.toArray.length
   }
 
-  get members(): Match.Member.Instance[] {
-    let members: Match.Member.Instance[] = []
+  get members(): Match.Member.InstanceData[] {
+    let members: Match.Member.InstanceData[] = []
     for (let member of this.toArray) {
       const ID = member?.commandID
       if (!ID) continue

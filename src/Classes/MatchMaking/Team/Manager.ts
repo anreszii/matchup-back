@@ -2,9 +2,20 @@ import type { Match } from '../../../Interfaces'
 import { OneTypeArray } from '../../OneTypeArray'
 import { Team } from './Team'
 import { PLAYERS } from '../MemberManager'
+import { MINUTE_IN_MS } from '../../../configs/time_constants'
 
 class TeamManager implements Match.Member.Team.Manager {
   private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()
+
+  constructor() {
+    setInterval(
+      function (this: TeamManager) {
+        for (let team of this._teams.toArray)
+          if (team.readyToDrop) this.drop(team.id)
+      }.bind(this),
+      MINUTE_IN_MS * 2,
+    )
+  }
 
   public spawn(): Match.Member.Team.Instance {
     let team = new Team(this._teams.freeSpace)

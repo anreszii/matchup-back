@@ -10,6 +10,7 @@ export class Team implements Match.Member.Team.Instance {
   private _chat!: IChat.Controller
   private _maxTeamSize = 5
   private _keyGuild?: string
+  private _deleted = false
 
   constructor(private _id: number) {}
 
@@ -40,6 +41,17 @@ export class Team implements Match.Member.Team.Instance {
     member.isReady = false
     member.teamID = undefined
     return this.members.deleteMember(name)
+  }
+
+  async delete(): Promise<true> {
+    for (let member of this._members.toArray) {
+      this.chat.leave(member.name)
+      member.isReady = false
+      member.commandID = undefined
+    }
+    this.chat.delete()
+    this._deleted = true
+    return true
   }
 
   isCaptain(member: string | Match.Member.Instance): boolean {
@@ -83,6 +95,10 @@ export class Team implements Match.Member.Team.Instance {
 
   get chat() {
     return this._chat
+  }
+
+  get readyToDrop() {
+    return this._deleted
   }
 
   private _checkGuildAfterJoin(member: Match.Member.Instance) {

@@ -8,6 +8,7 @@ import { TechnicalCause, TechnicalError } from '../../error'
 
 export class Chat implements IChat.Controller {
   private _members: Array<string> = []
+  private _deleted = false
   constructor(
     private _document: DocumentType<DBChat>,
     private _namespace: Namespace,
@@ -55,11 +56,22 @@ export class Chat implements IChat.Controller {
     return true
   }
 
-  async delete(): Promise<true> {
+  async drop(): Promise<true> {
     for (let member of this.members) await this.leave(member)
     await this._document.delete()
 
+    this._deleted = true
     return true
+  }
+
+  async delete(): Promise<true> {
+    for (let member of this.members) await this.leave(member)
+    this._deleted = true
+    return true
+  }
+
+  get readyToDrop(): boolean {
+    return this._deleted
   }
 
   get id(): string {

@@ -4,10 +4,21 @@ import { Command } from './Command'
 import { PLAYERS } from '../MemberManager'
 import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
 import { TEAMS } from '../Team/Manager'
+import { MINUTE_IN_MS } from '../../../configs/time_constants'
 
 class CommandManager implements Match.Lobby.Command.Manager {
   private _commands: OneTypeArray<Match.Lobby.Command.Instance> =
     new OneTypeArray()
+
+  constructor() {
+    setInterval(
+      function (this: CommandManager) {
+        for (let command of this._commands.toArray)
+          if (command.readyToDrop) this.drop(command.id)
+      }.bind(this),
+      MINUTE_IN_MS * 2,
+    )
+  }
 
   spawn(
     lobbyID: string,
@@ -61,10 +72,11 @@ class CommandManager implements Match.Lobby.Command.Manager {
     return true
   }
 
-  drop(ID: number) {
+  async drop(ID: number) {
     let command = this._commands.valueOf(ID)
     if (!command) return true
 
+    command.delete()
     return Boolean(this._commands.delete(command))
   }
 

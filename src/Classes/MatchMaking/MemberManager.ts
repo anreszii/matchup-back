@@ -25,7 +25,7 @@ class PlayersManager implements Match.Member.Manager {
       prefix: user.prefix,
     } as Match.Member.Instance
 
-    this._players.addMember(member)
+    this._players.addMember(member as Match.Member.Instance)
     return member
   }
 
@@ -35,7 +35,8 @@ class PlayersManager implements Match.Member.Manager {
    */
   async get(entityID: string): Promise<Match.Member.Instance> {
     for (let member of this._players.toArray)
-      if (member.id == entityID || member.name == entityID) return member
+      if (member.id == entityID || member.name == entityID)
+        return member as Match.Member.Instance
     return this.spawn(entityID)
   }
 

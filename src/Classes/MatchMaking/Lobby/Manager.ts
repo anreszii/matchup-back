@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid'
 import { Lobby } from './Lobby'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
+import { MINUTE_IN_MS } from '../../../configs/time_constants'
 
 export class LobbyManager implements Match.Manager.Instance {
   private static _counter: Match.Lobby.Counter = {
@@ -15,6 +16,13 @@ export class LobbyManager implements Match.Manager.Instance {
   private _controller: Match.Controller
   constructor(controller: Match.Controller, private _dsClient: DiscordClient) {
     this._controller = controller
+    setInterval(
+      function (this: LobbyManager) {
+        for (let lobby of this._lobbyMap.values())
+          if (lobby.readyToDrop) this.drop(lobby)
+      }.bind(this),
+      MINUTE_IN_MS * 2,
+    )
   }
 
   public spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {

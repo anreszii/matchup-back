@@ -31,6 +31,7 @@ export class Lobby implements Match.Lobby.Instance {
   private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
+  private _deleted = false
 
   constructor(
     private _id: string,
@@ -67,16 +68,22 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async stop() {
+    await this.delete()
+    await this._controller.stop()
+    this._deleted = true
+    return true
+  }
+
+  async delete(): Promise<true> {
+    for (let [_, command] of this._commands) command.delete()
     for (let member of this.members.values()) {
       this.chat.leave(member.name)
       this._leaveDiscord(member.name)
-      member.commandID = undefined
       member.lobbyID = undefined
     }
-    for (let [_, command] of this._commands) {
-      COMMANDS.drop(command.id)
-    }
-    return this._controller.stop()
+
+    this.chat.delete()
+    return true
   }
 
   async move(
@@ -179,6 +186,10 @@ export class Lobby implements Match.Lobby.Instance {
     for (let [type, command] of this._commands)
       if (command.becomeReady(name)) return true
     throw new TechnicalError('lobby member', TechnicalCause.NOT_EXIST)
+  }
+
+  get readyToDrop(): boolean {
+    return this._deleted
   }
 
   get isVotingStageEnd(): boolean {
@@ -339,7 +350,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _leaveWithTeam(
-    member: Match.Member.Instance,
+    member: Match.Member.InstanceData,
   ): Promise<boolean> {
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
@@ -369,7 +380,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private _leaveCommand(member: Match.Member.Instance) {
+  private _leaveCommand(member: Match.Member.InstanceData) {
     if (!COMMANDS.get(member.commandID!)!.leave(member.name)) return false
     if (!this.members.deleteMember(member.name)) return false
     member.lobbyID = undefined

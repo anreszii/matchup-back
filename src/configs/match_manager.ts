@@ -6,7 +6,7 @@ export const enum lobbyStatus {
   FULL = 'fullfilled',
 }
 
-export const UNDEFINED_MEMBER: Match.Member.Instance = {
+export const UNDEFINED_MEMBER: Match.Member.InstanceData = {
   id: 'undefined',
   name: 'undefined',
   isReady: false,

@@ -12,4 +12,7 @@ export declare interface IManager<T extends IEntity<ID>, ID> {
 export declare interface IEntity<ID> {
   get id(): ID
   set id(newID: ID)
+
+  get readyToDrop(): boolean
+  delete(): Promise<true>
 }
