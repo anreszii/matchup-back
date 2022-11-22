@@ -14,7 +14,10 @@ export class DiscordChannelManager {
     id: string,
     command: PlayerCommand,
   ) {
-    let teamRole = await DiscordRoleManager.findRoleByName(guild, `team#${id}`)
+    let teamRole = await DiscordRoleManager.findRoleByName(
+      guild,
+      `mm_team#${id}`,
+    )
     if (!teamRole) return
 
     return guild.channels.create({
@@ -58,6 +61,7 @@ export class DiscordChannelManager {
   ) {
     let channels = await guild.channels.fetch()
     return channels.find((channel) => {
+      if (!channel) return false
       if (channel.name != `${command}#${id}`) return false
       return true
     })

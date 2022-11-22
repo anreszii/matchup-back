@@ -4,8 +4,13 @@ import { DiscordClient } from '../../Discord/Client'
 import { v4 as uuid } from 'uuid'
 import { Lobby } from './Lobby'
 import { TechnicalCause, TechnicalError } from '../../../error'
+import { DiscordRoleManager } from '../../Discord/RoleManager'
 
 export class LobbyManager implements Match.Manager.Instance {
+  private static _counter: Match.Lobby.Counter = {
+    searching: 0,
+    playing: 0,
+  }
   private _lobbyMap: Map<string, Match.Lobby.Instance> = new Map()
   private _controller: Match.Controller
   constructor(controller: Match.Controller, private _dsClient: DiscordClient) {
@@ -14,9 +19,10 @@ export class LobbyManager implements Match.Manager.Instance {
 
   public spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {
     const ID = LobbyManager._createID()
-    this._dsClient.guildWithFreeChannelsForVoice.then((guild) => {
+    this._dsClient.guildWithFreeChannelsForVoice.then(async (guild) => {
       if (!guild) return
-      this._dsClient.createChannelsForMatch(guild, ID)
+      await DiscordRoleManager.createTeamRole(guild, ID)
+      await this._dsClient.createChannelsForMatch(guild, ID)
     })
     this._controller.create().then((status) => {
       if (!status)
@@ -25,6 +31,7 @@ export class LobbyManager implements Match.Manager.Instance {
 
     let lobby = new Lobby(ID, type, 2, this._controller)
     lobby.discord = this._dsClient
+    lobby.counter = LobbyManager._counter
 
     this._lobbyMap.set(ID, lobby)
     return lobby

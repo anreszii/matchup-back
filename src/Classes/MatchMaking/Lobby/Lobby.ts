@@ -9,13 +9,13 @@ import { getMedian, minMax } from '../../../Utils/math'
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { GAME_MAPS } from '../../../configs/standoff_maps'
-import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
+  private _counter!: Match.Lobby.Counter
   private _game!: Match.Manager.supportedGames
   private _prepareStageStarted?: Date
   private _members: MemberList = new MemberList()
@@ -67,6 +67,15 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async stop() {
+    for (let member of this.members.values()) {
+      this.chat.leave(member.name)
+      this._leaveDiscord(member.name)
+      member.commandID = undefined
+      member.lobbyID = undefined
+    }
+    for (let [_, command] of this._commands) {
+      COMMANDS.drop(command.id)
+    }
     return this._controller.stop()
   }
 
@@ -94,14 +103,15 @@ export class Lobby implements Match.Lobby.Instance {
   async join(name: string) {
     await this._checkChat()
     if (this._status != 'searching') return false
+    this._counter.searching++
     let member = await PLAYERS.get(name)
 
     if (member.teamID) return this._joinWithTeam(member)
     if (!(await this._controller.addMembers(member))) return false
     if (!this._joinCommand(member)) return false
 
-    await this.chat.join(member.name)
-    await this._joinDiscrod(member.name)
+    this.chat.join(member.name)
+    this._joinDiscrod(member.name)
     if (this.playersCount == 10) this._status = 'filled'
     return true
   }
@@ -116,8 +126,8 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(name))) return false
     if (!this._leaveCommand(member)) return false
 
-    await this.chat.leave(member.name)
-    await this._leaveDiscord(member.name)
+    this.chat.leave(member.name)
+    this._leaveDiscord(member.name)
     this._status = 'searching'
     return true
   }
@@ -196,10 +206,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   get readyToStart() {
     if (this.status != 'preparing' || !this._prepareStageStarted) return false
-    return (
-      Date.now() - this._prepareStageStarted.getMilliseconds() >
-      MINUTE_IN_MS * 5
-    )
+    return Date.now() - this._prepareStageStarted.getMilliseconds() > 5 * 60
   }
 
   get commands() {
@@ -280,6 +287,10 @@ export class Lobby implements Match.Lobby.Instance {
 
   set chat(instance: IChat.Controller) {
     this._chat = instance
+  }
+
+  set counter(value: Match.Lobby.Counter) {
+    this._counter = value
   }
 
   private get _mapFromVotes() {
@@ -366,39 +377,40 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private _joinDiscrod(name: string) {
-    return this.discord.guildWithFreeChannelsForVoice.then(async (guild) => {
-      if (!guild) return
+  private async _joinDiscrod(name: string) {
+    let guild = await this.discord.guildWithFreeChannelsForVoice
+    if (!guild) return
 
-      let commandRole = await DiscordRoleManager.findRoleByName(
-        guild,
-        'mm_command1',
-      )
-      if (!commandRole) return
+    let commandRole = await DiscordRoleManager.findRoleByName(
+      guild,
+      'mm_command1',
+    )
+    if (!commandRole) return
 
-      let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
-      if (!teamRole)
-        teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
+    let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
+    if (!teamRole)
+      teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
 
-      this.discord.addRolesToMember(guild, name, teamRole, commandRole)
-      this.discord.addUserToTeamVoiceChannel(name)
-    })
+    await this.discord.addRolesToMember(guild, name, teamRole, commandRole)
+    await this.discord.addUserToTeamVoiceChannel(name)
+    return true
   }
 
-  private _leaveDiscord(name: string) {
-    return this.discord
-      ?.findGuildWithCustomTeamIdRole(this._id)
-      .then((guild) => {
-        if (guild) this.discord?.removeMatchMakingRolesFromUser(guild, name)
-      })
+  private async _leaveDiscord(name: string) {
+    let guild = await this.discord?.findGuildWithCustomTeamIdRole(this._id)
+    if (guild) await this.discord?.removeUserFromMatchMaking(guild, name)
   }
 
   private _checkStatus() {
     if (
       this._status == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
-    )
+    ) {
+      let members = this._members.membersCount
+      this._counter.searching -= members
+      this._counter.playing += members
       this._status = 'filled'
+    }
     if (this._status == 'filled' && this.isReady) this._status = 'voting'
     if (this._status == 'voting' && this.isVotingStageEnd)
       this._status = 'preparing'

@@ -7,6 +7,7 @@ import {
   Role,
   VoiceChannel,
 } from 'discord.js'
+import { distribute } from '../../API/Discord/distributor'
 import type { Match } from '../../Interfaces/index'
 import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
@@ -19,7 +20,11 @@ type PlayerCommand = Exclude<
 
 export class DiscordClient {
   public client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildVoiceStates,
+      GatewayIntentBits.GuildMembers,
+    ],
   })
   private _guilds!: Collection<string, OAuth2Guild>
   constructor(token: string) {
@@ -132,10 +137,7 @@ export class DiscordClient {
     }
   }
 
-  public async removeMatchMakingRolesFromUser(
-    guild: string | Guild,
-    nick: string,
-  ) {
+  public async removeUserFromMatchMaking(guild: string | Guild, nick: string) {
     if (typeof guild == 'string') {
       let tmp = await this.getGuildByName(guild)
       if (!tmp) return
@@ -146,28 +148,21 @@ export class DiscordClient {
     let user = await this.getMemberByNickanme(guild, nick)
     if (!user) return
 
-    for (let [_, role] of user.roles.cache) {
-      if (role.name.startsWith('mm_')) user.roles.remove(role)
-    }
+    let promises = []
+    for (let [_, role] of user.roles.cache)
+      if (role.name.startsWith('mm_')) promises.push(user.roles.remove(role))
+
+    await Promise.all(promises)
+    user.voice.setChannel(null)
   }
+
+  async removeLobby(id: string) {}
 
   public async addUserToTeamVoiceChannel(nick: string) {
     let result = await this._findUserByNicknameForMatchMaking(nick)
-    if (!result || result.user.presence?.status != 'online') return
-    let { guild, user } = result
+    if (!result || !result.user.voice) return
 
-    let stateManager = new StateManager(user.voice, this)
-    let command = stateManager.memberCommand
-    let teamID = stateManager.memberTeamID
-    if (!teamID || !command) return
-
-    let channel = await this.findChannelForMatch(
-      guild,
-      teamID,
-      command as PlayerCommand,
-    )
-
-    if (channel) user.voice.setChannel(channel as VoiceChannel)
+    distribute(new StateManager(result.user.voice, this), result.guild)
   }
 
   public async changeCommandRoleOfMember(
@@ -237,8 +232,8 @@ export class DiscordClient {
   }
 
   private async _getMembersFromGuild(guild: string | Guild) {
-    await this._updateGuilds()
     if (typeof guild == 'string') {
+      await this._updateGuilds()
       let tmp = await this.getGuildByName(guild)
       if (!tmp) return
 
