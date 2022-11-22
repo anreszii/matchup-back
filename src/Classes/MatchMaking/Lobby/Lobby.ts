@@ -12,6 +12,7 @@ import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
+import { SECOND_IN_MS } from '../../../configs/time_constants'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -217,7 +218,10 @@ export class Lobby implements Match.Lobby.Instance {
 
   get readyToStart() {
     if (this.status != 'preparing' || !this._prepareStageStarted) return false
-    return Date.now() - this._prepareStageStarted.getMilliseconds() > 5 * 60
+    return (
+      Date.now() - this._prepareStageStarted.getMilliseconds() >
+      SECOND_IN_MS * 5
+    )
   }
 
   get commands() {
@@ -392,10 +396,12 @@ export class Lobby implements Match.Lobby.Instance {
     let guild = await this.discord.guildWithFreeChannelsForVoice
     if (!guild) return
 
-    let commandRole = await DiscordRoleManager.findRoleByName(
-      guild,
-      'mm_command1',
-    )
+    let command: 'mm_command1' | 'mm_command2'
+    if (this.commands.get('command1')!.has(name)) command = 'mm_command1'
+    else if (this.commands.get('command2')!.has(name)) command = 'mm_command2'
+    else return
+
+    let commandRole = await DiscordRoleManager.findRoleByName(guild, command)
     if (!commandRole) return
 
     let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
