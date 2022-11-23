@@ -3,10 +3,10 @@ import { Relations } from './Relations.js'
 
 export class Profile {
   @prop({
-    required: [true, 'nickname required'],
     validate: {
       validator: function (v: string) {
-        if (v.startsWith('test_')) return true
+        if (typeof v != 'string') return false
+        if (v.startsWith('test_') || v == '') return true
         let length = v.length
         return length >= 6 && length <= 18
       },

@@ -17,6 +17,6 @@ export class Credentials {
     },
   })
   email!: string
-  @prop({ required: [true, 'region required'] })
+  @prop()
   region!: string
 }
