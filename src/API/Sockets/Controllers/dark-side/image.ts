@@ -2,6 +2,7 @@ import type { WebSocket } from 'uWebSockets.js'
 import { TechnicalCause, TechnicalError } from '../../../../error'
 import { ImageModel } from '../../../../Models/Image'
 import { CONTROLLERS } from '../../Handlers/dark-side'
+const isBase64 = require('is-base64')
 
 /**
  * Контроллер для загрузки изображения из БД. Возвращает base64 запись изображения
@@ -25,10 +26,10 @@ CONTROLLERS.set('load_image', load_image)
  * @param params - ["base64 Image"]
  */
 export async function upload_image(socket: WebSocket, params: unknown[]) {
-  if (typeof params[0] != 'string')
+  if (typeof params[0] != 'string' || !isBase64(params[0]))
     throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
 
   let buffer = Buffer.from(params[0], 'base64')
   return (await ImageModel.create({ buffer, mimeType: 'image/png' }))._id
 }
-CONTROLLERS.set('upload_image', load_image)
+CONTROLLERS.set('upload_image', upload_image)
