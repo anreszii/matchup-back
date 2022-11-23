@@ -25,11 +25,12 @@ export class Leaderboard {
    * ```
    *
    */
-  public async update(this: DocumentType<Leaderboard>) {
+  async updateLeaderboard(this: DocumentType<Leaderboard>) {
     await this._updateRecords()
     this._deleteUndefinedRecords()
     this._sortRecords()
-    return this.save()
+    await this.save()
+    return true
   }
 
   private async _updateRecords() {
@@ -66,7 +67,7 @@ export class Leaderboard {
    */
   private async _createUserRecords() {
     let records: Record[] = []
-    const users = await UserModel.find({}, 'profile raging')
+    const users = await UserModel.find({}, 'profile rating')
     for (let user of users)
       records.push(this._createRecord(user.profile.username, user.GRI))
     return records
@@ -77,7 +78,7 @@ export class Leaderboard {
    */
   private async _createGuildRecords() {
     let records: Record[] = []
-    const guilds = await GuildModel.find({}, 'info')
+    const guilds = await GuildModel.find({}, 'public')
     for (let guild of guilds)
       records.push(this._createRecord(guild.public.name, guild.public.GRI))
     return records
@@ -106,26 +107,23 @@ export class Leaderboard {
 
   /** Сортировка слиянием, в ходе которой все записи с наивысшем показателем рейтинга окажутся впереди. */
   private _sortRecords(this: DocumentType<Leaderboard>) {
-    if (this.records.length < 2) return
-    const middle = this.records.length / 2
-    const leftPart = this.records.splice(0, middle)
-
-    const sortedRecords = this._merge(
-      leftPart as Record[],
-      this.records as Record[],
-    )
-
-    this.records = sortedRecords as Record[]
+    this.records = this._mergeSort(this.records)
   }
 
-  private _merge(left: Record[], right: Record[]) {
+  private _mergeSort(records: Record[]): Record[] {
+    if (records.length < 2) return records
+    const middle = records.length / 2
+    const leftPart = records.splice(0, middle)
+
+    return this._merge(this._mergeSort(leftPart), this._mergeSort(records))
+  }
+
+  private _merge(left: Record[], right: Record[]): Record[] {
     let result = []
     while (left.length && right.length) {
-      let highest =
-        left[0].ratingPoints > right[0].ratingPoints
-          ? left.shift()
-          : right.shift()
-      result.push(highest)
+      if (left[0].ratingPoints > right[0].ratingPoints)
+        result.push(left.shift() as Record)
+      else result.push(right.shift() as Record)
     }
 
     return [...result, ...left, ...right]

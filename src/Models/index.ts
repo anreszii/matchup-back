@@ -13,6 +13,8 @@ import { MatchList } from './MatchMaking/MatchList'
 import { ReportList } from './MatchMaking/Reports'
 import { Chat } from './Chat/Chat'
 import { PERIODS } from './User/Premium'
+import { Leaderboard } from './Leaderboard/Leaderboar'
+import { DAY_IN_MS } from '../configs/time_constants'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -25,6 +27,13 @@ export const OrderListModel = getModelForClass(OrderList)
 export const StaticTaskModel = getModelForClass(StaticTask)
 export const DynamicTaskModel = getModelForClass(DynamicTask)
 export const ChatModel = getModelForClass(Chat)
+
+const LeaderboardModel = getModelForClass(Leaderboard)
+setInterval(() => {
+  LeaderboardModel.find({}).then((boards) => {
+    for (let board of boards) board.updateLeaderboard()
+  })
+}, DAY_IN_MS)
 
 export * from './Orders/Orders'
 export * from './Task/Types/Static'
