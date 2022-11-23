@@ -503,6 +503,7 @@ export class Guild {
     ])
 
     let guild = await this.createGuild(owner.profile.username, { name, tag })
+    guild.public.GRI = getRandom(100, 2000)
 
     const users = await UserModel.generateTestData(5, false)
     for (let user of users) {

@@ -385,8 +385,8 @@ export class User {
         username: testUserData[3],
       },
     })
-    user.setPrefix('Test')
     user.setPassword(generatePassword())
+    user.rating.GRI = getRandom(100, 2000)
 
     await user.save()
     await TaskListModel.getForUser(user)
