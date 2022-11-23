@@ -34,6 +34,7 @@ mongoose.connect(
 )
 require('./Models')
 require('./API/Sockets')
+require('./API/Discord')
 app.use(require('./API/HTTP'))
 
 app.use(function (_: any, _1: any, next: any) {

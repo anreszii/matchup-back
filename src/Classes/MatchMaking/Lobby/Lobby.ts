@@ -409,7 +409,7 @@ export class Lobby implements Match.Lobby.Instance {
       teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
 
     await this.discord.addRolesToMember(guild, name, teamRole, commandRole)
-    await this.discord.addUserToTeamVoiceChannel(name)
+    this.discord.addUserToTeamVoiceChannel(name)
     return true
   }
 
