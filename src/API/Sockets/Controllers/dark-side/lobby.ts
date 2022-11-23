@@ -19,12 +19,11 @@ import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
 import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
-
-let dsClient = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
+import { DISCORD_ROBOT } from '../../../../app'
 
 export const StandOff_Lobbies = new LobbyManager(
   new StandOffController(),
-  dsClient,
+  DISCORD_ROBOT,
 )
 
 const Searcher = new SearchEngine(StandOff_Lobbies)
@@ -44,7 +43,8 @@ setInterval(async () => {
       case 'preparing':
         if (lobby.readyToStart) {
           sendStartIventToLobby(lobby)
-          await lobby.start
+          await lobby.start()
+          await lobby.stop()
         }
         break
     }

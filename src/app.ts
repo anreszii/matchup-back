@@ -13,8 +13,10 @@ const corsOptions = {
 }
 
 import mongoose from 'mongoose'
+import { DiscordClient } from './Classes/Discord/Client'
 
 export const WS_SERVER = io()
+export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
 const app = express()
 app.use(cors(corsOptions))
