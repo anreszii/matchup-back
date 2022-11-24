@@ -8,6 +8,11 @@ export function getRounded(num: number, round: number) {
 }
 
 export function getMedian(...numbers: Array<number>): number {
+  numbers = numbers.filter((number) => {
+    if (typeof number != 'number' || number < 0 || Object.is(NaN, number))
+      return false
+    return true
+  })
   let tmp = new Array(numbers.length)
   for (let index = 0; index < numbers.length; index++)
     tmp[index] = numbers[index]

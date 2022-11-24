@@ -11,34 +11,22 @@ export class Finder implements Rating.SearchEngine.Finder {
     private _filters: Rating.SearchEngine.Filters,
   ) {}
   async find() {
-    //каждые 30 секунд расширяет фильтр поиска, пока он не будет максимальным
-    var ID = setInterval(() => {
-      if (this._searchZone == Rating.SearchEngine.SEARCH_ZONE.large)
-        clearInterval(ID)
-      this._extendSearch()
-    }, this._maxWaitingTime / 7)
-
     if (this._lobbies.length == 0) return null
+    switch (this._searchZone) {
+      case 0:
+        let lobby = this._searchInSmallZone()
+        if (lobby) return lobby
+        break
 
-    let searchStartTimeInMs = Date.now()
-    let lobby: Match.Lobby.Instance | undefined
-    while (Date.now() - searchStartTimeInMs < this._maxWaitingTime) {
-      switch (this._searchZone) {
-        case 0:
-          let lobby = this._searchInSmallZone()
-          if (lobby) return lobby
-          break
+      case 1:
+        lobby = this._searchInMediumZone()
+        if (lobby) return lobby
+        break
 
-        case 1:
-          lobby = this._searchInMediumZone()
-          if (lobby) return lobby
-          break
-
-        case 2:
-          lobby = this._searchInLargeZone()
-          if (lobby) return lobby
-          break
-      }
+      case 2:
+        lobby = this._searchInLargeZone()
+        if (lobby) return lobby
+        break
     }
 
     return null
