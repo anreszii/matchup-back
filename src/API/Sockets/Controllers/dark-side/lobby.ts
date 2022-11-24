@@ -248,16 +248,19 @@ export async function get_captain(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (!member.commandID)
+  if (!member.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let command = COMMANDS.get(member.commandID)
-  if (!command) {
-    member.commandID = undefined
-    throw new TechnicalError('command', TechnicalCause.NOT_EXIST)
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
   }
 
-  return command.captain
+  return {
+    command1: lobby.firstCommand.captain,
+    command2: lobby.secondCommand.captain,
+  }
 }
 CONTROLLERS.set('get_captain', get_captain)
 
@@ -415,17 +418,17 @@ CONTROLLERS.set('get_lobby_players_count', get_lobby_players_count)
  * @event
  */
 export async function get_lobby_count(socket: WebSocket, params: unknown[]) {
-  let lobbyID = params[0]
-  if (!lobbyID) throw new TechnicalError('lobbyID', TechnicalCause.REQUIRED)
-  if (typeof lobbyID != 'string')
-    throw new TechnicalError('lobbyID', TechnicalCause.INVALID_FORMAT)
-
-  let lobby = StandOff_Lobbies.get(lobbyID)
-  if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
-
   return StandOff_Lobbies.lobbies.length
 }
 CONTROLLERS.set('get_lobby_count', get_lobby_count)
+
+export async function get_global_players_count(
+  socket: WebSocket,
+  params: unknown[],
+) {
+  return StandOff_Lobbies.counter
+}
+CONTROLLERS.set('get_global_players_count', get_global_players_count)
 
 function isCorrectRegion(
   region: string,

@@ -25,7 +25,7 @@ export class LobbyManager implements Match.Manager.Instance {
     )
   }
 
-  public spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {
+  spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {
     const ID = LobbyManager._createID()
     this._dsClient.guildWithFreeChannelsForVoice.then(async (guild) => {
       if (!guild) return
@@ -45,7 +45,7 @@ export class LobbyManager implements Match.Manager.Instance {
     return lobby
   }
 
-  public getFreeLobby(lobbyID?: string): Match.Lobby.Instance {
+  getFreeLobby(lobbyID?: string): Match.Lobby.Instance {
     if (lobbyID && this._lobbyMap.has(lobbyID))
       return this._lobbyMap.get(lobbyID)!
 
@@ -55,21 +55,25 @@ export class LobbyManager implements Match.Manager.Instance {
     return this.spawn()
   }
 
-  public get(lobbyID: string) {
+  get(lobbyID: string) {
     return this._lobbyMap.get(lobbyID)
   }
 
-  public has(lobbyID: string) {
+  has(lobbyID: string) {
     return this._lobbyMap.has(lobbyID)
   }
 
-  public drop(lobby: string | Match.Lobby.Instance): boolean {
+  drop(lobby: string | Match.Lobby.Instance): boolean {
     if (typeof lobby == 'string') return this._lobbyMap.delete(lobby)
     return this._lobbyMap.delete(lobby.id)
   }
 
-  public get lobbies(): Array<Match.Lobby.Instance> {
+  get lobbies(): Array<Match.Lobby.Instance> {
     return [...this._lobbyMap.values()]
+  }
+
+  get counter(): Match.Lobby.Counter {
+    return this.counter
   }
 
   private _findFreeLobby() {

@@ -14,6 +14,7 @@ export declare namespace Match {
   namespace Manager {
     interface Instance extends IManager<Match.Lobby.Instance, string> {
       get lobbies(): Array<Match.Lobby.Instance>
+      get counter(): Lobby.Counter
     }
     type supportedGames = 'StandOff2'
   }
