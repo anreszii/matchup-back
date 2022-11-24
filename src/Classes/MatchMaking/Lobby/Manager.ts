@@ -73,7 +73,7 @@ export class LobbyManager implements Match.Manager.Instance {
   }
 
   get counter(): Match.Lobby.Counter {
-    return this.counter
+    return LobbyManager._counter
   }
 
   private _findFreeLobby() {
