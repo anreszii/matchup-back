@@ -6,14 +6,14 @@ import { validateToken } from '../../Token/index'
 const router = Router()
 router.post('/upload', validateToken, async (req, res, next) => {
   try {
-    let image = req.files?.image
-    if (!image || image instanceof Array)
+    if (!req.files) throw new TechnicalError('files', TechnicalCause.REQUIRED)
+    if (!req.files.image || req.files.image instanceof Array)
       throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
+    let image = req.files.image
     let document = await ImageModel.create({
       buffer: image.data,
       mimeType: image.mimetype,
     })
-
     res.send(document._id)
   } catch (e) {
     next(e)
