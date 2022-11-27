@@ -58,6 +58,7 @@ export class MatchList {
   async setScreen(this: DocumentType<MatchList>, ID: string) {
     let image = await ImageModel.findById(ID)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
+    if (this.screen) ImageModel.erase(this.screen)
 
     this.screen = ID
     await this.save()

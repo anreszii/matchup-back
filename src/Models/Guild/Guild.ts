@@ -2,7 +2,7 @@ import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { CLIENT_CHATS } from '../../Classes/Chat/Manager'
 
 import { PrivateInfo, PublicInfo, Terms } from './Info'
-import { Image, ImageModel } from '../Image'
+import { ImageModel } from '../Image'
 import { PRICE_OF_GUILD_CREATION } from '../../configs/guild'
 
 import { GuildMemberData } from './Member'
@@ -317,6 +317,7 @@ export class Guild {
     this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
     let image = await ImageModel.findById(ID)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
+    if (this.public.profileImage) ImageModel.erase(this.public.profileImage)
 
     this.public.profileImage = ID
     await this.save()

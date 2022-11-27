@@ -16,13 +16,18 @@ router.post('/upload', validateToken, async (req, res, next) => {
       base64string: image.data.toString('base64'),
       name: `${new Date().toDateString()}-${image.name}`,
     })
-      .then(async (response: { [key: string]: unknown }) => {
-        let document = await ImageModel.create({
-          display_url: response.display_url as string,
-          delete_url: response.delete_url as string,
-        })
-        res.send(document._id)
-      })
+      .then(
+        async (response: {
+          thumb: { [key: string]: string }
+          delete_url: string
+        }) => {
+          let document = await ImageModel.create({
+            display_url: response.thumb.url as string,
+            delete_url: response.delete_url as string,
+          })
+          res.send(document._id)
+        },
+      )
       .catch((e: unknown) => {
         next(e)
       })

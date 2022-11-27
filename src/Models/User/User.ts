@@ -300,6 +300,7 @@ export class User {
   async setAvatar(this: DocumentType<User>, ID: string) {
     let image = await ImageModel.findById(ID)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
+    if (this.profile.avatar) ImageModel.erase(this.profile.avatar)
 
     this.profile.avatar = ID
     await this.save()
