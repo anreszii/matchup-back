@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { ImageModel } from '../../Models/Image'
 import { validateToken } from '../../Token/index'
+const uploader = require('imgbb-uploader')
 
 const router = Router()
 router.post('/upload', validateToken, async (req, res, next) => {
@@ -10,11 +11,21 @@ router.post('/upload', validateToken, async (req, res, next) => {
     if (!req.files.image || req.files.image instanceof Array)
       throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
     let image = req.files.image
-    let document = await ImageModel.create({
-      buffer: image.data,
-      mimeType: image.mimetype,
+    uploader({
+      apiKey: process.env.IMGBB_KEY,
+      base64string: image.data.toString('base64'),
+      name: `${new Date().toDateString()}-${image.name}`,
     })
-    res.send(document._id)
+      .then(async (response: { [key: string]: unknown }) => {
+        let document = await ImageModel.create({
+          display_url: response.display_url as string,
+          delete_url: response.delete_url as string,
+        })
+        res.send(document._id)
+      })
+      .catch((e: unknown) => {
+        next(e)
+      })
   } catch (e) {
     next(e)
   }
@@ -27,7 +38,7 @@ router.get('/:id', validateToken, async (req, res, next) => {
 
     let image = await ImageModel.findById(id)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    res.send(image.buffer.toString('base64url'))
+    res.send(image)
   } catch (e) {
     next(e)
   }
