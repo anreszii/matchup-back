@@ -196,21 +196,12 @@ export class User {
   /* SUBSCRIBERS */
 
   async getSubscribers() {
-    let promises: Promise<DocumentType<User>>[] = []
-    let result: RelationRecord[] = []
+    let promises = []
     for (let subscriber of this.profile.relations.subscribers)
       promises.push(UserModel.findByName(subscriber))
 
-    let users = await Promise.all(promises)
-    for (let user of users)
-      result.push(
-        new RelationRecord(
-          user.profile.username,
-          user.profile.avatar as unknown as string | undefined,
-        ),
-      )
-
-    return result
+    let users = (await Promise.all(promises)) as DocumentType<User>[]
+    return this._getRelationRecordsForUsers(users)
   }
 
   hasSubscriber(this: DocumentType<User>, name: string) {
@@ -235,21 +226,12 @@ export class User {
   /* FRIENDS */
 
   async getFriends() {
-    let promises: Promise<DocumentType<User>>[] = []
-    let result: RelationRecord[] = []
+    let promises = []
     for (let friend of this.profile.relations.friends)
       promises.push(UserModel.findByName(friend))
 
-    let users = await Promise.all(promises)
-    for (let user of users)
-      result.push(
-        new RelationRecord(
-          user.profile.username,
-          user.profile.avatar as unknown as string | undefined,
-        ),
-      )
-
-    return result
+    let users = (await Promise.all(promises)) as DocumentType<User>[]
+    return this._getRelationRecordsForUsers(users)
   }
 
   hasFriend(this: DocumentType<User>, name: string) {
@@ -450,5 +432,21 @@ export class User {
 
     this.premium.expiresIn = now
     this.premium.isPremium = true
+  }
+
+  private async _getRelationRecordsForUsers(users: DocumentType<User>[]) {
+    let promises = []
+    let result = []
+    for (let user of users) {
+      let record = new RelationRecord(
+        user.profile.username,
+        user.profile.avatar,
+      )
+      promises.push(record.load())
+      result.push(record)
+    }
+
+    await Promise.all(promises)
+    return result
   }
 }
