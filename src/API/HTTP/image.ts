@@ -43,7 +43,7 @@ router.get('/:id', validateToken, async (req, res, next) => {
 
     let image = await ImageModel.findById(id)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    res.send(image)
+    res.send(image.display_url)
   } catch (e) {
     next(e)
   }

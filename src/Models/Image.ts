@@ -8,19 +8,11 @@ export class Image {
 
   static async erase(this: ReturnModelType<typeof Image>, ID?: string) {
     if (!ID) return false
-    return this.findById(ID).then(async (document) => {
+    return this.findById(ID).then((document) => {
       if (!document) return false
-      return fetch(document.delete_url)
-        .then((response) => {
-          if (!response.ok) return false
 
-          document.delete()
-          return true
-        })
-        .catch((e) => {
-          console.error(e)
-          return false
-        })
+      document.delete()
+      return true
     })
   }
 }
