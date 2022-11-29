@@ -12,7 +12,7 @@ import { Profile } from './Profile'
 import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
 
-import { TaskListModel, UserModel } from '../'
+import { NotificationModel, TaskListModel, UserModel } from '../'
 import { Guild } from '../Guild/Guild'
 
 import { generatePassword } from '../../Utils/passwordGenerator'
@@ -23,6 +23,7 @@ import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
 import { ImageModel } from '../Image'
 import { PERIODS, Premium } from './Premium'
+import { NotificationQueue } from './Notify/Queue'
 
 class Prefixes {
   @prop({ required: true })
@@ -189,6 +190,16 @@ export class User {
 
     this.credentials.password = generateHash(password)
     return true
+  }
+
+  async notify(this: DocumentType<User>, content: string) {
+    return this._getNotificationQueue()
+      .then(async (notifications) => {
+        return notifications.push(content)
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   /* RELATIONS */
@@ -413,6 +424,12 @@ export class User {
       users[0].addRelation(this.profile.username),
       users[1].addRelation(this.profile.username),
     ])
+  }
+
+  private async _getNotificationQueue(
+    this: DocumentType<User>,
+  ): Promise<DocumentType<NotificationQueue>> {
+    return NotificationModel.getForUser(this)
   }
 
   private async _checkPremium(this: DocumentType<User>) {

@@ -15,6 +15,7 @@ import { Chat } from './Chat/Chat'
 import { PERIODS } from './User/Premium'
 import { Leaderboard } from './Leaderboard/Leaderboar'
 import { DAY_IN_MS } from '../configs/time_constants'
+import { NotificationQueue } from './User/Notify/Queue'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -27,6 +28,7 @@ export const OrderListModel = getModelForClass(OrderList)
 export const StaticTaskModel = getModelForClass(StaticTask)
 export const DynamicTaskModel = getModelForClass(DynamicTask)
 export const ChatModel = getModelForClass(Chat)
+export const NotificationModel = getModelForClass(NotificationQueue)
 
 const LeaderboardModel = getModelForClass(Leaderboard)
 setInterval(() => {
@@ -39,6 +41,8 @@ export * from './Orders/Orders'
 export * from './Task/Types/Static'
 export * from './Task/Types/Dynamic'
 export * from './User/User'
+export * from './User/Notify/Queue'
+export * from './User/Notify/Notify'
 export * from './Task/Task'
 export * from './Task/TaskList'
 export * from './Guild'
@@ -60,4 +64,5 @@ MODELS.set(StaticTaskModel.modelName, StaticTaskModel)
 MODELS.set(DynamicTaskModel.modelName, DynamicTaskModel)
 MODELS.set(ChatModel.modelName, ChatModel)
 MODELS.set(LeaderboardModel.modelName, LeaderboardModel)
+MODELS.set(NotificationModel.modelName, NotificationModel)
 MODELS.set(PERIODS.modelName, PERIODS)
