@@ -1,5 +1,4 @@
 import { prop, Ref } from '@typegoose/typegoose'
-import { Image } from '../Image'
 import { User } from '../User/User'
 
 export class ChatMember {
