@@ -96,10 +96,10 @@ export class Leaderboard {
    * }
    * ```
    */
-  private _createRecord(owner: string, ratingPoints: number) {
+  private _createRecord(name: string, ratingPoints: number) {
     let record = new Record()
 
-    record.owner = owner
+    record.name = name
     record.ratingPoints = ratingPoints
 
     return record
