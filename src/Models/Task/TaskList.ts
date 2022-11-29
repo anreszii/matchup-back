@@ -29,7 +29,6 @@ export class TaskList {
     this: ReturnModelType<typeof TaskList>,
     user: User | Types.ObjectId | string,
   ) {
-    const promises: Promise<unknown>[] = []
     let userDocument: DocumentType<User> | null
     if (typeof user == 'string')
       userDocument = await UserModel.findByName(user)!
@@ -41,12 +40,6 @@ export class TaskList {
     if (result) return this._loadTasksFromID(result)
 
     let tasks = await this.create({ owner: userDocument, tasks: [] })
-
-    promises.push(tasks.getDaily())
-    promises.push(tasks.getWeekly())
-    await Promise.all(promises)
-
-    await tasks.save()
     return this._loadTasksFromID(tasks)
   }
 
@@ -258,10 +251,7 @@ export class TaskList {
     this: ReturnModelType<typeof TaskList>,
     list: DocumentType<TaskList>,
   ) {
-    const promises: Promise<DocumentType<Task> | null>[] = []
-    for (let id of list.tasks) promises.push(TaskModel.findById(id).exec())
-
-    return Promise.all(promises)
+    return Promise.all([list.getDaily(), list.getWeekly()])
   }
 
   private static async _checkUserList(
