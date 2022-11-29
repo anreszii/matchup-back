@@ -4,16 +4,13 @@ import { v4 as uuid } from 'uuid'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { IChat } from '../../Interfaces/index'
 import { UserModel } from '../index'
+import { ServiceInformation } from '../ServiceInformation'
 import { ChatMember } from './Member'
 import { Message } from './Message'
 
-class ChatServiceInformation {
-  @prop({ required: true, unique: true })
-  id!: string
+class ChatServiceInformation extends ServiceInformation {
   @prop({ required: true })
   entityId!: string
-  @prop({ required: true, default: new Date() })
-  createdAt!: Date
   @prop({ required: true })
   type!: IChat.Type
 }
