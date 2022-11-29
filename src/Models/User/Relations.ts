@@ -10,9 +10,9 @@ export class Relations {
 }
 
 export class RelationRecord implements Loadable {
-  public avatar: Image | null = null
-  constructor(public name: string, public imageID: string | undefined) {}
+  constructor(public name: string, public image?: string | null) {}
   async load() {
-    this.avatar = await ImageModel.findById(this.imageID)
+    let image = await ImageModel.findById(this.image)
+    this.image = image ? image.display_url : null
   }
 }
