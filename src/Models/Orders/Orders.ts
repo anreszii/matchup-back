@@ -6,10 +6,15 @@ import { UserModel } from '../index'
 import { getRandom } from '../../Utils/math'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { User } from '../User/User'
+import { ServiceInformation } from '../ServiceInformation'
 
-export class OrderList {
-  @prop({ required: true, unique: true })
-  public id!: string
+export class Order {
+  @prop({
+    required: true,
+    type: () => ServiceInformation,
+    default: new ServiceInformation(),
+  })
+  public info!: ServiceInformation
   @prop({ required: true, ref: () => User })
   public owner!: Ref<User>
   @prop({ required: true })
@@ -26,7 +31,7 @@ export class OrderList {
   public postalCode!: string
 
   public static async createOrder(
-    this: ReturnModelType<typeof OrderList>,
+    this: ReturnModelType<typeof Order>,
     owner: Types.ObjectId | DocumentType<User> | string,
     country: string,
     region: string,
@@ -68,7 +73,7 @@ export class OrderList {
   }
 
   public static async generateTestData(
-    this: ReturnModelType<typeof OrderList>,
+    this: ReturnModelType<typeof Order>,
     testDocumentsCount: number = 4,
   ) {
     let testUsers = await UserModel.generateTestData(5, false)
@@ -89,20 +94,20 @@ export class OrderList {
     return records
   }
 
-  public static async getTestData(this: ReturnModelType<typeof OrderList>) {
+  public static async getTestData(this: ReturnModelType<typeof Order>) {
     return this.find({
       country: { $regex: 'test' },
       region: { $regex: 'test' },
     })
   }
 
-  public static async deleteTestData(this: ReturnModelType<typeof OrderList>) {
+  public static async deleteTestData(this: ReturnModelType<typeof Order>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
     return true
   }
 
-  private static async _getUniqueID(this: ReturnModelType<typeof OrderList>) {
+  private static async _getUniqueID(this: ReturnModelType<typeof Order>) {
     let id = uuid()
     while (await this.findOne({ id })) id = uuid()
 

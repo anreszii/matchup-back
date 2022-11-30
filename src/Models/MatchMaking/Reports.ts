@@ -1,12 +1,18 @@
 import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
-import type { Match } from '../../Interfaces'
+import type { Match } from '../../Interfaces/index'
 import { v4 } from 'uuid'
-import { ReportListModel } from '../index'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { ServiceInformation } from '../ServiceInformation'
 
-export class ReportList {
-  @prop({ required: true, unique: true })
-  public id!: number
+export class Report {
+  @prop({
+    required: true,
+    unique: true,
+    type: () => ServiceInformation,
+    default: new ServiceInformation(),
+    _id: false,
+  })
+  public info!: ServiceInformation
   @prop({ required: true })
   public game!: Match.Manager.supportedGames
   @prop({ required: true })
@@ -17,14 +23,13 @@ export class ReportList {
   public proof?: string
 
   public static async log(
-    this: ReturnModelType<typeof ReportList>,
+    this: ReturnModelType<typeof Report>,
     game: Match.Manager.supportedGames,
     reason: string,
     describe: string,
     proof?: string,
   ) {
     let document = new this({
-      id: await this.getUniqueID(),
       game,
       reason,
       describe,
@@ -34,12 +39,12 @@ export class ReportList {
   }
 
   public static async addProof(
-    this: ReturnModelType<typeof ReportList>,
+    this: ReturnModelType<typeof Report>,
     id: number,
     proof: string,
     rewrite: boolean = false,
   ) {
-    let report = await this.findOne({ id })
+    let report = await this.findOne({ 'info.id': id })
     if (!report) throw new TechnicalError('reportID', TechnicalCause.INVALID)
 
     if (report.proof && !rewrite)
@@ -50,10 +55,10 @@ export class ReportList {
   }
 
   public static async generateTestData(
-    this: ReturnModelType<typeof ReportList>,
+    this: ReturnModelType<typeof Report>,
     testDocumentsCount = 4,
   ) {
-    let generatedDocuments: DocumentType<ReportList>[] = []
+    let generatedDocuments: DocumentType<Report>[] = []
     for (let i = 1; i < testDocumentsCount + 1; i++) {
       let report = await this.log(
         'test_game' as unknown as Match.Manager.supportedGames,
@@ -67,22 +72,15 @@ export class ReportList {
     return generatedDocuments
   }
 
-  public static async getTestData(this: ReturnModelType<typeof ReportList>) {
+  public static async getTestData(this: ReturnModelType<typeof Report>) {
     return this.find({
       game: { $regex: 'test_game' },
     })
   }
 
-  public static async deleteTestData(this: ReturnModelType<typeof ReportList>) {
+  public static async deleteTestData(this: ReturnModelType<typeof Report>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
     return true
-  }
-
-  private static async getUniqueID() {
-    let id = Date.now()
-    while (await ReportListModel.findOne({ id })) id = Date.now()
-
-    return id
   }
 }

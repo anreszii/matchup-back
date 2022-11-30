@@ -1,6 +1,6 @@
-import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import { MemberRecord } from './Member'
-import type { Match } from '../../Interfaces'
+import type { Match as IMatch } from '../../Interfaces'
 import { ImageModel } from '../Image'
 import { MapScore } from './MapScore'
 import { v4 } from 'uuid'
@@ -8,12 +8,18 @@ import { getRandom } from '../../Utils/math'
 import { MatchListModel, UserModel } from '../index'
 import { Statistic } from './Statistic'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { ServiceInformation } from '../ServiceInformation'
 
-export class MatchList {
-  @prop({ required: true, unique: true })
-  public id!: string
+export class Match {
+  @prop({
+    required: true,
+    type: () => ServiceInformation,
+    default: new ServiceInformation(),
+    _id: false,
+  })
+  public info!: ServiceInformation
   @prop({ required: true })
-  public game!: Match.Manager.supportedGames
+  public game!: IMatch.Manager.supportedGames
   @prop({ required: true, default: [], type: () => MemberRecord, _id: false })
   public members!: MemberRecord[]
   @prop({ required: true, _id: false })
@@ -22,7 +28,7 @@ export class MatchList {
   public screen?: string
 
   public static log(
-    this: ReturnModelType<typeof MatchList>,
+    this: ReturnModelType<typeof Match>,
     id: string,
     game: string,
     members: MemberRecord[],
@@ -33,15 +39,15 @@ export class MatchList {
     return document.save()
   }
 
-  async addRecords(this: DocumentType<MatchList>, ...records: MemberRecord[]) {
+  async addRecords(this: DocumentType<Match>, ...records: MemberRecord[]) {
     this.members = [...this.members, ...records]
     return this.save()
   }
 
   async changeRecord(
-    this: DocumentType<MatchList>,
+    this: DocumentType<Match>,
     username: string,
-    command?: Match.Lobby.Command.Types,
+    command?: IMatch.Lobby.Command.Types,
     statistic?: Statistic,
   ) {
     let member = this.members.find((member) => member.name == username)
@@ -55,7 +61,7 @@ export class MatchList {
     return this.save()
   }
 
-  async setScreen(this: DocumentType<MatchList>, ID: string) {
+  async setScreen(this: DocumentType<Match>, ID: string) {
     let image = await ImageModel.findById(ID)
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
     if (this.screen) ImageModel.erase(this.screen)
@@ -67,7 +73,7 @@ export class MatchList {
   }
 
   public static async generateTestData(
-    this: ReturnModelType<typeof MatchList>,
+    this: ReturnModelType<typeof Match>,
     testDocumentsCount: number = 3,
   ) {
     let records = []
@@ -77,20 +83,20 @@ export class MatchList {
     return records
   }
 
-  public static async getTestData(this: ReturnModelType<typeof MatchList>) {
+  public static async getTestData(this: ReturnModelType<typeof Match>) {
     return this.find({
       'score.mapName': 'testMap',
     })
   }
 
-  public static async deleteTestData(this: ReturnModelType<typeof MatchList>) {
+  public static async deleteTestData(this: ReturnModelType<typeof Match>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
     return true
   }
 
   private static async _generateTestDocument(
-    this: ReturnModelType<typeof MatchList>,
+    this: ReturnModelType<typeof Match>,
   ) {
     let score1 = getRandom(0, 16)
     let score2 = 0
@@ -117,7 +123,7 @@ export class MatchList {
     return id
   }
 
-  private async _fullFillWithTestData(this: DocumentType<MatchList>) {
+  private async _fullFillWithTestData(this: DocumentType<Match>) {
     let testUsers = await UserModel.getTestData()
     if (testUsers.length < 10)
       testUsers = await UserModel.generateTestData(10, false)

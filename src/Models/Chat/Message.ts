@@ -6,7 +6,6 @@ import { Author } from './Author'
 
 export class Message implements IChat.Message {
   constructor(message: IChat.Message) {
-    this.info.id = uuid()
     this.author = message.author
     this.content = message.content
   }
