@@ -24,6 +24,8 @@ import { getRandom } from '../../Utils/math'
 import { ImageModel } from '../Image'
 import { PERIODS, Premium } from './Premium'
 import { NotificationQueue } from './Notify/Queue'
+import { clientServer } from '../../API/Sockets/clientSocketServer'
+import { DTO } from '../../Classes/DTO/DTO'
 
 class Prefixes {
   @prop({ required: true })
@@ -193,6 +195,12 @@ export class User {
   }
 
   async notify(this: DocumentType<User>, content: string) {
+    if (clientServer.Aliases.isSet(this.profile.username)) {
+      const dto = new DTO({ label: 'notify', content })
+      clientServer
+        .control(clientServer.Aliases.get(this.profile.username)!)
+        .emit('notify', dto.to.JSON)
+    }
     return this._getNotificationQueue()
       .then(async (notifications) => {
         return notifications.push(content)
@@ -267,7 +275,8 @@ export class User {
   /* RELATION ACTIONS */
 
   async addRelation(this: DocumentType<User>, name: string) {
-    if (!name) throw new TechnicalError('name', TechnicalCause.REQUIRED)
+    if (!name || name == this.profile.username)
+      throw new TechnicalError('name', TechnicalCause.REQUIRED)
     if (this.hasFriend(name))
       throw new TechnicalError('user relation', TechnicalCause.ALREADY_EXIST)
 
@@ -284,6 +293,9 @@ export class User {
     user.addFriend(this.profile.username)
     this.addFriend(user.profile.username)
 
+    user.notify(`у вас появился новый друг: ${this.profile.username}`)
+    this.notify(`у вас появился новый друг: ${user.profile.username}`)
+
     await Promise.all([user.save(), this.save()])
     return true
   }
@@ -295,11 +307,19 @@ export class User {
 
     let user = await UserModel.findByName(name)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-    if (!user.hasFriend(this.profile.username))
-      throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
+    if (!user.hasFriend(this.profile.username)) {
+      if (!user.hasSubscriber(this.profile.username))
+        throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
+      user.deleteSubscriber(this.profile.username)
+      await user.save()
+      return true
+    }
 
     user.deleteFriend(this.profile.username)
     this.deleteFriend(name)
+
+    user.notify(`разорваны отношения с другом: ${this.profile.username}`)
+    this.notify(`разорваны отношения с другом: ${this.profile.username}`)
 
     this.addSubscriber(name)
 
