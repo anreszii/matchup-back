@@ -9,7 +9,6 @@ class NotifyServiceInformation extends ServiceInformation {
 
 export class Notify {
   constructor(content: string) {
-    this.info.id = uuid()
     this.content = content
   }
 

@@ -25,9 +25,10 @@ export class NotificationQueue {
     if (!userDocument)
       throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
-    let existedDocument = await this.findOne({ owner: userDocument })
+    const owner = userDocument._id
+    let existedDocument = await this.findOne({ owner })
     if (existedDocument) return existedDocument
-    return this.create({ owner: user })
+    return this.create({ owner })
   }
 
   async push(this: DocumentType<NotificationQueue>, content: string) {
