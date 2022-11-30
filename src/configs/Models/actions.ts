@@ -21,6 +21,14 @@ export type MODELS_ACTION_LIST =
   | 'PremiumPeriods/createPeriod'
   | 'PremiumPeriods/changePrice'
 
+  /* Notifications */
+  | 'NotificationQueue/shift'
+  | 'NotificationQueue/readOne'
+  | 'NotificationQueue/readAll'
+  | 'NotificationQueue/getUnreaded'
+  | 'NotificationQueue/deleteNotify'
+  | 'NotificationQueue/erase'
+
   /* TaskList Model */
   | 'TaskList/getDaily'
   | 'TaskList/getWeekly'
@@ -107,6 +115,14 @@ MODELS_ACTIONS.set('User/setPrefix', 2)
 MODELS_ACTIONS.set('User/generateTestData', 2)
 MODELS_ACTIONS.set('User/getTestData', 2)
 MODELS_ACTIONS.set('User/deleteTestData', 2)
+
+/* Notifications */
+MODELS_ACTIONS.set('NotificationQueue/shift', 0)
+MODELS_ACTIONS.set('NotificationQueue/readOne', 0)
+MODELS_ACTIONS.set('NotificationQueue/readAll', 0)
+MODELS_ACTIONS.set('NotificationQueue/getUnreaded', 0)
+MODELS_ACTIONS.set('NotificationQueue/deleteNotify', 0)
+MODELS_ACTIONS.set('NotificationQueue/erase', 0)
 
 /* PREMIUM CONFIG */
 MODELS_ACTIONS.set('PremiumPeriods/createPeriod', 2)
