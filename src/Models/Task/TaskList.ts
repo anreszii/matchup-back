@@ -39,7 +39,7 @@ export class TaskList {
     let result = await this._checkUserList(userDocument)
     if (result) return this._loadTasksFromID(result)
 
-    let tasks = await this.create({ owner: userDocument, tasks: [] })
+    let tasks = await this.create({ owner: userDocument._id, tasks: [] })
     return this._loadTasksFromID(tasks)
   }
 
@@ -247,11 +247,18 @@ export class TaskList {
     return task.save()
   }
 
-  private static _loadTasksFromID(
+  private static async _loadTasksFromID(
     this: ReturnModelType<typeof TaskList>,
     list: DocumentType<TaskList>,
   ) {
     return Promise.all([list.getDaily(), list.getWeekly()])
+      .then(async (tasks) => {
+        list.save()
+        return tasks
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private static async _checkUserList(
