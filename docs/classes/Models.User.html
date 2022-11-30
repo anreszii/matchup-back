@@ -19,7 +19,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">User</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L34">src/Models/User/User.ts:34</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L37">src/Models/User/User.ts:37</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -45,6 +45,7 @@
 <a href="Models.User.html#setPrefix-2" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Prefix</span></a>
 <a href="Models.User.html#validatePassword" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>validate<wbr/>Password</span></a>
 <a href="Models.User.html#setPassword" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Password</span></a>
+<a href="Models.User.html#notify" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>notify</span></a>
 <a href="Models.User.html#getSubscribers" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Subscribers</span></a>
 <a href="Models.User.html#hasSubscriber" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>has<wbr/>Subscriber</span></a>
 <a href="Models.User.html#addSubscriber" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>add<wbr/>Subscriber</span></a>
@@ -61,8 +62,10 @@
 <a href="Models.User.html#buy" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>buy</span></a>
 <a href="Models.User.html#addMP" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>addMP</span></a>
 <a href="Models.User.html#_getTestRelations" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_get<wbr/>Test<wbr/>Relations</span></a>
+<a href="Models.User.html#_getNotificationQueue" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_get<wbr/>Notification<wbr/>Queue</span></a>
 <a href="Models.User.html#_checkPremium" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_check<wbr/>Premium</span></a>
 <a href="Models.User.html#_extendPremiumStatus" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_extend<wbr/>Premium<wbr/>Status</span></a>
+<a href="Models.User.html#_getRelationRecordsForUsers" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>_get<wbr/>Relation<wbr/>Records<wbr/>For<wbr/>Users</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Constructors</h3>
@@ -99,7 +102,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L71">src/Models/User/User.ts:71</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L74">src/Models/User/User.ts:74</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="findByEmail" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>find<wbr/>By<wbr/>Email</span><a href="#findByEmail" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -114,7 +117,7 @@
 <h5>email: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L80">src/Models/User/User.ts:80</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L83">src/Models/User/User.ts:83</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getPublicData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>get<wbr/>Public<wbr/>Data</span><a href="#getPublicData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -129,7 +132,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L86">src/Models/User/User.ts:86</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L89">src/Models/User/User.ts:89</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="addPrefix" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>add<wbr/>Prefix</span><a href="#addPrefix" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -142,7 +145,7 @@
 <h5>prefix: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L93">src/Models/User/User.ts:93</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L96">src/Models/User/User.ts:96</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getPrefixes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>get<wbr/>Prefixes</span><a href="#getPrefixes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -150,7 +153,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L100">src/Models/User/User.ts:100</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L103">src/Models/User/User.ts:103</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setPrefix" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>set<wbr/>Prefix</span><a href="#setPrefix" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -167,11 +170,11 @@
 <h5>prefix: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L108">src/Models/User/User.ts:108</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L111">src/Models/User/User.ts:111</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="generateTestData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>generate<wbr/>Test<wbr/>Data</span><a href="#generateTestData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="generateTestData.generateTestData-1">generate<wbr/>Test<wbr/>Data<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, testDocumentsCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, needRelation<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#generateTestData.generateTestData-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="generateTestData.generateTestData-1">generate<wbr/>Test<wbr/>Data<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, testDocumentsCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, needRelation<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#generateTestData.generateTestData-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -182,9 +185,9 @@
 <h5>testDocumentsCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 4</span></h5></li>
 <li>
 <h5>needRelation: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L122">src/Models/User/User.ts:122</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L125">src/Models/User/User.ts:125</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getTestData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>get<wbr/>Test<wbr/>Data</span><a href="#getTestData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -197,7 +200,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L143">src/Models/User/User.ts:143</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L146">src/Models/User/User.ts:146</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="deleteTestData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>delete<wbr/>Test<wbr/>Data</span><a href="#deleteTestData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -210,7 +213,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L150">src/Models/User/User.ts:150</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L153">src/Models/User/User.ts:153</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getGRI" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>getGRI</span><a href="#getGRI" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -225,7 +228,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L160">src/Models/User/User.ts:160</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L163">src/Models/User/User.ts:163</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="getRandomID" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>RandomID</span><a href="#getRandomID" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -233,7 +236,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L359">src/Models/User/User.ts:359</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L374">src/Models/User/User.ts:374</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_generateTestDocument" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagPrivate">Private</code> <span>_generate<wbr/>Test<wbr/>Document</span><a href="#_generateTestDocument" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -246,7 +249,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">, </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">IObjectWithTypegooseFunction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L367">src/Models/User/User.ts:367</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L382">src/Models/User/User.ts:382</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getRandomNickname" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Random<wbr/>Nickname</span><a href="#_getRandomNickname" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -259,7 +262,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L396">src/Models/User/User.ts:396</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L411">src/Models/User/User.ts:411</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getRandomUsername" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Random<wbr/>Username</span><a href="#_getRandomUsername" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -272,7 +275,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L405">src/Models/User/User.ts:405</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L420">src/Models/User/User.ts:420</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getRandomEmail" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Random<wbr/>Email</span><a href="#_getRandomEmail" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -285,7 +288,7 @@
 <h5>this: <span class="tsd-signature-type">ReturnModelType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L413">src/Models/User/User.ts:413</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L428">src/Models/User/User.ts:428</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setPrefix-2" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Prefix</span><a href="#setPrefix-2" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -300,11 +303,11 @@
 <h5>prefix: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L171">src/Models/User/User.ts:171</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L174">src/Models/User/User.ts:174</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="validatePassword" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>validate<wbr/>Password</span><a href="#validatePassword" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="validatePassword.validatePassword-1">validate<wbr/>Password<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, password<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#validatePassword.validatePassword-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="validatePassword.validatePassword-1">validate<wbr/>Password<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, password<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#validatePassword.validatePassword-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -313,13 +316,13 @@
 <h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>password: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L179">src/Models/User/User.ts:179</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L182">src/Models/User/User.ts:182</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setPassword" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Password</span><a href="#setPassword" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="setPassword.setPassword-1">set<wbr/>Password<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, password<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#setPassword.setPassword-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="setPassword.setPassword-1">set<wbr/>Password<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, password<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#setPassword.setPassword-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -328,9 +331,24 @@
 <h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>password: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L186">src/Models/User/User.ts:186</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L190">src/Models/User/User.ts:190</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="notify" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>notify</span><a href="#notify" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="notify.notify-1">notify<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span>, content<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#notify.notify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<li>
+<h5>content: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L197">src/Models/User/User.ts:197</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getSubscribers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Subscribers</span><a href="#getSubscribers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -338,7 +356,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">RelationRecord</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L197">src/Models/User/User.ts:197</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L217">src/Models/User/User.ts:217</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="hasSubscriber" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>has<wbr/>Subscriber</span><a href="#hasSubscriber" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -353,7 +371,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L215">src/Models/User/User.ts:215</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L226">src/Models/User/User.ts:226</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="addSubscriber" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Subscriber</span><a href="#addSubscriber" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -368,7 +386,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L219">src/Models/User/User.ts:219</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L230">src/Models/User/User.ts:230</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="deleteSubscriber" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>delete<wbr/>Subscriber</span><a href="#deleteSubscriber" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -383,7 +401,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L225">src/Models/User/User.ts:225</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L236">src/Models/User/User.ts:236</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getFriends" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Friends</span><a href="#getFriends" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -391,7 +409,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">RelationRecord</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L236">src/Models/User/User.ts:236</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L247">src/Models/User/User.ts:247</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="hasFriend" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>has<wbr/>Friend</span><a href="#hasFriend" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -406,7 +424,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L254">src/Models/User/User.ts:254</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L256">src/Models/User/User.ts:256</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="addFriend" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Friend</span><a href="#addFriend" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -421,7 +439,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L258">src/Models/User/User.ts:258</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L260">src/Models/User/User.ts:260</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="deleteFriend" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>delete<wbr/>Friend</span><a href="#deleteFriend" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -436,7 +454,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L264">src/Models/User/User.ts:264</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L266">src/Models/User/User.ts:266</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="addRelation" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Relation</span><a href="#addRelation" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -451,7 +469,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L275">src/Models/User/User.ts:275</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L277">src/Models/User/User.ts:277</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="dropRelation" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>drop<wbr/>Relation</span><a href="#dropRelation" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -466,7 +484,7 @@
 <h5>name: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L297">src/Models/User/User.ts:297</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L303">src/Models/User/User.ts:303</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setAvatar" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Avatar</span><a href="#setAvatar" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -481,7 +499,7 @@
 <h5>ID: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L317">src/Models/User/User.ts:317</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L331">src/Models/User/User.ts:331</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="isPremium" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Premium</span><a href="#isPremium" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -494,7 +512,7 @@
 <h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L327">src/Models/User/User.ts:327</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L342">src/Models/User/User.ts:342</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="extendPremium" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>extend<wbr/>Premium</span><a href="#extendPremium" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -509,7 +527,7 @@
 <h5>period: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L332">src/Models/User/User.ts:332</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L347">src/Models/User/User.ts:347</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="buy" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>buy</span><a href="#buy" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -524,7 +542,7 @@
 <h5>itemPrice: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L343">src/Models/User/User.ts:343</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L358">src/Models/User/User.ts:358</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="addMP" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>addMP</span><a href="#addMP" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -537,7 +555,7 @@
 <h5>amount: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L349">src/Models/User/User.ts:349</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L364">src/Models/User/User.ts:364</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getTestRelations" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Test<wbr/>Relations</span><a href="#_getTestRelations" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -552,7 +570,20 @@
 <h5>needFriendsCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 4</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L421">src/Models/User/User.ts:421</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L436">src/Models/User/User.ts:436</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getNotificationQueue" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Notification<wbr/>Queue</span><a href="#_getNotificationQueue" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_getNotificationQueue._getNotificationQueue-1">_get<wbr/>Notification<wbr/>Queue<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.NotificationQueue.html" class="tsd-signature-type" data-tsd-kind="Class">NotificationQueue</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#_getNotificationQueue._getNotificationQueue-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.NotificationQueue.html" class="tsd-signature-type" data-tsd-kind="Class">NotificationQueue</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L449">src/Models/User/User.ts:449</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_checkPremium" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_check<wbr/>Premium</span><a href="#_checkPremium" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -565,7 +596,7 @@
 <h5>this: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L434">src/Models/User/User.ts:434</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L455">src/Models/User/User.ts:455</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_extendPremiumStatus" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_extend<wbr/>Premium<wbr/>Status</span><a href="#_extendPremiumStatus" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -580,7 +611,20 @@
 <h5>months: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L446">src/Models/User/User.ts:446</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L467">src/Models/User/User.ts:467</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="_getRelationRecordsForUsers" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_get<wbr/>Relation<wbr/>Records<wbr/>For<wbr/>Users</span><a href="#_getRelationRecordsForUsers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_getRelationRecordsForUsers._getRelationRecordsForUsers-1">_get<wbr/>Relation<wbr/>Records<wbr/>For<wbr/>Users<span class="tsd-signature-symbol">(</span>users<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">RelationRecord</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#_getRelationRecordsForUsers._getRelationRecordsForUsers-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>users: <span class="tsd-signature-type">DocumentType</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.User.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">BeAnObject</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">RelationRecord</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L475">src/Models/User/User.ts:475</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
@@ -595,42 +639,42 @@
 <h3 class="tsd-anchor-link"><span>id</span><a href="#id" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L45">src/Models/User/User.ts:45</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L48">src/Models/User/User.ts:48</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="credentials" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>credentials</span><a href="#credentials" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">credentials<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Credentials</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L47">src/Models/User/User.ts:47</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L50">src/Models/User/User.ts:50</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="profile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>profile</span><a href="#profile" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">profile<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Profile</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L49">src/Models/User/User.ts:49</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L52">src/Models/User/User.ts:52</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="rating" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rating</span><a href="#rating" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">rating<span class="tsd-signature-symbol">:</span> <a href="Models.Rating.html" class="tsd-signature-type" data-tsd-kind="Class">Rating</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L56">src/Models/User/User.ts:56</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L59">src/Models/User/User.ts:59</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="premium" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>premium</span><a href="#premium" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">premium<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Premium</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L63">src/Models/User/User.ts:63</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L66">src/Models/User/User.ts:66</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="role" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>role</span><a href="#role" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">role<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">USER_ROLE</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L65">src/Models/User/User.ts:65</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L68">src/Models/User/User.ts:68</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="prefix" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>prefix</span><a href="#prefix" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">prefix<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L67">src/Models/User/User.ts:67</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L70">src/Models/User/User.ts:70</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="guild" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>guild</span><a href="#guild" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">guild<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Ref</span><span class="tsd-signature-symbol">&lt;</span><a href="Models.Guild.html" class="tsd-signature-type" data-tsd-kind="Class">Guild</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ObjectId</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L69">src/Models/User/User.ts:69</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L72">src/Models/User/User.ts:72</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="GRI" class="tsd-anchor"></a>
@@ -640,7 +684,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b7737c7/src/Models/User/User.ts#L353">src/Models/User/User.ts:353</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/anreszii/matchup-back/blob/b71d251/src/Models/User/User.ts#L368">src/Models/User/User.ts:368</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -696,6 +740,7 @@
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#setPrefix-2" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Prefix</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#validatePassword" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>validate<wbr/>Password</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#setPassword" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Password</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#notify" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>notify</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#getSubscribers" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Subscribers</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#hasSubscriber" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>has<wbr/>Subscriber</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#addSubscriber" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Subscriber</a></li>
@@ -713,8 +758,10 @@
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Models.User.html#addMP" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>addMP</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Models.User.html#GRI" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>GRI</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_getTestRelations" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_get<wbr/>Test<wbr/>Relations</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_getNotificationQueue" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_get<wbr/>Notification<wbr/>Queue</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_checkPremium" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_check<wbr/>Premium</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_extendPremiumStatus" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_extend<wbr/>Premium<wbr/>Status</a></li></ul></li></ul></nav></div></div>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_extendPremiumStatus" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_extend<wbr/>Premium<wbr/>Status</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Models.User.html#_getRelationRecordsForUsers" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>_get<wbr/>Relation<wbr/>Records<wbr/>For<wbr/>Users</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div><script src="../assets/main.js"></script></body></html>
