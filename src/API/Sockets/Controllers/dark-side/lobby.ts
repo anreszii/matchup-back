@@ -20,6 +20,7 @@ import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Comman
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 import { DISCORD_ROBOT } from '../../../../app'
+import { UserModel } from '../../../../Models/index'
 
 export const StandOff_Lobbies = new LobbyManager(
   new StandOffController(),
@@ -305,6 +306,11 @@ export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
 
   let sockets = clientServer.Aliases.get(invitedUser)
   if (!sockets) throw new TechnicalError('username', TechnicalCause.INVALID)
+
+  UserModel.findByName(invitedUser).then((user) => {
+    if (!user) return
+    user.notify(`Вас приглашает в лобби ${username}`)
+  })
 
   const invite = new DTO({ label: 'invite', lobbyID: lobby.id })
   clientServer.control(sockets).emit('invite', invite.to.JSON)

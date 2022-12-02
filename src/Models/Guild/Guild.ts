@@ -153,6 +153,9 @@ export class Guild {
     this._checkMemberPermissions(executor, PERMISSION.INVITE)
     let user = await UserModel.findByName(name)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+
+    user.notify(`Вас пригласили в клан ${this.public.name}`)
+
     return this._addInvite(user)
   }
 
@@ -164,8 +167,14 @@ export class Guild {
     this._checkMemberPermissions(executor, PERMISSION.ACCEPT_REQUEST)
     if (!this.private.requests.has(name))
       throw new TechnicalError('request', TechnicalCause.NOT_EXIST)
+
     this.members.set(name, this.private.requests.get(name)!)
     this.private.requests.delete(name)
+
+    UserModel.findByName(name).then((user) => {
+      if (!user) return
+      user.notify(`Ваш запрос в клан ${this.public.name} принят`)
+    })
 
     return true
   }
@@ -185,6 +194,12 @@ export class Guild {
     if (!this.private.requests.has(name)) return true
 
     this.private.requests.delete(name)
+
+    UserModel.findByName(name).then((user) => {
+      if (!user) return
+      user.notify(`Ваш запрос в клан ${this.public.name} отклонен`)
+    })
+
     return true
   }
 

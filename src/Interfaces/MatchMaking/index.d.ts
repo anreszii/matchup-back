@@ -94,7 +94,9 @@ export declare namespace Match {
       becomeReady(name: string): boolean
       becomeUnready(name: string): boolean
     }
-    interface Instance extends IMatchMember {}
+    interface Instance extends IMatchMember {
+      notify(content: string): Promise<boolean>
+    }
 
     interface InstanceData extends Omit<Instance, 'readyToDrop' | 'delete'> {}
 

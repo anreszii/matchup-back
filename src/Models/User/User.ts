@@ -293,8 +293,7 @@ export class User {
     user.addFriend(this.profile.username)
     this.addFriend(user.profile.username)
 
-    user.notify(`у вас появился новый друг: ${this.profile.username}`)
-    this.notify(`у вас появился новый друг: ${user.profile.username}`)
+    user.notify(`${this.profile.username} принял ваш запрос в друзья`)
 
     await Promise.all([user.save(), this.save()])
     return true
@@ -317,9 +316,6 @@ export class User {
 
     user.deleteFriend(this.profile.username)
     this.deleteFriend(name)
-
-    user.notify(`разорваны отношения с другом: ${this.profile.username}`)
-    this.notify(`разорваны отношения с другом: ${this.profile.username}`)
 
     this.addSubscriber(name)
 

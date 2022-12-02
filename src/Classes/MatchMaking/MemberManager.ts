@@ -23,6 +23,7 @@ class PlayersManager implements Match.Member.Manager {
       GRI: user.GRI,
       guildName,
       prefix: user.prefix,
+      notify: user.notify,
     } as Match.Member.Instance
 
     this._players.addMember(member as Match.Member.Instance)

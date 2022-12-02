@@ -11,6 +11,6 @@ export const UNDEFINED_MEMBER: Match.Member.InstanceData = {
   name: 'undefined',
   isReady: false,
   GRI: 0,
-}
+} as Match.Member.InstanceData
 
 export const MAX_TEAM_MEMBER = 5

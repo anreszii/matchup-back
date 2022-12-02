@@ -120,7 +120,11 @@ export class Lobby implements Match.Lobby.Instance {
 
     this.chat.join(member.name)
     this._joinDiscrod(member.name)
-    if (this.playersCount == 10) this._status = 'filled'
+    if (this.playersCount == 10) {
+      this._status = 'filled'
+      for (let member of this.members.toArray)
+        member.notify('Ваша игра найдена')
+    }
     return true
   }
 

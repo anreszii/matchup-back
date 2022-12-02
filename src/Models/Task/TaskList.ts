@@ -64,6 +64,8 @@ export class TaskList {
     if (!tasks)
       throw new TechnicalError('daily task list', TechnicalCause.CAN_NOT_ADD)
 
+    const user = await this._getOwner()
+    user.notify('Ежедневные задания обновлены')
     return tasks
   }
 
@@ -75,6 +77,8 @@ export class TaskList {
     if (!tasks)
       throw new TechnicalError('weekly task list', TechnicalCause.CAN_NOT_ADD)
 
+    const user = await this._getOwner()
+    user.notify('Еженедельные задания обновлены')
     return tasks
   }
 
