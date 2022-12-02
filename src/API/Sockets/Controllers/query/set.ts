@@ -3,6 +3,7 @@ import type { Query } from '../../Handlers/queries'
 
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../../../error'
+import { transformToRegExp } from '../../../../Utils/transformToRegExp'
 
 export async function set(model: ModelType<any>, request: DTO) {
   let query = request.content.query as unknown as Query
@@ -11,13 +12,16 @@ export async function set(model: ModelType<any>, request: DTO) {
   if (typeof query.update != 'object')
     throw new TechnicalError('query.update', TechnicalCause.INVALID_FORMAT)
 
+  const filter = transformToRegExp(query.filter)
+  const setOptions = query.update.set
+
   switch (query.update.count) {
     case 'one':
-      await model.updateOne(query.filter, query.update.set)
+      await model.updateOne(filter, setOptions)
       return true
 
     case 'many':
-      await model.updateMany(query.filter, query.update.set)
+      await model.updateMany(filter, setOptions)
       return true
 
     default:
