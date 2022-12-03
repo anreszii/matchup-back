@@ -69,26 +69,26 @@ export type MODELS_ACTION_LIST =
   | 'Guild/addToBlackList'
 
   /* Match List Model */
-  | 'MatchList/log'
-  | 'MatchList/addRecords'
-  | 'MatchList/changeRecord'
-  | 'MatchList/setScreen'
-  | 'MatchList/generateTestData'
-  | 'MatchList/getTestData'
-  | 'MatchList/deleteTestData'
+  | 'Match/log'
+  | 'Match/addRecords'
+  | 'Match/changeRecord'
+  | 'Match/setScreen'
+  | 'Match/generateTestData'
+  | 'Match/getTestData'
+  | 'Match/deleteTestData'
 
   /* Report List Model */
-  | 'ReportList/log'
-  | 'ReportList/addProof'
-  | 'ReportList/generateTestData'
-  | 'ReportList/getTestData'
-  | 'ReportList/deleteTestData'
+  | 'Report/log'
+  | 'Report/addProof'
+  | 'Report/generateTestData'
+  | 'Report/getTestData'
+  | 'Report/deleteTestData'
 
   /* Order List Model */
-  | 'OrderList/createOrder'
-  | 'OrderList/generateTestData'
-  | 'OrderList/getTestData'
-  | 'OrderList/deleteTestData'
+  | 'Order/createOrder'
+  | 'Order/generateTestData'
+  | 'Order/getTestData'
+  | 'Order/deleteTestData'
 
 /** @TODO разделить менеджеры на разные модели, чтобы можно было назначать для каждой модели свои роли(например для гильдии) */
 export const MODELS_ACTIONS: Map<MODELS_ACTION_LIST, number> = new Map()
@@ -162,13 +162,13 @@ MODELS_ACTIONS.set('Guild/getTestData', 2)
 MODELS_ACTIONS.set('Guild/deleteTestData', 2)
 
 /* Match List Model Actions */
-MODELS_ACTIONS.set('MatchList/log', 2)
-MODELS_ACTIONS.set('MatchList/addRecords', 2)
-MODELS_ACTIONS.set('MatchList/changeRecord', 2)
-MODELS_ACTIONS.set('MatchList/setScreen', 2)
-MODELS_ACTIONS.set('MatchList/generateTestData', 2)
-MODELS_ACTIONS.set('MatchList/getTestData', 2)
-MODELS_ACTIONS.set('MatchList/deleteTestData', 2)
+MODELS_ACTIONS.set('Match/log', 2)
+MODELS_ACTIONS.set('Match/addRecords', 2)
+MODELS_ACTIONS.set('Match/changeRecord', 2)
+MODELS_ACTIONS.set('Match/setScreen', 2)
+MODELS_ACTIONS.set('Match/generateTestData', 2)
+MODELS_ACTIONS.set('Match/getTestData', 2)
+MODELS_ACTIONS.set('Match/deleteTestData', 2)
 
 /* Task Types Model Actions */
 MODELS_ACTIONS.set('StaticTask/createType', 2)
@@ -177,17 +177,17 @@ MODELS_ACTIONS.set('StaticTask/getType', 2)
 MODELS_ACTIONS.set('DynamicTask/getType', 2)
 
 /* Report List Model Actions */
-MODELS_ACTIONS.set('ReportList/log', 0)
-MODELS_ACTIONS.set('ReportList/addProof', 0)
-MODELS_ACTIONS.set('ReportList/generateTestData', 2)
-MODELS_ACTIONS.set('ReportList/getTestData', 2)
-MODELS_ACTIONS.set('ReportList/deleteTestData', 2)
+MODELS_ACTIONS.set('Report/log', 0)
+MODELS_ACTIONS.set('Report/addProof', 0)
+MODELS_ACTIONS.set('Report/generateTestData', 2)
+MODELS_ACTIONS.set('Report/getTestData', 2)
+MODELS_ACTIONS.set('Report/deleteTestData', 2)
 
 /* Order List Model Actions */
-MODELS_ACTIONS.set('OrderList/createOrder', 0)
-MODELS_ACTIONS.set('OrderList/generateTestData', 2)
-MODELS_ACTIONS.set('OrderList/getTestData', 2)
-MODELS_ACTIONS.set('OrderList/deleteTestData', 2)
+MODELS_ACTIONS.set('Order/createOrder', 0)
+MODELS_ACTIONS.set('Order/generateTestData', 2)
+MODELS_ACTIONS.set('Order/getTestData', 2)
+MODELS_ACTIONS.set('Order/deleteTestData', 2)
 
 export const isValidModelAction = function isValidModelAction(
   this: Map<MODELS_ACTION_LIST, number>,
