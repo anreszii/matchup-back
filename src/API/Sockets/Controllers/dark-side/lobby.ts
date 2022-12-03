@@ -5,7 +5,6 @@ import { clientServer } from '../../clientSocketServer'
 
 import { DTO } from '../../../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../../../error'
-import { DiscordClient } from '../../../../Classes/Discord/Client'
 
 import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
 import { GAME_MAPS } from '../../../../configs/standoff_maps'
@@ -15,7 +14,6 @@ import { LobbyManager } from '../../../../Classes/MatchMaking/Lobby/Manager'
 import { isCorrectType } from '../../../../Classes/MatchMaking/Lobby/Lobby'
 import { TEAMS } from '../../../../Classes/MatchMaking/Team/Manager'
 import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
-import { COMMANDS } from '../../../../Classes/MatchMaking/Command/Manager'
 import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
@@ -50,7 +48,7 @@ setInterval(async () => {
         break
     }
   }
-}, 1000 * 3)
+}, 1000 * 10)
 
 /**
  * Обработчик для поиска лобби.

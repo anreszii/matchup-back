@@ -29,7 +29,7 @@ export class Command implements Match.Lobby.Command.Instance {
       member.isReady = false
       member.commandID = undefined
     }
-    this.chat.delete()
+    if (this.chat) this.chat.delete()
     this._deleted = true
     return true
   }
@@ -41,7 +41,7 @@ export class Command implements Match.Lobby.Command.Instance {
     let member = await PLAYERS.get(name)
     if (!this.members.addMember(member)) return false
 
-    await this.chat.join(name)
+    this.chat.join(name)
     this._checkGuildAfterJoin(member)
 
     if (!this._captain) this._captain = member.name
@@ -57,7 +57,7 @@ export class Command implements Match.Lobby.Command.Instance {
     let member = this.members.getByName(name)
     if (!member) return false
 
-    await this.chat.leave(name)
+    this.chat.leave(name)
     if (member.teamID) this._deleteTeamOfMember(member.teamID)
     this._checkGuildAfterLeave()
 

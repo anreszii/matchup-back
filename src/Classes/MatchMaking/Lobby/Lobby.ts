@@ -120,11 +120,7 @@ export class Lobby implements Match.Lobby.Instance {
 
     this.chat.join(member.name)
     this._joinDiscrod(member.name)
-    if (this.playersCount == 10) {
-      this._status = 'filled'
-      for (let member of this.members.toArray)
-        member.notify('Ваша игра найдена')
-    }
+
     return true
   }
 
@@ -145,7 +141,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
-    if (this.status != 'preparing' || this.map != undefined)
+    if (this.status != 'voting')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!GAME_MAPS.includes(map))
       throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
@@ -427,6 +423,9 @@ export class Lobby implements Match.Lobby.Instance {
       this._status == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
     ) {
+      for (let member of this.members.toArray)
+        member.notify('Ваша игра найдена')
+
       let members = this._members.membersCount
       this._counter.searching -= members
       this._counter.playing += members
