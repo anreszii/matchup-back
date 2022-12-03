@@ -27,8 +27,8 @@ export class NotificationQueue {
 
     const owner = userDocument._id
     let existedDocument = await this.findOne({ owner })
-    if (existedDocument) return existedDocument
-    return this.create({ owner })
+    if (existedDocument) return existedDocument.notifications
+    return (await this.create({ owner })).notifications
   }
 
   async push(this: DocumentType<NotificationQueue>, content: string) {
@@ -38,11 +38,7 @@ export class NotificationQueue {
   }
 
   async shift(this: DocumentType<NotificationQueue>) {
-    let notify = this.notifications.shift()
-    if (!notify) throw new TechnicalError('notify', TechnicalCause.NOT_EXIST)
-
-    await this.save()
-    return notify
+    return this.notifications[this.notifications.length - 1]
   }
 
   async readOne(this: DocumentType<NotificationQueue>, id: string) {
@@ -51,14 +47,14 @@ export class NotificationQueue {
 
     notify.info.readed = true
     await this.save()
-    return true
+    return notify
   }
 
   async readAll(this: DocumentType<NotificationQueue>) {
     for (let i = 0; i < this.notifications.length; i++)
       this.notifications[i].info.readed = true
     await this.save()
-    return true
+    return this.notifications
   }
 
   async getUnreaded(this: DocumentType<NotificationQueue>) {
@@ -79,13 +75,14 @@ export class NotificationQueue {
 
     this.notifications.splice(notifyIndex, 1)
     await this.save()
-    return true
+    return this.notifications[notifyIndex]
   }
 
   async erase(this: DocumentType<NotificationQueue>) {
+    let notifications = Array.from(this.notifications)
     this.notifications = []
     await this.save()
 
-    return true
+    return notifications
   }
 }
