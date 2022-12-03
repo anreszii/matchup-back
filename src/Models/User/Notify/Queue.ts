@@ -27,14 +27,14 @@ export class NotificationQueue {
 
     const owner = userDocument._id
     let existedDocument = await this.findOne({ owner })
-    if (existedDocument) return existedDocument.notifications
-    return (await this.create({ owner })).notifications
+    if (existedDocument) return existedDocument
+    return this.create({ owner })
   }
 
   async push(this: DocumentType<NotificationQueue>, content: string) {
     this.notifications.push(new Notify(content))
     await this.save()
-    return true
+    return this.notifications[this.notifications.length - 1]
   }
 
   async shift(this: DocumentType<NotificationQueue>) {

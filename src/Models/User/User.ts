@@ -195,15 +195,26 @@ export class User {
   }
 
   async notify(this: DocumentType<User>, content: string) {
-    if (clientServer.Aliases.isSet(this.profile.username)) {
-      const dto = new DTO({ label: 'notify', content })
-      clientServer
-        .control(clientServer.Aliases.get(this.profile.username)!)
-        .emit('notify', dto.to.JSON)
-    }
     return this._getNotificationQueue()
       .then(async (notifications) => {
-        return notifications.push(content)
+        notifications
+          .push(content)
+          .then((notify) => {
+            if (clientServer.Aliases.isSet(this.profile.username)) {
+              const dto = new DTO({
+                label: 'notify',
+                content: { id: notify.info.id, content },
+              })
+              clientServer
+                .control(clientServer.Aliases.get(this.profile.username)!)
+                .emit('notify', dto.to.JSON)
+            }
+          })
+          .catch((e) => {
+            throw e
+          })
+
+        return true
       })
       .catch((e) => {
         throw e
