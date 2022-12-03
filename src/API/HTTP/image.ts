@@ -21,11 +21,11 @@ router.post('/upload', validateToken, async (req, res, next) => {
           thumb: { [key: string]: string }
           delete_url: string
         }) => {
-          let document = await ImageModel.create({
+          const document = await ImageModel.create({
             display_url: response.thumb.url as string,
             delete_url: response.delete_url as string,
           })
-          res.send(document._id)
+          res.json({ id: document._id, display: document.display_url })
         },
       )
       .catch((e: unknown) => {
