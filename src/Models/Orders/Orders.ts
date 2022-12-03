@@ -12,7 +12,6 @@ export class Order {
   @prop({
     required: true,
     type: () => ServiceInformation,
-    default: new ServiceInformation(),
   })
   public info!: ServiceInformation
   @prop({ required: true, ref: () => User })
@@ -56,8 +55,7 @@ export class Order {
         throw new TechnicalError('user', TechnicalCause.INVALID_FORMAT)
     }
 
-    let newOrder = new this({
-      id: await this._getUniqueID(),
+    return this.create({
       owner: user,
       country,
       region,
@@ -65,11 +63,8 @@ export class Order {
       street,
       houseNumber,
       postalCode,
+      info: new ServiceInformation(),
     })
-
-    await newOrder.validate()
-    await newOrder.save()
-    return newOrder
   }
 
   public static async generateTestData(
@@ -105,13 +100,6 @@ export class Order {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
     return true
-  }
-
-  private static async _getUniqueID(this: ReturnModelType<typeof Order>) {
-    let id = uuid()
-    while (await this.findOne({ id })) id = uuid()
-
-    return id
   }
 }
 

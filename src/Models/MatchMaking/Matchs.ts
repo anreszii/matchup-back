@@ -3,7 +3,7 @@ import { MemberRecord } from './Member'
 import type { Match as IMatch } from '../../Interfaces'
 import { ImageModel } from '../Image'
 import { MapScore } from './MapScore'
-import { v4 } from 'uuid'
+import { v4 as uuid } from 'uuid'
 import { getRandom } from '../../Utils/math'
 import { MatchListModel, UserModel } from '../index'
 import { Statistic } from './Statistic'
@@ -14,7 +14,6 @@ export class Match {
   @prop({
     required: true,
     type: () => ServiceInformation,
-    default: new ServiceInformation(),
     _id: false,
   })
   public info!: ServiceInformation
@@ -35,8 +34,14 @@ export class Match {
     score: MapScore,
     image?: string,
   ) {
-    let document = new this({ id, game, members, score, screen: image })
-    return document.save()
+    return this.create({
+      id,
+      game,
+      members,
+      score,
+      screen: image,
+      info: new ServiceInformation(),
+    })
   }
 
   async addRecords(this: DocumentType<Match>, ...records: MemberRecord[]) {
@@ -118,8 +123,8 @@ export class Match {
   }
 
   private static async getRandomID() {
-    let id = v4()
-    while (await MatchListModel.findOne({ id })) id = v4()
+    let id = uuid()
+    while (await MatchListModel.findOne({ id })) id = uuid()
     return id
   }
 

@@ -6,13 +6,13 @@ import { Author } from './Author'
 
 export class Message implements IChat.Message {
   constructor(message: IChat.Message) {
+    this.info = new ServiceInformation()
     this.author = message.author
     this.content = message.content
   }
   @prop({
     required: true,
     type: () => ServiceInformation,
-    default: new ServiceInformation(),
     _id: false,
   })
   info!: ServiceInformation

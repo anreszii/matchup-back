@@ -9,6 +9,11 @@ import { ChatMember } from './Member'
 import { Message } from './Message'
 
 class ChatServiceInformation extends ServiceInformation {
+  constructor(entity: string, type: IChat.Type) {
+    super()
+    this.entityId = entity
+    this.type = type
+  }
   @prop({ required: true })
   entityId!: string
   @prop({ required: true })
@@ -19,7 +24,6 @@ export class Chat {
   @prop({
     required: true,
     type: () => ChatServiceInformation,
-    default: new ChatServiceInformation(),
     _id: false,
   })
   info!: ChatServiceInformation
@@ -39,9 +43,7 @@ export class Chat {
     id: string,
   ) {
     let chat = new this()
-    chat.info.id = `${type}-${uuid()}`
-    chat.info.entityId = id
-    chat.info.type = type
+    chat.info = new ChatServiceInformation(id, type)
 
     await chat.save()
     return chat

@@ -9,7 +9,6 @@ export class Report {
     required: true,
     unique: true,
     type: () => ServiceInformation,
-    default: new ServiceInformation(),
     _id: false,
   })
   public info!: ServiceInformation
@@ -29,13 +28,13 @@ export class Report {
     describe: string,
     proof?: string,
   ) {
-    let document = new this({
+    return this.create({
       game,
       reason,
       describe,
       proof,
+      info: new ServiceInformation(),
     })
-    return document.save()
   }
 
   public static async addProof(
