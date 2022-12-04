@@ -111,7 +111,7 @@ export class Team implements Match.Member.Team.Instance {
 
   private async _checkChat() {
     if (this._chat) return
-    this._chat = await CLIENT_CHATS.spawn('team', `team-${this._id}`)
+    this._chat = await CLIENT_CHATS.spawn('team', `team#${this._id}`)
 
     for (let member of this._members.values()) this._chat.join(member.name)
   }

@@ -43,7 +43,6 @@ setInterval(async () => {
         if (lobby.readyToStart) {
           sendStartIventToLobby(lobby)
           await lobby.start()
-          await lobby.stop()
         }
         break
     }
@@ -114,7 +113,7 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   await lobby.join(username)
   return {
     lobbyID: lobby.id,
-    chatID: lobby.chat!.id,
+    chatID: lobby.room!.id,
   }
 }
 CONTROLLERS.set('find_lobby', find_lobby)
@@ -473,11 +472,7 @@ function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
     status: lobby.status,
     players: lobby.players,
   })
-  for (let member of lobby.players) {
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
-  }
+  lobby.room.send('lobby', dto)
 }
 
 function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
@@ -486,10 +481,7 @@ function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
     lobby: lobby.id,
     players: lobby.players,
   })
-  for (let member of lobby.players)
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
+  lobby.room.send('lobby', dto)
 }
 
 function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
@@ -504,18 +496,12 @@ function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
     maps: GAME_MAPS,
     votes: lobby.votes,
   })
-  for (let member of lobby.players)
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
+  lobby.room.send('lobby', dto)
 }
 
 function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'start',
   })
-  for (let member of lobby.players)
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
+  lobby.room.send('lobby', dto)
 }

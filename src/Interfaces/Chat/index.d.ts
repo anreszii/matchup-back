@@ -1,3 +1,4 @@
+import { DTO } from '../index'
 import { IEntity, IManager } from '../Manager'
 
 export declare namespace IChat {
@@ -10,6 +11,7 @@ export declare namespace IChat {
     join(user: string): Promise<true> | never
     leave(user: string): Promise<true> | never
     message(msg: Message): Promise<true> | never
+    send(event: string, content: DTO.Object): void
     drop(): Promise<true> | never
   }
 

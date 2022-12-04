@@ -29,7 +29,7 @@ export class Lobby implements Match.Lobby.Instance {
     map: string
   }[] = []
   private _map?: string
-  private _chat!: IChat.Controller
+  private _room!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
   private _deleted = false
@@ -40,7 +40,7 @@ export class Lobby implements Match.Lobby.Instance {
     private _maxCommandSize: number,
     private _controller: Match.Controller,
   ) {
-    CLIENT_CHATS.spawn('lobby', _id).then((chat) => (this._chat = chat))
+    CLIENT_CHATS.spawn('lobby', _id).then((chat) => (this._room = chat))
     this._game = _controller.gameName
     this._commands.set(
       'spectators',
@@ -78,12 +78,12 @@ export class Lobby implements Match.Lobby.Instance {
   async delete(): Promise<true> {
     for (let [_, command] of this._commands) command.delete()
     for (let member of this.members.values()) {
-      this.chat.leave(member.name)
+      this.room.leave(member.name)
       this._leaveDiscord(member.name)
       member.lobbyID = undefined
     }
 
-    this.chat.delete()
+    this.room.delete()
     return true
   }
 
@@ -118,7 +118,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.addMembers(member))) return false
     if (!this._joinCommand(member)) return false
 
-    this.chat.join(member.name)
+    this.room.join(member.name)
     this._joinDiscrod(member.name)
 
     return true
@@ -134,7 +134,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(name))) return false
     if (!this._leaveCommand(member)) return false
 
-    this.chat.leave(member.name)
+    this.room.leave(member.name)
     this._leaveDiscord(member.name)
     this._status = 'searching'
     return true
@@ -296,12 +296,12 @@ export class Lobby implements Match.Lobby.Instance {
     return this._discordClient
   }
 
-  get chat(): IChat.Controller {
-    return this._chat
+  get room(): IChat.Controller {
+    return this._room
   }
 
-  set chat(instance: IChat.Controller) {
-    this._chat = instance
+  set room(instance: IChat.Controller) {
+    this._room = instance
   }
 
   set counter(value: Match.Lobby.Counter) {
@@ -440,10 +440,10 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _checkChat() {
-    if (this._chat) return
+    if (this._room) return
 
-    this._chat = await CLIENT_CHATS.spawn('lobby', this._id)
-    for (let member of this._members.values()) this._chat.join(member.name)
+    this._room = await CLIENT_CHATS.spawn('lobby', `lobby#${this._id}`)
+    for (let member of this._members.values()) this._room.join(member.name)
   }
 
   private get _maxTeamSize() {

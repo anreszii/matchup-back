@@ -248,7 +248,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
     this._chat = await CLIENT_CHATS.spawn(
       'command',
-      `lobby-${this._lobbyID}/${this._commandType}`,
+      `lobby#${this._lobbyID}-${this._commandType}`,
     )
     for (let member of this._members.values()) this._chat.join(member.name)
   }

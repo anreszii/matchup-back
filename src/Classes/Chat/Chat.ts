@@ -19,7 +19,7 @@ export class Chat implements IChat.Controller {
   async join(user: string): Promise<true> {
     if (!this._document.hasMember(user)) await this._document.join(user)
 
-    this._namespace.control(this.id).join(this._namespace.Aliases.get(user)!)
+    this._namespace.control(this.room).join(this._namespace.Aliases.get(user)!)
 
     const systemMessage = new Message('system', `${user} joined`)
     await this.message(systemMessage)
@@ -29,7 +29,7 @@ export class Chat implements IChat.Controller {
   async leave(user: string): Promise<true> {
     if (this._document.hasMember(user)) await this._document.leave(user)
 
-    this._namespace.control(this.id).leave(this._namespace.Aliases.get(user)!)
+    this._namespace.control(this.room).leave(this._namespace.Aliases.get(user)!)
 
     const systemMessage = new Message('system', `${user} leaved`)
     await this.message(systemMessage)
@@ -51,9 +51,13 @@ export class Chat implements IChat.Controller {
       message,
     })
     this._document.message(message)
-    this._namespace.control(this.id).emit('chat', dto.to.JSON)
+    this._namespace.control(this.room).emit('chat', dto.to.JSON)
 
     return true
+  }
+
+  async send(event: string, content: DTO) {
+    this._namespace.control(this.room).emit(event, content.to.JSON)
   }
 
   async drop(): Promise<true> {
@@ -76,6 +80,10 @@ export class Chat implements IChat.Controller {
 
   get id(): string {
     return this._document.info.id
+  }
+
+  get room(): string {
+    return this._document.info.entityId
   }
 
   get type(): IChat.Type {
