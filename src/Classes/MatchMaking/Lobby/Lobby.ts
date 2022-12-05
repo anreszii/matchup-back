@@ -204,7 +204,7 @@ export class Lobby implements Match.Lobby.Instance {
   get votes() {
     let result: { [key: string]: number } = {}
     for (let i = 0; i < this._votes.length; i++) {
-      if (!result[this._votes[i].map]) result[this._votes[i].map] = 1
+      if (!result[this._votes[i].map]) result[this._votes[i].map] = 0
       result[this._votes[i].map]++
     }
 
