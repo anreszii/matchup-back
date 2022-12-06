@@ -23,8 +23,9 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
 export interface Query {
   method: 'get' | 'set'
   model: string
-  filter: Object
   needFeedback: boolean
+  aggregation?: Object
+  filter?: Object
   fields?: string
   update?: {
     count: 'one' | 'many'

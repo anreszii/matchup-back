@@ -9,7 +9,14 @@ export async function get(
   request: DTO,
 ): Promise<unknown | unknown[]> {
   let query = request.content.query as unknown as Query
-  let documents = await model.find(query.filter, query.fields)
+  if (query.aggregation && query.aggregation instanceof Array) {
+    let documents = await model.aggregate(query.aggregation)
+    if (!documents)
+      throw new TechnicalError('document', TechnicalCause.NOT_EXIST)
+
+    return documents
+  }
+  let documents = await model.find(query.filter!, query.fields)
   if (!documents) throw new TechnicalError('document', TechnicalCause.NOT_EXIST)
 
   return documents
