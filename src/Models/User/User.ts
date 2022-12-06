@@ -340,7 +340,7 @@ export class User {
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
     if (this.profile.avatar) ImageModel.erase(this.profile.avatar)
 
-    this.profile.avatar = ID
+    this.profile.avatar = image._id
     await this.save()
 
     return true
@@ -485,7 +485,7 @@ export class User {
     for (let user of users) {
       let record = new RelationRecord(
         user.profile.username,
-        user.profile.avatar,
+        user.profile.avatar as unknown as string,
       )
       promises.push(record.load())
       result.push(record)

@@ -15,8 +15,8 @@ export class PublicInfo {
   GRI!: number
   @prop({ required: true, default: 'Добро пожаловать!' })
   description!: string
-  @prop()
-  profileImage?: string
+  @prop({ ref: () => Image })
+  profileImage?: Ref<Image>
 }
 
 export class Terms {

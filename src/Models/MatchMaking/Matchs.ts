@@ -1,7 +1,7 @@
-import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 import { MemberRecord } from './Member'
 import type { Match as IMatch } from '../../Interfaces'
-import { ImageModel } from '../Image'
+import { Image, ImageModel } from '../Image'
 import { MapScore } from './MapScore'
 import { v4 as uuid } from 'uuid'
 import { getRandom } from '../../Utils/math'
@@ -23,8 +23,8 @@ export class Match {
   public members!: MemberRecord[]
   @prop({ required: true, _id: false })
   public score!: MapScore
-  @prop()
-  public screen?: string
+  @prop({ ref: () => Image })
+  public screen?: Ref<Image>
 
   public static log(
     this: ReturnModelType<typeof Match>,
@@ -71,7 +71,7 @@ export class Match {
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
     if (this.screen) ImageModel.erase(this.screen)
 
-    this.screen = ID
+    this.screen = image._id
     await this.save()
 
     return true

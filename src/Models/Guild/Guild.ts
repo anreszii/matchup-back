@@ -334,7 +334,7 @@ export class Guild {
     if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
     if (this.public.profileImage) ImageModel.erase(this.public.profileImage)
 
-    this.public.profileImage = ID
+    this.public.profileImage = image._id
     await this.save()
 
     return true

@@ -1,5 +1,4 @@
 import { prop } from '@typegoose/typegoose'
-import { v4 as uuid } from 'uuid'
 import { IChat } from '../../Interfaces/index'
 import { ServiceInformation } from '../ServiceInformation'
 import { Author } from './Author'
