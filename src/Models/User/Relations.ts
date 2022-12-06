@@ -1,12 +1,13 @@
-import { prop } from '@typegoose/typegoose'
+import { prop, Ref } from '@typegoose/typegoose'
 import { Loadable } from '../../Interfaces/index'
 import { Image, ImageModel } from '../Image'
+import { User } from './User'
 
 export class Relations {
-  @prop({ type: () => String, required: true, default: [] })
-  public friends!: string[]
-  @prop({ type: () => String, required: true, default: [] })
-  public subscribers!: string[]
+  @prop({ ref: () => User, required: true, default: [] })
+  public friends!: Ref<User>[]
+  @prop({ ref: () => User, required: true, default: [] })
+  public subscribers!: Ref<User>[]
 }
 
 export class RelationRecord implements Loadable {
