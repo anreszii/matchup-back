@@ -10,7 +10,6 @@ import {
 import { ModelsManager } from '../../../../Classes/RoleManager/ModelsRolesManager'
 
 import { TechnicalCause, TechnicalError } from '../../../../error'
-import { transformToRegExp } from '../../../../Utils/transformToRegExp'
 
 let ModelsRoleManager = new ModelsManager()
 
@@ -63,8 +62,7 @@ export async function syscall(request: DTO) {
           )
 
         case 'object':
-          const filter = transformToRegExp(query.filter)
-          let document = await model.findOne(filter)
+          let document = await model.findOne(query.filter)
           if (!document)
             throw new TechnicalError('document', TechnicalCause.NOT_EXIST)
 
