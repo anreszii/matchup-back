@@ -8,6 +8,7 @@ let router = Router()
 router.use('/api/user', require('./user'))
 router.use('/api/vk', require('./vk'))
 router.use('/api/image', require('./image'))
+router.use('/api/results', require('./match_result'))
 
 router.use(function (
   errorObject: MatchUpError | MongoError.ValidationError | MongoServerError,
