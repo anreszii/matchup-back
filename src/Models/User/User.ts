@@ -12,7 +12,14 @@ import { Profile } from './Profile'
 import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
 
-import { NotificationModel, TaskListModel, UserModel } from '../'
+import {
+  MatchListModel,
+  NotificationModel,
+  TaskListModel,
+  UserModel,
+} from '../'
+
+import { Match } from '../MatchMaking/Matchs'
 import { Guild } from '../Guild/Guild'
 
 import { generatePassword } from '../../Utils/passwordGenerator'
@@ -71,6 +78,8 @@ export class User {
   prefix?: string
   @prop({ ref: () => Guild })
   guild?: Ref<Guild>
+  @prop({ ref: () => Match, default: [] })
+  match_list!: Ref<Match>[]
 
   static async findByName(
     this: ReturnModelType<typeof User>,
@@ -349,6 +358,17 @@ export class User {
   /* SIMPLE ACTIONS */
   async setAvatar(this: DocumentType<User>, ID: string) {
     this.profile.avatar = ID
+    await this.save()
+
+    return true
+  }
+
+  async addMatchLog(this: DocumentType<User>, ID: Types.ObjectId) {
+    if (!(await MatchListModel.findById(ID)))
+      throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
+    const set = new Set(this.match_list.map((value) => String(value)))
+    set.add(String(ID))
+    this.match_list = Array.from(set) as unknown as Types.ObjectId[]
     await this.save()
 
     return true
