@@ -26,7 +26,7 @@ import { PERIODS, Premium } from './Premium'
 import { NotificationQueue } from './Notify/Queue'
 import { clientServer } from '../../API/Sockets/clientSocketServer'
 import { DTO } from '../../Classes/DTO/DTO'
-import { Types } from 'mongoose'
+import { isValidObjectId, Types } from 'mongoose'
 
 class Prefixes {
   @prop({ required: true })
@@ -226,6 +226,15 @@ export class User {
 
   /* SUBSCRIBERS */
 
+  async getSubscribers() {
+    let promises = []
+    for (let subscriber of this.profile.relations.subscribers)
+      promises.push(UserModel.findById(subscriber))
+
+    let users = (await Promise.all(promises)) as DocumentType<User>[]
+    return this._getRelationRecordsForUsers(users)
+  }
+
   hasSubscriber(this: DocumentType<User>, id: Types.ObjectId) {
     return this.profile.relations.subscribers.includes(id)
   }
@@ -246,6 +255,15 @@ export class User {
   }
 
   /* FRIENDS */
+
+  async getFriends() {
+    let promises = []
+    for (let friend of this.profile.relations.friends)
+      promises.push(UserModel.findById(friend))
+
+    let users = (await Promise.all(promises)) as DocumentType<User>[]
+    return this._getRelationRecordsForUsers(users)
+  }
 
   hasFriend(this: DocumentType<User>, id: Types.ObjectId) {
     return this.profile.relations.friends.includes(id)
@@ -268,21 +286,25 @@ export class User {
 
   /* RELATION ACTIONS */
 
-  async addRelation(this: DocumentType<User>, id: Types.ObjectId) {
-    if (!id || id == this._id)
-      throw new TechnicalError('name', TechnicalCause.REQUIRED)
-    if (this.hasFriend(id))
+  async addRelation(this: DocumentType<User>, id: Types.ObjectId | string) {
+    if (!id) throw new TechnicalError('id', TechnicalCause.REQUIRED)
+
+    let user
+    if (!isValidObjectId(id)) user = await UserModel.findByName(id as string)
+    else user = await UserModel.findById(id)
+
+    if (!user || String(this._id) == String(user._id))
+      throw new TechnicalError('id', TechnicalCause.INVALID)
+
+    if (this.hasFriend(user._id))
       throw new TechnicalError('user relation', TechnicalCause.ALREADY_EXIST)
 
-    let user = await UserModel.findById(id)
-    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-
-    if (!this.hasSubscriber(id)) {
+    if (!this.hasSubscriber(user._id)) {
       user.addSubscriber(this._id)
       await user.save()
       return true
     }
-    this.deleteSubscriber(id)
+    this.deleteSubscriber(user._id)
 
     user.addFriend(this._id)
     this.addFriend(user._id)
@@ -293,12 +315,19 @@ export class User {
     return true
   }
 
-  async dropRelation(this: DocumentType<User>, id: Types.ObjectId) {
-    if (!id) throw new TechnicalError('name', TechnicalCause.REQUIRED)
-    if (!this.hasFriend(id))
+  async dropRelation(this: DocumentType<User>, id: Types.ObjectId | string) {
+    if (!id) throw new TechnicalError('id', TechnicalCause.REQUIRED)
+
+    let user
+    if (!isValidObjectId(id)) user = await UserModel.findByName(id as string)
+    else user = await UserModel.findById(id)
+
+    if (!user || String(this._id) == String(user._id))
+      throw new TechnicalError('id', TechnicalCause.INVALID)
+
+    if (!this.hasFriend(user._id))
       throw new TechnicalError('user relation', TechnicalCause.NOT_EXIST)
 
-    let user = await UserModel.findById(id)
     if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     if (!user.hasFriend(this._id)) {
       if (!user.hasSubscriber(this._id))
@@ -309,9 +338,9 @@ export class User {
     }
 
     user.deleteFriend(this._id)
-    this.deleteFriend(id)
+    this.deleteFriend(user._id)
 
-    this.addSubscriber(id)
+    this.addSubscriber(user._id)
 
     await Promise.all([user.save(), this.save()])
     return true
@@ -319,11 +348,7 @@ export class User {
 
   /* SIMPLE ACTIONS */
   async setAvatar(this: DocumentType<User>, ID: string) {
-    let image = await ImageModel.findById(ID)
-    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    if (this.profile.avatar) ImageModel.erase(this.profile.avatar)
-
-    this.profile.avatar = image._id
+    this.profile.avatar = ID
     await this.save()
 
     return true

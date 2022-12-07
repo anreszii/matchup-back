@@ -23,8 +23,8 @@ export class Match {
   public members!: MemberRecord[]
   @prop({ required: true, _id: false })
   public score!: MapScore
-  @prop({ ref: () => Image })
-  public screen?: Ref<Image>
+  @prop()
+  public screen?: string
 
   public static log(
     this: ReturnModelType<typeof Match>,
@@ -67,11 +67,7 @@ export class Match {
   }
 
   async setScreen(this: DocumentType<Match>, ID: string) {
-    let image = await ImageModel.findById(ID)
-    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    if (this.screen) ImageModel.erase(this.screen)
-
-    this.screen = image._id
+    this.screen = ID
     await this.save()
 
     return true

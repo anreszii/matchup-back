@@ -17,33 +17,16 @@ router.post('/upload', validateToken, async (req, res, next) => {
       name: `${new Date().toDateString()}-${image.name}`,
     })
       .then(
-        async (response: {
+        (response: {
           thumb: { [key: string]: string }
           delete_url: string
         }) => {
-          const document = await ImageModel.create({
-            display_url: response.thumb.url as string,
-            delete_url: response.delete_url as string,
-          })
-          res.json({ id: document._id, display: document.display_url })
+          res.json({ display: response.thumb.url })
         },
       )
       .catch((e: unknown) => {
         next(e)
       })
-  } catch (e) {
-    next(e)
-  }
-})
-
-router.get('/:id', validateToken, async (req, res, next) => {
-  try {
-    let id = req.params.id
-    if (!id) throw new TechnicalError('id', TechnicalCause.REQUIRED)
-
-    let image = await ImageModel.findById(id)
-    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    res.send(image.display_url)
   } catch (e) {
     next(e)
   }

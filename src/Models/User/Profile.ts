@@ -30,8 +30,11 @@ export class Profile {
   username!: string
   @prop({ required: true, default: 0 })
   balance!: number
-  @prop({ ref: () => Image })
-  avatar?: Ref<Image>
+  @prop({
+    default:
+      'https://i.ibb.co/7tSmbVN/Sun-Dec-04-2022-7-EBD0-D60-D3-C4-45-C4-B451-244736-A02898-png.png',
+  })
+  avatar?: string
   @prop({ required: true, default: new Relations(), _id: false })
   relations!: Relations
   @prop()

@@ -330,11 +330,7 @@ export class Guild {
 
   async changeImage(this: DocumentType<Guild>, executor: string, ID: string) {
     this._checkMemberPermissions(executor, PERMISSION.CHANGE_PUBLIC_INFO)
-    let image = await ImageModel.findById(ID)
-    if (!image) throw new TechnicalError('image', TechnicalCause.NOT_EXIST)
-    if (this.public.profileImage) ImageModel.erase(this.public.profileImage)
-
-    this.public.profileImage = image._id
+    this.public.profileImage = ID
     await this.save()
 
     return true
