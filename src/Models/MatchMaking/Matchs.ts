@@ -10,13 +10,22 @@ import { Statistic } from './Statistic'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { ServiceInformation } from '../ServiceInformation'
 
+export class MatchServiceInformation extends ServiceInformation {
+  constructor(lobbyID: string) {
+    super()
+    this.lobbyID = lobbyID
+  }
+  @prop({ required: true })
+  lobbyID!: string
+}
+
 export class Match {
   @prop({
     required: true,
-    type: () => ServiceInformation,
+    type: () => MatchServiceInformation,
     _id: false,
   })
-  public info!: ServiceInformation
+  public info!: MatchServiceInformation
   @prop({ required: true })
   public game!: IMatch.Manager.supportedGames
   @prop({ required: true, default: [], type: () => MemberRecord, _id: false })
@@ -40,7 +49,7 @@ export class Match {
       members,
       score,
       screen: image,
-      info: new ServiceInformation(),
+      info: new MatchServiceInformation(id),
     })
   }
 
