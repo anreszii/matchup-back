@@ -1,51 +1,109 @@
-import { Router } from 'express'
+import type fileUpload = require('express-fileupload')
+import { Response, Router } from 'express'
 import { DTO } from '../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { validateToken } from '../../Token/index'
 import { StandOff_Lobbies } from '../Sockets/index'
+import { parseResults } from '../../Utils/resultParser'
+import FormData = require('form-data')
+import { IncomingMessage } from 'http'
+import { Match } from '../../Interfaces/index'
+const uploader = require('imgbb-uploader')
 
 const router = Router()
-router.post('/upload', validateToken, async (req, res, next) => {
-  try {
-    if (!req.files) throw new TechnicalError('files', TechnicalCause.REQUIRED)
-    if (!req.files.screen || req.files.screen instanceof Array)
-      throw new TechnicalError('screen', TechnicalCause.INVALID_FORMAT)
+router.post(
+  '/upload',
+  validateToken,
+  async (expressRequest, expressResponse, next) => {
+    try {
+      if (!expressRequest.files)
+        throw new TechnicalError('files', TechnicalCause.REQUIRED)
+      if (
+        !expressRequest.files.screen ||
+        expressRequest.files.screen instanceof Array
+      )
+        throw new TechnicalError('screen', TechnicalCause.INVALID_FORMAT)
 
-    const { lobby_id, payload } = req.body
-    if (!lobby_id) throw new TechnicalError('lobby id', TechnicalCause.REQUIRED)
+      const { lobby_id, payload } = expressRequest.body
+      if (!lobby_id)
+        throw new TechnicalError('lobby id', TechnicalCause.REQUIRED)
 
-    const lobby = StandOff_Lobbies.get(lobby_id)
-    if (!lobby) throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+      const lobby = StandOff_Lobbies.get(lobby_id)
+      if (!lobby || lobby.status != 'started')
+        throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-    if (
-      !lobby.firstCommand.isCaptain(payload.username) &&
-      !lobby.secondCommand.isCaptain(payload.username)
-    )
-      throw new TechnicalError('user role', TechnicalCause.NEED_HIGHER_VALUE)
+      if (
+        !lobby.firstCommand.isCaptain(payload.username) &&
+        !lobby.secondCommand.isCaptain(payload.username)
+      )
+        throw new TechnicalError('user role', TechnicalCause.NEED_HIGHER_VALUE)
+      let body = new FormData()
 
-    res.json(new DTO({ label: 'result upload', status: 'success' }).to.JSON)
-    // uploader({
-    //   apiKey: process.env.IMGBB_KEY,
-    //   base64string: image.data.toString('base64'),
-    //   name: `${new Date().toDateString()}-${image.name}`,
-    // })
-    //   .then(
-    //     async (response: {
-    //       thumb: { [key: string]: string }
-    //       delete_url: string
-    //     }) => {
-    //       const document = await ImageModel.create({
-    //         display_url: response.thumb.url as string,
-    //         delete_url: response.delete_url as string,
-    //       })
-    //     },
-    //   )
-    //   .catch((e: unknown) => {
-    //     next(e)
-    //   })
-  } catch (e) {
-    next(e)
-  }
-})
+      body.append('img', expressRequest.files.screen.data, {
+        filename: 'image.jpg',
+        contentType: expressRequest.files.screen.mimetype,
+      })
+      body.submit(
+        {
+          method: 'post',
+          host: '217.25.93.43',
+          port: 5555,
+          path: '/recog',
+          headers: {
+            'Content-Length': body.getLengthSync(),
+          },
+        },
+        (err, formResponse) => {
+          try {
+            if (err) throw err
+            parseRespone(
+              formResponse,
+              expressResponse,
+              expressRequest.files!.screen as fileUpload.UploadedFile,
+              lobby,
+            )
+          } catch (e) {
+            next(e)
+          }
+        },
+      )
+    } catch (e) {
+      next(e)
+    }
+  },
+)
+
+function parseRespone(
+  formResponse: IncomingMessage,
+  expressResponse: Response,
+  image: fileUpload.UploadedFile,
+  lobby: Match.Lobby.Instance,
+) {
+  const chunks: any[] = []
+  if (image instanceof Array) throw new Error('array')
+
+  formResponse.on('readable', () => {
+    chunks.push(formResponse.read())
+  })
+
+  formResponse.on('end', async () => {
+    try {
+      const imgbbResponse = await uploader({
+        apiKey: process.env.IMGBB_KEY,
+        base64string: image.data.toString('base64'),
+        name: `${new Date().toDateString()}-${image.name}`,
+      })
+      const document = parseResults(chunks.join(' '), lobby.id, lobby.map!)
+      document.screen = imgbbResponse.thumb.url
+      await document.save()
+
+      return expressResponse.json(
+        new DTO({ label: 'result upload', status: 'success' }).to.JSON,
+      )
+    } catch (e) {
+      throw e
+    }
+  })
+}
 
 module.exports = router

@@ -1,8 +1,8 @@
 import { prop } from '@typegoose/typegoose'
 
 export class MapScore {
-  @prop({ required: true })
-  mapName!: string
+  @prop()
+  mapName?: string
   @prop({ required: true })
   command1!: number
   @prop({ required: true })

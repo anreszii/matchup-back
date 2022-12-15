@@ -11,7 +11,7 @@ const enum INDICATORS {
   ASSISTS = 2,
 }
 
-export function parseResults(json: string, lobby: string) {
+export function parseResults(json: string, lobby: string, map: string) {
   const result = new MatchListModel()
 
   result.game = 'StandOff2'
@@ -21,6 +21,7 @@ export function parseResults(json: string, lobby: string) {
 
   if (typeof data.score == 'string') {
     result.score = getScoreData(data.score)
+    result.score.mapName = map
   }
 
   if (data.c_ter instanceof Array)
