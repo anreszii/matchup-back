@@ -8,6 +8,7 @@ import { parseResults } from '../../Utils/resultParser'
 import FormData = require('form-data')
 import { IncomingMessage } from 'http'
 import { Match } from '../../Interfaces/index'
+import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
 const uploader = require('imgbb-uploader')
 
 const router = Router()
@@ -96,6 +97,7 @@ function parseRespone(
       const document = parseResults(chunks.join(' '), lobby.id, lobby.map!)
       document.screen = imgbbResponse.thumb.url
       await document.save()
+      await MatchModerationRecordModel.createTask(document._id)
 
       return expressResponse.json(
         new DTO({ label: 'result upload', status: 'success' }).to.JSON,

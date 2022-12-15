@@ -18,12 +18,33 @@ import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Comman
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 import { DISCORD_ROBOT } from '../../../../app'
-import { UserModel } from '../../../../Models/index'
+import { MatchListModel, UserModel } from '../../../../Models/index'
+import { MINUTE_IN_MS } from '../../../../configs/time_constants'
+import { MatchModerationRecordModel } from '../../../../Models/Moderation/ModerateMatchs'
 
 export const StandOff_Lobbies = new LobbyManager(
   new StandOffController(),
   DISCORD_ROBOT,
 )
+
+setInterval(function async() {
+  MatchModerationRecordModel.find({})
+    .then((records) => {
+      for (let record of records) {
+        if (!record.moderated) continue
+        MatchListModel.findById(record.match)
+          .then(async (match) => {
+            if (!match) {
+              await record.delete()
+              throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
+            }
+            await match.calculateResults()
+          })
+          .catch((e) => console.log(e))
+      }
+    })
+    .catch((e) => console.log(e))
+}, MINUTE_IN_MS * 30)
 
 const Searcher = new SearchEngine(StandOff_Lobbies)
 

@@ -13,6 +13,7 @@ import { Progress } from './Progress'
 import { Reward } from '../Reward'
 import { User } from '../User/User'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { UserModel } from '../index'
 
 export class Task {
   @prop({ required: true, ref: () => User })
@@ -36,6 +37,11 @@ export class Task {
   public async complete(this: DocumentType<Task>) {
     if (!this._hasRequiredPointsCount || this.flags.complete) return
 
+    const user = await UserModel.findById(this.owner)
+    if (user)
+      user.notify(
+        `Выполнено задание [${this.name}:${this.progress.requiredPoints}]`,
+      )
     this.flags.complete = true
     await this.save()
 
