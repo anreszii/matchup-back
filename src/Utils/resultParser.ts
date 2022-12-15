@@ -9,6 +9,7 @@ const enum INDICATORS {
   KILLS = 0,
   DEATHS = 1,
   ASSISTS = 2,
+  POINTS = 3,
 }
 
 export function parseResults(json: string, lobby: string, map: string) {
@@ -83,6 +84,9 @@ function getMemberStatistic(indicators: Array<unknown>) {
 
       case INDICATORS.ASSISTS:
         statistic.assists = indicatorAsNum
+        break
+      case INDICATORS.POINTS:
+        statistic.points = indicatorAsNum
         break
     }
   }

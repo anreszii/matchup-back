@@ -1,14 +1,14 @@
-import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import { MemberRecord } from './Member'
-import type { Match as IMatch } from '../../Interfaces'
-import { Image, ImageModel } from '../Image'
+import { Match as IMatch } from '../../Interfaces'
 import { MapScore } from './MapScore'
 import { v4 as uuid } from 'uuid'
 import { getRandom } from '../../Utils/math'
-import { MatchListModel, UserModel } from '../index'
+import { MatchListModel, Task, TaskListModel, User, UserModel } from '../index'
 import { Statistic } from './Statistic'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { ServiceInformation } from '../ServiceInformation'
+import { Reward } from '../Reward'
 
 export class MatchServiceInformation extends ServiceInformation {
   constructor(lobbyID: string) {
@@ -30,8 +30,8 @@ export class Match {
   public game!: IMatch.Manager.supportedGames
   @prop({ required: true, default: [], type: () => MemberRecord, _id: false })
   public members!: MemberRecord[]
-  @prop({ required: true, _id: false })
-  public score!: MapScore
+  @prop({ _id: false })
+  public score?: MapScore
   @prop()
   public screen?: string
 
@@ -51,6 +51,39 @@ export class Match {
       screen: image,
       info: new MatchServiceInformation(id),
     })
+  }
+
+  async calculateResults(this: DocumentType<Match>) {
+    const names: string[] = []
+    for (let member of this.members) names.push(member.name)
+    const users = await UserModel.find({ 'profile.username': names })
+
+    const taskCheckPromises = []
+    for (let user of users) {
+      let statistic = this.members.find(
+        (member) => user.profile.username == member.name,
+      )!.statistic
+      let result = this._resultOfMatchForMember(user.profile.username)
+      user.rating.integrate(statistic, result)
+      taskCheckPromises.push(this._checkTasksForUser(user))
+
+      switch (result) {
+        case 0:
+          user.notify(`Вы проиграли в игре ${this.info.id}`)
+          break
+        case 0.5:
+          user.notify(`У вас была ничья в игре ${this.info.id}`)
+          break
+        case 1:
+          user.notify(`Вы выиграли в игре ${this.info.id}`)
+          break
+      }
+    }
+
+    const userSavePromises = []
+    await Promise.all(taskCheckPromises)
+    for (let user of users) userSavePromises.push(user.save())
+    await Promise.all(userSavePromises)
   }
 
   async addRecords(this: DocumentType<Match>, ...records: MemberRecord[]) {
@@ -143,14 +176,104 @@ export class Match {
         this.members.push({
           name: user.profile.username,
           command: 'command1',
-          statistic: { kills: 0, deaths: 0, assists: 0 },
+          statistic: { kills: 0, deaths: 0, assists: 0, points: 0 },
         })
       else
         this.members.push({
           name: user.profile.username,
           command: 'command2',
-          statistic: { kills: 0, deaths: 0, assists: 0 },
+          statistic: { kills: 0, deaths: 0, assists: 0, points: 0 },
         })
     }
+  }
+
+  private _resultOfMatchForMember(name: string): IMatch.Result {
+    if (this.score!.command1 == this.score!.command2) return IMatch.Result.DRAW
+
+    const member = this.members.find((member) => member.name == name)
+    if (!member) throw new TechnicalError('member', TechnicalCause.NOT_EXIST)
+
+    const winnerIsFirstCommand = this.score!.command1 > this.score!.command2
+    if (winnerIsFirstCommand && member.command == 'command1')
+      return IMatch.Result.WIN
+    return IMatch.Result.LOSE
+  }
+
+  private async _checkTasksForUser(user: DocumentType<User>) {
+    const tasks: [DocumentType<Task>[], DocumentType<Task>[]] =
+      await TaskListModel.getForUser(user._id)
+    const member = this.members.find(
+      (value) => value.name == user.profile.username,
+    )
+    if (!member) throw new TechnicalError('member', TechnicalCause.REQUIRED)
+
+    const daily = tasks[0]
+    const weekly = tasks[1]
+    const promises = []
+
+    promises.push(this._checkTasks(daily, member))
+    promises.push(this._checkTasks(weekly, member))
+
+    const result = await Promise.all(promises)
+    const rewards = [...result[0], ...result[1]]
+
+    user.addMP(this._getMpFromRewards(rewards))
+    return true
+  }
+
+  private async _checkTasks(tasks: DocumentType<Task>[], member: MemberRecord) {
+    const rewards: Array<Reward> = []
+    for (let task of tasks) {
+      this._addTaskProgress(task, member)
+      let result = await task.complete()
+      if (result) rewards.push(...result)
+    }
+
+    return rewards
+  }
+
+  private async _addTaskProgress(
+    task: DocumentType<Task>,
+    member: MemberRecord,
+  ) {
+    switch (task.name) {
+      case 'Убить противников':
+        task.addProgess(member.statistic.kills)
+        break
+      case 'Выиграть':
+        if (this._resultOfMatchForMember(member.name) == IMatch.Result.WIN)
+          task.addProgess(1)
+        break
+      case 'Набрать очков':
+        task.addProgess(member.statistic.points)
+        break
+      case 'Ассистов':
+        task.addProgess(member.statistic.assists)
+        break
+      case 'Сыграть':
+        task.addProgess(1)
+        break
+      case 'Sandstone':
+        if (this.score!.mapName == 'Sandstone') task.addProgess(1)
+        break
+      case 'Rust':
+        if (this.score!.mapName == 'Rust') task.addProgess(1)
+        break
+      case 'Sakura':
+        if (this.score!.mapName == 'Sakura') task.addProgess(1)
+        break
+      case 'Zone 9':
+        if (this.score!.mapName == 'Zone 9') task.addProgess(1)
+        break
+      case 'Province':
+        if (this.score!.mapName == 'Province') task.addProgess(1)
+        break
+    }
+  }
+
+  private _getMpFromRewards(rewards: Array<Reward>) {
+    let acc = 0
+    for (let reward of rewards) if (reward.type == 'mp') acc += reward.amount
+    return acc
   }
 }

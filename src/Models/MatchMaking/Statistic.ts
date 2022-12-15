@@ -8,4 +8,6 @@ export class Statistic implements Match.Member.Statistic {
   deaths!: number
   @prop({ required: true, default: 0 })
   assists!: number
+  @prop({ required: true, default: 0 })
+  points!: number
 }
