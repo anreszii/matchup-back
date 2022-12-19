@@ -12,4 +12,10 @@ export class RatingRecord {
     },
   })
   ratingPoints!: number
+  @prop({
+    required: true,
+    default:
+      'https://i.ibb.co/hFgzCH1/Sun-Dec-04-2022-7-EBD0-D60-D3-C4-45-C4-B451-244736-A02898-png.png',
+  })
+  image!: string
 }

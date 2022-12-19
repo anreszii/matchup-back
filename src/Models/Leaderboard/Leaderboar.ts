@@ -69,7 +69,13 @@ export class Leaderboard {
     let records: Record[] = []
     const users = await UserModel.find({}, 'profile rating')
     for (let user of users)
-      records.push(this._createRecord(user.profile.username, user.GRI))
+      records.push(
+        this._createRecord(
+          user.profile.username,
+          user.GRI,
+          user.profile.avatar,
+        ),
+      )
     return records
   }
 
@@ -80,7 +86,13 @@ export class Leaderboard {
     let records: Record[] = []
     const guilds = await GuildModel.find({}, 'public')
     for (let guild of guilds)
-      records.push(this._createRecord(guild.public.name, guild.public.GRI))
+      records.push(
+        this._createRecord(
+          guild.public.name,
+          guild.public.GRI,
+          guild.public.profileImage,
+        ),
+      )
     return records
   }
 
@@ -96,11 +108,12 @@ export class Leaderboard {
    * }
    * ```
    */
-  private _createRecord(name: string, ratingPoints: number) {
+  private _createRecord(name: string, ratingPoints: number, image?: string) {
     let record = new Record()
 
     record.name = name
     record.ratingPoints = ratingPoints
+    if (image) record.image = image
 
     return record
   }
