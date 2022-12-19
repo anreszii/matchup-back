@@ -27,7 +27,7 @@ export const StandOff_Lobbies = new LobbyManager(
   DISCORD_ROBOT,
 )
 
-setInterval(function async() {
+setInterval(function () {
   MatchModerationRecordModel.find({})
     .then((records) => {
       for (let record of records) {
@@ -39,6 +39,9 @@ setInterval(function async() {
               throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
             }
             await match.calculateResults()
+            let lobby = StandOff_Lobbies.get(match.info.lobby)
+            if (!lobby) return
+            await lobby.stop()
           })
           .catch((e) => console.log(e))
       }
@@ -134,7 +137,7 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   await lobby.join(username)
   return {
     lobbyID: lobby.id,
-    chatID: lobby.room!.id,
+    chatID: lobby.chat!.id,
   }
 }
 CONTROLLERS.set('find_lobby', find_lobby)
@@ -493,7 +496,7 @@ function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
     status: lobby.status,
     players: lobby.players,
   })
-  lobby.room.send('lobby', dto)
+  lobby.chat.send('lobby', dto)
 }
 
 function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
@@ -502,7 +505,7 @@ function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
     lobby: lobby.id,
     players: lobby.players,
   })
-  lobby.room.send('lobby', dto)
+  lobby.chat.send('lobby', dto)
 }
 
 function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
@@ -517,12 +520,12 @@ function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
     maps: GAME_MAPS,
     votes: lobby.votes,
   })
-  lobby.room.send('lobby', dto)
+  lobby.chat.send('lobby', dto)
 }
 
 function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'start',
   })
-  lobby.room.send('lobby', dto)
+  lobby.chat.send('lobby', dto)
 }

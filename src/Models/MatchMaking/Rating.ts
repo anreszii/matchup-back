@@ -43,6 +43,8 @@ export class Rating {
 
     Calculator.calculateMatchResult(resultOfMatch)
     this.GRI += Calculator.RatingIndicator
+
+    return Calculator.RatingIndicator
   }
 
   private _addKills(count: number) {
