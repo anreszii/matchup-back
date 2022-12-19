@@ -10,8 +10,8 @@ export declare interface ILobby extends IEntity<string> {
   get type(): Match.Lobby.Type
   get members(): Match.Member.List
 
-  get room(): IChat.Controller
-  set room(instance: IChat.Controller)
+  get chat(): IChat.Controller
+  set chat(instance: IChat.Controller)
 
   get region(): Rating.SearchEngine.SUPPORTED_REGIONS
   set region(region: Rating.SearchEngine.SUPPORTED_REGIONS)

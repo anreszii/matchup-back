@@ -13,10 +13,10 @@ import { Reward } from '../Reward'
 export class MatchServiceInformation extends ServiceInformation {
   constructor(lobbyID: string) {
     super()
-    this.lobbyID = lobbyID
+    this.lobby = lobbyID
   }
   @prop({ required: true })
-  lobbyID!: string
+  lobby!: string
 }
 
 export class Match {
@@ -64,18 +64,25 @@ export class Match {
         (member) => user.profile.username == member.name,
       )!.statistic
       let result = this._resultOfMatchForMember(user.profile.username)
-      user.rating.integrate(statistic, result)
+      let ratingChange = user.rating.integrate(statistic, result)
+
       taskCheckPromises.push(this._checkTasksForUser(user))
 
       switch (result) {
         case 0:
-          user.notify(`Вы проиграли в игре ${this.info.id}`)
+          user.notify(
+            `Вы проиграли в игре ${this.info.id}. Изменение в рейтинге: ${ratingChange}`,
+          )
           break
         case 0.5:
-          user.notify(`У вас была ничья в игре ${this.info.id}`)
+          user.notify(
+            `У вас была ничья в игре ${this.info.id}. Изменение в рейтинге: ${ratingChange}`,
+          )
           break
         case 1:
-          user.notify(`Вы выиграли в игре ${this.info.id}`)
+          user.notify(
+            `Вы выиграли в игре ${this.info.id}. Изменение в рейтинге: ${ratingChange}`,
+          )
           break
       }
     }

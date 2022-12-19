@@ -79,12 +79,12 @@ export class Lobby implements Match.Lobby.Instance {
   async delete(): Promise<true> {
     for (let [_, command] of this._commands) command.delete()
     for (let member of this.members.values()) {
-      this.room.leave(member.name)
+      this.chat.leave(member.name)
       this._leaveDiscord(member.name)
       member.lobbyID = undefined
     }
 
-    this.room.delete()
+    this.chat.delete()
     return true
   }
 
@@ -119,7 +119,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.addMembers(member))) return false
     if (!this._joinCommand(member)) return false
 
-    this.room.join(member.name)
+    this.chat.join(member.name)
     this._joinDiscrod(member.discordNick)
 
     return true
@@ -135,7 +135,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(name))) return false
     if (!this._leaveCommand(member)) return false
 
-    this.room.leave(member.name)
+    this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick)
     this._status = 'searching'
     return true
@@ -297,11 +297,11 @@ export class Lobby implements Match.Lobby.Instance {
     return this._discordClient
   }
 
-  get room(): IChat.Controller {
+  get chat(): IChat.Controller {
     return this._room
   }
 
-  set room(instance: IChat.Controller) {
+  set chat(instance: IChat.Controller) {
     this._room = instance
   }
 
