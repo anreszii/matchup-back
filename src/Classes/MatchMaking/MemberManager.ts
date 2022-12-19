@@ -16,12 +16,15 @@ class PlayersManager implements Match.Member.Manager {
     let guild = user.guild ? await GuildModel.findById(user.guild) : undefined
     if (guild) guildName = guild.public.name
 
+    let discordNick = user.profile.discord_nickname
+    if (!discordNick) discordNick = user.profile.username
     let member = {
       id,
       name,
       isReady: false,
       GRI: user.GRI,
       guildName,
+      discordNick,
       prefix: user.prefix,
       notify: user.notify.bind(user),
     } as Match.Member.Instance

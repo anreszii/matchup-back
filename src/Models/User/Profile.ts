@@ -28,6 +28,8 @@ export class Profile {
     },
   })
   username!: string
+  @prop()
+  discord_nickname?: string
   @prop({ required: true, default: 0 })
   balance!: number
   @prop({

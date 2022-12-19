@@ -4,6 +4,7 @@ export interface IMatchMember extends IEntity<string> {
   name: string
   isReady: boolean
   GRI: number
+  discordNick: string
   commandID?: number //team id внутри лобби
   teamID?: number //глобальный team id
   lobbyID?: string

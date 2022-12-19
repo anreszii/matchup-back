@@ -13,6 +13,7 @@ import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
 import { SECOND_IN_MS } from '../../../configs/time_constants'
+import { UserModel } from '../../../Models'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -119,7 +120,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._joinCommand(member)) return false
 
     this.room.join(member.name)
-    this._joinDiscrod(member.name)
+    this._joinDiscrod(member.discordNick)
 
     return true
   }
@@ -135,7 +136,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._leaveCommand(member)) return false
 
     this.room.leave(member.name)
-    this._leaveDiscord(member.name)
+    this._leaveDiscord(member.discordNick)
     this._status = 'searching'
     return true
   }
