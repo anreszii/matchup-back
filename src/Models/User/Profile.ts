@@ -32,7 +32,7 @@ export class Profile {
   balance!: number
   @prop({
     default:
-      'https://i.ibb.co/7tSmbVN/Sun-Dec-04-2022-7-EBD0-D60-D3-C4-45-C4-B451-244736-A02898-png.png',
+      'https://i.ibb.co/hFgzCH1/Sun-Dec-04-2022-7-EBD0-D60-D3-C4-45-C4-B451-244736-A02898-png.png',
   })
   avatar?: string
   @prop({ required: true, default: new Relations(), _id: false })
