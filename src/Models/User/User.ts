@@ -470,15 +470,16 @@ export class User {
 
   private async _getTestRelations(
     this: DocumentType<User>,
-    needFriendsCount: number = 4,
+    needFriendsCount: number = 2,
   ) {
     let users = await UserModel.getTestData()
-    for (let friendsCount = 0; friendsCount < needFriendsCount; friendsCount++)
-      await this.addRelation(users[friendsCount]._id)
-    await Promise.all([
-      users[0].addRelation(this._id),
-      users[1].addRelation(this._id),
-    ])
+    let friendsCount = 0
+    for (let i = 0; i < users.length || friendsCount < needFriendsCount; i++) {
+      if (String(users[i]._id) == String(this._id)) continue
+      await this.addRelation(users[i]._id)
+      if (Math.random() > 0.5) await users[i].addRelation(this._id)
+      friendsCount++
+    }
   }
 
   private async _getNotificationQueue(
