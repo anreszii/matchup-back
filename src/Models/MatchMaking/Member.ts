@@ -7,6 +7,6 @@ export class MemberRecord {
   public name!: string
   @prop({ required: true })
   public command!: Match.Lobby.Command.Types
-  @prop({ required: true, default: new Statistic() })
+  @prop({ required: true, default: new Statistic(), _id: false })
   public statistic!: Statistic
 }
