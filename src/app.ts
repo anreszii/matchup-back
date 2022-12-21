@@ -15,7 +15,10 @@ const corsOptions = {
 import mongoose from 'mongoose'
 import { DiscordClient } from './Classes/Discord/Client'
 
-export const WS_SERVER = io()
+export const WS_SERVER = io({
+  key_file_name: `${__dirname}/key.pem`,
+  cert_file_name: `${__dirname}/cert.pem`,
+})
 export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
 const app = express()
@@ -46,11 +49,16 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
   res.json({ errors: err })
 })
 
+const fs = require('fs')
+const privateKey = fs.readFileSync(`${__dirname}/key.pem`)
+const certificate = fs.readFileSync(`${__dirname}/cert.pem`)
+require('https')
+  .createServer({ key: privateKey, cert: certificate }, app)
+  .listen(Number(process.env.HTTP_PORT), () => {
+    console.log(`Example app listening on port ${process.env.HTTP_PORT}`)
+  })
+
 WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
   if (ls)
     console.log(`listening websockets on port ${process.env.WEB_SOCKET_PORT}`)
-})
-
-app.listen(Number(process.env.HTTP_PORT!), () => {
-  console.log(`Example app listening on port ${process.env.HTTP_PORT}`)
 })
