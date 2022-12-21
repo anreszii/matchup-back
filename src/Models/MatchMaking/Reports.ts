@@ -1,17 +1,29 @@
-import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
+import { prop, ReturnModelType, DocumentType, Ref } from '@typegoose/typegoose'
 import type { Match } from '../../Interfaces/index'
 import { v4 } from 'uuid'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { ServiceInformation } from '../ServiceInformation'
+import { Types } from 'mongoose'
+import { UserModel } from '..'
+import { User } from '../User/User'
+import { getRandom } from '../../Utils/math'
+
+class ReportInfo extends ServiceInformation {
+  constructor(user: Types.ObjectId) {
+    super()
+    this.user = user
+  }
+  @prop({ required: true, ref: () => User })
+  user: Ref<User>
+}
 
 export class Report {
   @prop({
     required: true,
-    unique: true,
-    type: () => ServiceInformation,
+    type: () => ReportInfo,
     _id: false,
   })
-  public info!: ServiceInformation
+  public info!: ReportInfo
   @prop({ required: true })
   public game!: Match.Manager.supportedGames
   @prop({ required: true })
@@ -24,16 +36,21 @@ export class Report {
   public static async log(
     this: ReturnModelType<typeof Report>,
     game: Match.Manager.supportedGames,
+    name: string | Types.ObjectId,
     reason: string,
     describe: string,
     proof?: string,
   ) {
+    let user
+    if (typeof name == 'string') user = await UserModel.findByName(name)
+    else user = await UserModel.findById(name)
+    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
     return this.create({
       game,
       reason,
       describe,
       proof,
-      info: new ServiceInformation(),
+      info: new ReportInfo(user._id),
     })
   }
 
@@ -58,9 +75,11 @@ export class Report {
     testDocumentsCount = 4,
   ) {
     let generatedDocuments: DocumentType<Report>[] = []
+    let users = await UserModel.generateTestData(3, false)
     for (let i = 1; i < testDocumentsCount + 1; i++) {
       let report = await this.log(
         'test_game' as unknown as Match.Manager.supportedGames,
+        users[getRandom(0, users.length - 1)]._id,
         `reason#${v4()}`,
         `describe#${v4()}`,
       )
