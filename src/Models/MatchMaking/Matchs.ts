@@ -35,7 +35,7 @@ export class Match {
   @prop()
   public screen?: string
 
-  public static log(
+  static async log(
     this: ReturnModelType<typeof Match>,
     id: string,
     game: string,
@@ -60,11 +60,15 @@ export class Match {
 
     const taskCheckPromises = []
     for (let user of users) {
-      let statistic = this.members.find(
+      let member = this.members.find(
         (member) => user.profile.username == member.name,
-      )!.statistic
+      )
+      if (!member) continue
       let result = this._resultOfMatchForMember(user.profile.username)
-      let ratingChange = user.rating.integrate(statistic, result)
+      let ratingChange = user.rating.integrate(member.statistic, result)
+
+      member.image = user.profile.avatar
+      member.ratingChange = ratingChange
 
       taskCheckPromises.push(this._checkTasksForUser(user))
 
@@ -122,7 +126,7 @@ export class Match {
     return true
   }
 
-  public static async generateTestData(
+  static async generateTestData(
     this: ReturnModelType<typeof Match>,
     testDocumentsCount: number = 3,
   ) {
@@ -133,21 +137,19 @@ export class Match {
     return records
   }
 
-  public static async getTestData(this: ReturnModelType<typeof Match>) {
+  static async getTestData(this: ReturnModelType<typeof Match>) {
     return this.find({
       'score.mapName': 'testMap',
     })
   }
 
-  public static async deleteTestData(this: ReturnModelType<typeof Match>) {
+  static async deleteTestData(this: ReturnModelType<typeof Match>) {
     let documents = await this.getTestData()
     for (let document of documents) await document.delete()
     return true
   }
 
-  private static async _generateTestDocument(
-    this: ReturnModelType<typeof Match>,
-  ) {
+  static async _generateTestDocument(this: ReturnModelType<typeof Match>) {
     let score1 = getRandom(0, 16)
     let score2 = 0
     if (score1 != 16) {

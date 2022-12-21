@@ -4,9 +4,13 @@ import { Statistic } from './Statistic'
 
 export class MemberRecord {
   @prop({ required: true })
-  public name!: string
+  name!: string
   @prop({ required: true })
-  public command!: Match.Lobby.Command.Types
+  command!: Match.Lobby.Command.Types
+  @prop()
+  ratingChange?: number
+  @prop()
+  image?: string
   @prop({ required: true, default: new Statistic(), _id: false })
-  public statistic!: Statistic
+  statistic!: Statistic
 }
