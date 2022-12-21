@@ -2,6 +2,10 @@ import type { WebSocket } from 'uWebSockets.js'
 import { TEAMS } from '../../../../Classes/MatchMaking/Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../../error'
 import { CONTROLLERS } from '../../Handlers/dark-side'
+import { clientServer } from '../..'
+import { UserModel } from '../../../../Models'
+import { DTO } from '../../../../Classes/DTO/DTO'
+import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
 
 /**
  * Обработчик для создания временной команды.</br>
@@ -138,3 +142,56 @@ export async function get_teams(socket: WebSocket, params: unknown[]) {
   return TEAMS.toArray
 }
 CONTROLLERS.set('get_teams', get_teams)
+
+/**
+ * Обработчик для приглашения игрока в лобби.
+ * @param params - ["userNameToInvite"]
+ *
+ * В случае успеха отправляет указанному пользователю ивент invite  с пакетом следующего вида:
+ * ```ts
+ * {
+ *  label: "team"
+ *  teamID: string
+ * }
+ * ```
+ * А вызвавшему пользователю отправляет тот же ивент с пакетом:
+ * ```ts
+ * {
+ *  status: true
+ * }
+ * ```
+ *
+ * @category Team
+ * @event
+ */
+export async function invite_to_team(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  let team = TEAMS.get(member.teamID)
+  if (!team) {
+    member.teamID = undefined
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  }
+
+  let invitedUser = params[0]
+  if (!invitedUser)
+    throw new TechnicalError('username', TechnicalCause.REQUIRED)
+  if (typeof invitedUser != 'string')
+    throw new TechnicalError('username', TechnicalCause.INVALID_FORMAT)
+
+  let sockets = clientServer.Aliases.get(invitedUser)
+  if (!sockets)
+    throw new TechnicalError('invited user', TechnicalCause.REQUIRED)
+
+  UserModel.findByName(invitedUser).then((user) => {
+    if (!user) return
+    user.notify(`Вас приглашает в команду ${username}`)
+  })
+
+  const invite = new DTO({ label: 'team', teamID: team.id })
+  clientServer.control(sockets).emit('invite', invite.to.JSON)
+  return true
+}
+CONTROLLERS.set('invite_to_team', invite_to_team)

@@ -293,6 +293,7 @@ CONTROLLERS.set('get_captain', get_captain)
  * В случае успеха отправляет указанному пользователю ивент invite  с пакетом следующего вида:
  * ```ts
  * {
+ *  label: "lobby"
  *  lobbyID: string
  * }
  * ```
@@ -319,21 +320,22 @@ export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
   }
 
-  let invitedUser = params[1]
+  let invitedUser = params[0]
   if (!invitedUser)
     throw new TechnicalError('username', TechnicalCause.REQUIRED)
   if (typeof invitedUser != 'string')
     throw new TechnicalError('username', TechnicalCause.INVALID_FORMAT)
 
   let sockets = clientServer.Aliases.get(invitedUser)
-  if (!sockets) throw new TechnicalError('username', TechnicalCause.INVALID)
+  if (!sockets)
+    throw new TechnicalError('invited user', TechnicalCause.REQUIRED)
 
   UserModel.findByName(invitedUser).then((user) => {
     if (!user) return
     user.notify(`Вас приглашает в лобби ${username}`)
   })
 
-  const invite = new DTO({ label: 'invite', lobbyID: lobby.id })
+  const invite = new DTO({ label: 'lobby', lobbyID: lobby.id })
   clientServer.control(sockets).emit('invite', invite.to.JSON)
   return true
 }

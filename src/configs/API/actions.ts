@@ -19,6 +19,7 @@ export type API_ACTION_LIST =
   | 'leave_team'
   | 'check_team'
   | 'get_teams'
+  | 'invite_to_team'
   /* CHAT */
   | 'chat_message'
   | 'chat_join'
@@ -56,6 +57,7 @@ API_ACTIONS.set('add_relation', 0)
 API_ACTIONS.set('drop_relation', 0)
 API_ACTIONS.set('load_image', 0)
 API_ACTIONS.set('upload_image', 0)
+API_ACTIONS.set('invite_to_team', 0)
 
 export function isValidAPIAction(action: string): action is API_ACTION_LIST {
   return API_ACTIONS.has(action as API_ACTION_LIST)
