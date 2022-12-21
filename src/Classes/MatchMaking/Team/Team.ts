@@ -25,6 +25,7 @@ export class Team implements Match.Member.Team.Instance {
     this._checkGuildAfterJoin(member)
 
     if (!this._captain) this._captain = member.name
+    member.teamID = this.id
     return true
   }
 
@@ -40,7 +41,9 @@ export class Team implements Match.Member.Team.Instance {
 
     member.isReady = false
     member.teamID = undefined
-    return this.members.deleteMember(name)
+    if (!this.members.deleteMember(name)) return false
+    member.teamID = undefined
+    return true
   }
 
   async delete(): Promise<true> {
@@ -48,6 +51,7 @@ export class Team implements Match.Member.Team.Instance {
       this.chat.leave(member.name)
       member.isReady = false
       member.commandID = undefined
+      member.teamID = undefined
     }
     this.chat.delete()
     this._deleted = true

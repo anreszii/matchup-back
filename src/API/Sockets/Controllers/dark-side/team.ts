@@ -34,11 +34,16 @@ import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
  */
 export async function create_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
+  let member = await PLAYERS.get(username)
 
-  let team = await TEAMS.findByUserName(username)
-  if (team) throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
+  if (typeof member.teamID == 'number') {
+    if (!TEAMS.findById(member.teamID)) {
+      member.teamID = undefined
+      throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
+    }
+  }
 
-  team = TEAMS.spawn()
+  let team = TEAMS.spawn()
   await team.join(username)
   return {
     teamID: team.id,
@@ -69,13 +74,21 @@ CONTROLLERS.set('create_team', create_team)
  */
 export async function join_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (typeof member.teamID == 'number') {
+    if (!TEAMS.findById(member.teamID)) {
+      member.teamID = undefined
+      throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
+    }
+  }
 
   let teamID = params[0]
   if (!teamID) throw new TechnicalError('teamID', TechnicalCause.REQUIRED)
   if (typeof teamID != 'string')
     throw new TechnicalError('teamID', TechnicalCause.INVALID_FORMAT)
 
-  let team = TEAMS.get(Number(teamID))
+  let team = TEAMS.findById(Number(teamID))
   if (!team) throw new TechnicalError('teamID', TechnicalCause.NOT_EXIST)
 
   await team.join(username)
@@ -92,9 +105,16 @@ CONTROLLERS.set('join_team', join_team)
  */
 export async function leave_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
+  let member = await PLAYERS.get(username)
 
-  let team = await TEAMS.findByUserName(username)
-  if (!team) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (typeof member.teamID != 'number')
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+
+  let team = TEAMS.findById(member.teamID)
+  if (!team) {
+    member.teamID = undefined
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  }
   if (!(await team.leave(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_DELETE)
 
@@ -118,9 +138,16 @@ CONTROLLERS.set('leave_team', leave_team)
  */
 export async function check_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
+  let member = await PLAYERS.get(username)
 
-  let team = await TEAMS.findByUserName(username)
-  if (!team) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (typeof member.teamID != 'number')
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+
+  let team = TEAMS.findById(member.teamID)
+  if (!team) {
+    member.teamID = undefined
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  }
 
   return {
     id: team.id,
@@ -130,18 +157,6 @@ export async function check_team(socket: WebSocket, params: unknown[]) {
   }
 }
 CONTROLLERS.set('check_team', check_team)
-
-/**
- * Контроллер для получения списка всех существующих комманд</br>
- *
- * @return массив ID комманд
- * @category Team
- * @event
- */
-export async function get_teams(socket: WebSocket, params: unknown[]) {
-  return TEAMS.toArray
-}
-CONTROLLERS.set('get_teams', get_teams)
 
 /**
  * Обработчик для приглашения игрока в лобби.
@@ -168,7 +183,8 @@ export async function invite_to_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (typeof member.teamID != 'number')
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
   let team = TEAMS.get(member.teamID)
   if (!team) {
     member.teamID = undefined
@@ -195,3 +211,15 @@ export async function invite_to_team(socket: WebSocket, params: unknown[]) {
   return true
 }
 CONTROLLERS.set('invite_to_team', invite_to_team)
+
+/**
+ * Контроллер для получения списка всех существующих комманд</br>
+ *
+ * @return массив ID комманд
+ * @category Team
+ * @event
+ */
+export async function get_teams(socket: WebSocket, params: unknown[]) {
+  return TEAMS.toArray
+}
+CONTROLLERS.set('get_teams', get_teams)
