@@ -93,10 +93,10 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/registration', async (req, res, next) => {
   try {
-    let { username, password, id, nickname, email, region } = req.body
+    let { username, password, id, nickname, email, region, discord } = req.body
     let user = new UserModel({
       id,
-      profile: { username, nickname },
+      profile: { username, nickname, discord_nickname: discord },
       credentials: { email, region },
     })
 
