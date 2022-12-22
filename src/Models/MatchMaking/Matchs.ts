@@ -102,6 +102,20 @@ export class Match {
     return this.save()
   }
 
+  async changeRecordName(
+    this: DocumentType<Match>,
+    username: string,
+    newName: string,
+  ) {
+    if (typeof newName != 'string')
+      throw new TechnicalError('new name', TechnicalCause.INVALID_FORMAT)
+    let member = this.members.find((member) => member.name == username)
+    if (!member)
+      throw new TechnicalError('member record', TechnicalCause.NOT_EXIST)
+    member.name = newName
+    return this.save()
+  }
+
   async changeRecord(
     this: DocumentType<Match>,
     username: string,

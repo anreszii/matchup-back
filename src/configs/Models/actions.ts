@@ -72,6 +72,7 @@ export type MODELS_ACTION_LIST =
   | 'Match/log'
   | 'Match/addRecords'
   | 'Match/changeRecord'
+  | 'Match/changeRecordName'
   | 'Match/setScreen'
   | 'Match/generateTestData'
   | 'Match/getTestData'
@@ -165,6 +166,7 @@ MODELS_ACTIONS.set('Guild/deleteTestData', 2)
 MODELS_ACTIONS.set('Match/log', 2)
 MODELS_ACTIONS.set('Match/addRecords', 2)
 MODELS_ACTIONS.set('Match/changeRecord', 2)
+MODELS_ACTIONS.set('Match/changeName', 2)
 MODELS_ACTIONS.set('Match/setScreen', 2)
 MODELS_ACTIONS.set('Match/generateTestData', 2)
 MODELS_ACTIONS.set('Match/getTestData', 2)
