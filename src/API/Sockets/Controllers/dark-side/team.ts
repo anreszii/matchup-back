@@ -91,7 +91,14 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
   let team = TEAMS.findById(Number(teamID))
   if (!team) throw new TechnicalError('teamID', TechnicalCause.NOT_EXIST)
 
-  await team.join(username)
+  if (!(await team.join(username)))
+    throw new TechnicalError('team member', TechnicalCause.CAN_NOT_ADD)
+
+  const dto = new DTO({ name: username })
+  for (let member of team.members.toArray)
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('team_join', dto.to.JSON)
   return team.chat.id
 }
 CONTROLLERS.set('join_team', join_team)
@@ -117,6 +124,12 @@ export async function leave_team(socket: WebSocket, params: unknown[]) {
   }
   if (!(await team.leave(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_DELETE)
+
+  const dto = new DTO({ name: username })
+  for (let member of team.members.toArray)
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('team_leave', dto.to.JSON)
 
   return true
 }
@@ -206,7 +219,11 @@ export async function invite_to_team(socket: WebSocket, params: unknown[]) {
     user.notify(`Вас приглашает в команду ${username}`)
   })
 
-  const invite = new DTO({ label: 'team', teamID: team.id })
+  const invite = new DTO({
+    label: 'team',
+    teamID: team.id,
+    invitedBy: username,
+  })
   clientServer.control(sockets).emit('invite', invite.to.JSON)
   return true
 }

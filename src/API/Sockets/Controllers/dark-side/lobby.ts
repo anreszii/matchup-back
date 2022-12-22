@@ -134,7 +134,13 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   let lobby = await Searcher.findLobby(Filters)
   if (!lobby.region) lobby.region = region
 
-  await lobby.join(username)
+  const dto = new DTO({ lobbyID: lobby.id, chatID: lobby.chat!.id })
+  if ((await lobby.join(username)) && team) {
+    for (let member of team.members.toArray)
+      clientServer
+        .control(clientServer.Aliases.get(member.name)!)
+        .emit('lobby_join', dto.to.JSON)
+  }
   return {
     lobbyID: lobby.id,
     chatID: lobby.chat!.id,
