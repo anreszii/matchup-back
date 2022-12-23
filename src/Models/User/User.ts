@@ -509,18 +509,14 @@ export class User {
   }
 
   private async _getRelationRecordsForUsers(users: DocumentType<User>[]) {
-    let promises = []
     let result = []
     for (let user of users) {
       let record = new RelationRecord(
         user.profile.username,
         user.profile.avatar as unknown as string,
       )
-      promises.push(record.load())
       result.push(record)
     }
-
-    await Promise.all(promises)
     return result
   }
 }
