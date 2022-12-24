@@ -119,7 +119,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._joinCommand(member)) return false
 
     this.chat.join(member.name)
-    this._joinDiscrod(member.discordNick)
+    this._joinDiscrod(member.discordNick).catch((e) => console.log(e))
 
     return true
   }
@@ -135,7 +135,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._leaveCommand(member)) return false
 
     this.chat.leave(member.name)
-    this._leaveDiscord(member.discordNick)
+    this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
     this._status = 'searching'
     return true
   }

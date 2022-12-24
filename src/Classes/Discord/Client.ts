@@ -169,7 +169,7 @@ export class DiscordClient {
 
   public async addUserToTeamVoiceChannel(nick: string) {
     let result = await this._findUserByNicknameForMatchMaking(nick)
-    if (!result || !result.user.voice) return
+    if (!result || !result.user.voice || !result.user.voice.channelId) return
 
     distribute(new StateManager(result.user.voice, this), result.guild)
   }
