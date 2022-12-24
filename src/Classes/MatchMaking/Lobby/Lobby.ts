@@ -30,7 +30,7 @@ export class Lobby implements Match.Lobby.Instance {
     map: string
   }[] = []
   private _map?: string
-  private _room!: IChat.Controller
+  private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
   private _deleted = false
@@ -41,7 +41,6 @@ export class Lobby implements Match.Lobby.Instance {
     private _maxCommandSize: number,
     private _controller: Match.Controller,
   ) {
-    CLIENT_CHATS.spawn('lobby', _id).then((chat) => (this._room = chat))
     this._game = _controller.gameName
     this._commands.set(
       'spectators',
@@ -298,11 +297,11 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get chat(): IChat.Controller {
-    return this._room
+    return this._chat
   }
 
   set chat(instance: IChat.Controller) {
-    this._room = instance
+    this._chat = instance
   }
 
   set counter(value: Match.Lobby.Counter) {
@@ -409,14 +408,24 @@ export class Lobby implements Match.Lobby.Instance {
     if (!teamRole)
       teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
 
-    await this.discord.addRolesToMember(guild, name, teamRole, commandRole)
-    this.discord.addUserToTeamVoiceChannel(name)
+    this.discord
+      .addRolesToMember(guild, name, teamRole, commandRole)
+      .then(() => {
+        this.discord
+          .addUserToTeamVoiceChannel(name)
+          .catch((e) => console.log(e))
+      })
+      .catch((e) => console.log(e))
     return true
   }
 
   private async _leaveDiscord(name: string) {
     let guild = await this.discord?.findGuildWithCustomTeamIdRole(this._id)
-    if (guild) await this.discord?.removeUserFromMatchMaking(guild, name)
+    if (guild)
+      this.discord
+        ?.removeUserFromMatchMaking(guild, name)
+        .catch((e) => console.log(e))
+    return true
   }
 
   private _checkStatus() {
@@ -441,10 +450,10 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _checkChat() {
-    if (this._room) return
+    if (this._chat) return
 
-    this._room = await CLIENT_CHATS.spawn('lobby', `lobby#${this._id}`)
-    for (let member of this._members.values()) this._room.join(member.name)
+    this._chat = await CLIENT_CHATS.spawn('lobby', `lobby#${this._id}`)
+    for (let member of this._members.values()) this._chat.join(member.name)
   }
 
   private get _maxTeamSize() {

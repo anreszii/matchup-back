@@ -6,6 +6,7 @@ import { Lobby } from './Lobby'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
+import { CLIENT_CHATS } from '../../Chat/Manager'
 
 export class LobbyManager implements Match.Manager.Instance {
   private static _counter: Match.Lobby.Counter = {
@@ -25,27 +26,31 @@ export class LobbyManager implements Match.Manager.Instance {
     )
   }
 
-  spawn(type: Match.Lobby.Type = 'rating'): Match.Lobby.Instance {
+  async spawn(
+    type: Match.Lobby.Type = 'rating',
+  ): Promise<Match.Lobby.Instance> {
     const ID = LobbyManager._createID()
-    this._dsClient.guildWithFreeChannelsForVoice.then(async (guild) => {
-      if (!guild) return
-      await DiscordRoleManager.createTeamRole(guild, ID)
-      await this._dsClient.createChannelsForMatch(guild, ID)
-    })
-    this._controller.create().then((status) => {
-      if (!status)
-        throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
-    })
+    let guild = await this._dsClient.guildWithFreeChannelsForVoice
+    if (guild) {
+      DiscordRoleManager.createTeamRole(guild, ID).then(
+        async () => await this._dsClient.createChannelsForMatch(guild!, ID),
+      )
+    }
+
+    let status = await this._controller.create()
+    if (!status)
+      throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
 
     let lobby = new Lobby(ID, type, 2, this._controller)
-    lobby.discord = this._dsClient
+    lobby.chat = await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`)
     lobby.counter = LobbyManager._counter
+    lobby.discord = this._dsClient
 
     this._lobbyMap.set(ID, lobby)
     return lobby
   }
 
-  getFreeLobby(lobbyID?: string): Match.Lobby.Instance {
+  async getFreeLobby(lobbyID?: string): Promise<Match.Lobby.Instance> {
     if (lobbyID && this._lobbyMap.has(lobbyID))
       return this._lobbyMap.get(lobbyID)!
 
