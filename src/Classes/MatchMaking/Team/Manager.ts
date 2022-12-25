@@ -18,7 +18,7 @@ class TeamManager implements Match.Member.Team.Manager {
   }
 
   public spawn(): Match.Member.Team.Instance {
-    let team = new Team(this._teams.freeSpace)
+    let team = new Team(this._teams.freeSpace + 1)
 
     this._teams.addOne(team)
     return team
