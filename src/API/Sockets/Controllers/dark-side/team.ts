@@ -76,7 +76,7 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (typeof member.teamID == 'number') {
+  if (member.teamID) {
     if (!TEAMS.findById(member.teamID)) {
       member.teamID = undefined
       throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
@@ -114,8 +114,7 @@ export async function leave_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (typeof member.teamID != 'number')
-    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
 
   let team = TEAMS.findById(member.teamID)
   if (!team) {
@@ -153,8 +152,7 @@ export async function check_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (typeof member.teamID != 'number')
-    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
 
   let team = TEAMS.findById(member.teamID)
   if (!team) {
@@ -196,8 +194,7 @@ export async function invite_to_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let member = await PLAYERS.get(username)
 
-  if (typeof member.teamID != 'number')
-    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
   let team = TEAMS.get(member.teamID)
   if (!team) {
     member.teamID = undefined

@@ -25,18 +25,18 @@ class TeamManager implements Match.Member.Team.Manager {
   }
 
   public drop(teamID: number): boolean {
-    let team = this._teams.valueOf(teamID)
+    let team = this._teams.valueOf(teamID - 1)
     if (!team) return true
 
     return Boolean(this._teams.delete(team))
   }
 
   public get(teamID: number): Match.Member.Team.Instance | undefined {
-    return this._teams.valueOf(teamID)
+    return this._teams.valueOf(teamID - 1)
   }
 
   public has(teamID: number): boolean {
-    return !this._teams.isUndefined(teamID)
+    return !this._teams.isUndefined(teamID - 1)
   }
 
   async findByUserName(name: string) {
