@@ -94,7 +94,7 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
   if (!(await team.join(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_ADD)
 
-  const dto = new DTO({ name: username })
+  const dto = new DTO({ name: username, label: 'join_team' })
   for (let member of team.members.toArray)
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
@@ -124,11 +124,11 @@ export async function leave_team(socket: WebSocket, params: unknown[]) {
   if (!(await team.leave(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_DELETE)
 
-  const dto = new DTO({ name: username })
+  const dto = new DTO({ name: username, label: 'leave_team' })
   for (let member of team.members.toArray)
     clientServer
       .control(clientServer.Aliases.get(member.name)!)
-      .emit('team_leave', dto.to.JSON)
+      .emit('leave_team', dto.to.JSON)
 
   return true
 }
