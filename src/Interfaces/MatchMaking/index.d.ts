@@ -114,20 +114,20 @@ export declare namespace Match {
       }
     }
 
-    interface List extends OneTypeArray<Member.InstanceData> {
-      isMember(entity: unknown): entity is Member.InstanceData
+    interface List extends OneTypeArray<Member.Instance> {
+      isMember(entity: unknown): entity is Member.Instance
 
       hasMember(name: string): boolean
 
-      addMember(member: Member.InstanceData): boolean
+      addMember(member: Member.Instance): boolean
 
       deleteMember(name: string): boolean
 
-      getByName(name: string): Member.InstanceData | null
+      getByName(name: string): Member.Instance | null
 
       get count(): number
 
-      get members(): Member.InstanceData[]
+      get members(): Member.Instance[]
       get membersCount(): number
     }
     interface Statistic extends IStatistic {}
