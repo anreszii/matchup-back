@@ -8,7 +8,7 @@ export class ChatStore {
   static add(member: Name, id: string) {
     if (ChatStore._chats.has(member))
       return ChatStore._chats.get(member)!.add(id)
-    const set = new Set(id)
+    const set = new Set([id])
     ChatStore._chats.set(member, set)
   }
 
