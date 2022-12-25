@@ -402,7 +402,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _canAddTeam(team: Match.Member.Team.Instance) {
-    if (this._maxTeamSize >= team.size) return false
+    if (this._maxTeamSize < team.size) return false
     if (!this.hasSpace(team.size)) return false
     return true
   }
