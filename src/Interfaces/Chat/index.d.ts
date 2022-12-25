@@ -1,5 +1,8 @@
 import { DTO } from '../index'
+import { WebSocket } from 'uWebSockets.js'
 import { IEntity, IManager } from '../Manager'
+
+type PromiseOrValue<T> = Promise<T> | T
 
 export declare namespace IChat {
   interface Manager extends IManager<Controller, string> {}
@@ -8,11 +11,12 @@ export declare namespace IChat {
     get type(): Type
     get id(): string
     get members(): Array<string>
-    join(user: string): Promise<true> | never
-    leave(user: string): Promise<true> | never
-    message(msg: Message): Promise<true> | never
+    connect(socket: WebSocket): void
+    join(user: string): PromiseOrValue<true | never>
+    leave(user: string): PromiseOrValue<true | never>
+    message(msg: Message): PromiseOrValue<true | never>
     send(event: string, content: DTO.Object): void
-    drop(): Promise<true> | never
+    drop(): PromiseOrValue<true | never>
   }
 
   interface Message {
