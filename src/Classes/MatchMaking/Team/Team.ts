@@ -39,9 +39,8 @@ export class Team implements Match.Member.Team.Instance {
     await this.chat.leave(name)
     this._checkGuildAfterLeave()
 
-    member.isReady = false
-    member.teamID = undefined
     if (!this.members.deleteMember(name)) return false
+    member.isReady = false
     member.teamID = undefined
     return true
   }
