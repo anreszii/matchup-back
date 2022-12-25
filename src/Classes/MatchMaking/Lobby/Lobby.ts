@@ -115,13 +115,7 @@ export class Lobby implements Match.Lobby.Instance {
     let member = await PLAYERS.get(name)
 
     if (member.teamID) return this._joinWithTeam(member)
-    if (!(await this._controller.addMembers(member))) return false
-    if (!this._joinCommand(member)) return false
-
-    this.chat.join(member.name)
-    this._joinDiscrod(member.discordNick).catch((e) => console.log(e))
-
-    return true
+    else return this._joinSolo(member)
   }
 
   async leave(name: string) {
@@ -131,13 +125,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!member || member.lobbyID != this.id) return false
 
     if (member.teamID) return this._leaveWithTeam(member)
-    if (!(await this._controller.removeMembers(name))) return false
-    if (!this._leaveCommand(member)) return false
-
-    this.chat.leave(member.name)
-    this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
-    this._status = 'searching'
-    return true
+    else return this._leaveSolo(member)
   }
 
   vote(name: string, map: string): boolean {
@@ -169,9 +157,7 @@ export class Lobby implements Match.Lobby.Instance {
     let team = TEAMS.get(id)
     if (!team) return false
 
-    if (this._maxTeamSize >= team.size) return false
-    if (!this.hasSpace(team.size)) return false
-    return true
+    return this._canAddTeam(team)
   }
 
   hasSpace(memberCount: number): boolean {
@@ -343,13 +329,24 @@ export class Lobby implements Match.Lobby.Instance {
     }
 
     if (team.captainName != member.name) return false
-    if (!this.canAddTeam(team.id)) return false
+    if (!this._canAddTeam(team)) return false
 
     let promises = []
     for (let member of team.members.toArray)
-      promises.push(this.join(member.name))
+      promises.push(this._joinSolo(member))
 
     await Promise.all(promises)
+    return true
+  }
+
+  private async _joinSolo(member: Match.Member.Instance) {
+    if (!(await this._controller.addMembers(member))) return false
+    if (!this._joinCommand(member)) return false
+
+    this.chat.join(member.name)
+    this._joinDiscrod(member.discordNick).catch((e) => console.log(e))
+
+    this._counter.searching++
     return true
   }
 
@@ -362,17 +359,29 @@ export class Lobby implements Match.Lobby.Instance {
       return this.leave(member.name)
     }
 
-    if (team.captainName != member.name) return false
-
     if (this.type != 'rating') {
       if (!(await this.leave(member.name))) return false
       return team.leave(member.name)
     }
 
+    if (team.captainName != member.name) return false
+
     let promises = []
     for (let member of team.members.toArray)
-      promises.push(this.leave(member.name))
+      promises.push(this._leaveSolo(member))
     await Promise.all(promises)
+    return true
+  }
+
+  private async _leaveSolo(member: Match.Member.Instance) {
+    if (!(await this._controller.removeMembers(member))) return false
+    if (!this._leaveCommand(member)) return false
+
+    this.chat.leave(member.name)
+    this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
+    this._status = 'searching'
+
+    this._counter.searching--
     return true
   }
 
@@ -389,6 +398,12 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this.members.deleteMember(member.name)) return false
     member.lobbyID = undefined
 
+    return true
+  }
+
+  private _canAddTeam(team: Match.Member.Team.Instance) {
+    if (this._maxTeamSize >= team.size) return false
+    if (!this.hasSpace(team.size)) return false
     return true
   }
 
