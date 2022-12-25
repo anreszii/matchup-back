@@ -9,6 +9,7 @@ import FormData = require('form-data')
 import { IncomingMessage } from 'http'
 import { Match } from '../../Interfaces/index'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
+import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
 const uploader = require('imgbb-uploader')
 
 const router = Router()
@@ -25,13 +26,17 @@ router.post(
       )
         throw new TechnicalError('screen', TechnicalCause.INVALID_FORMAT)
 
-      const { lobby_id, payload } = expressRequest.body
-      if (!lobby_id)
-        throw new TechnicalError('lobby id', TechnicalCause.REQUIRED)
-
-      const lobby = StandOff_Lobbies.get(lobby_id)
-      if (!lobby || lobby.status != 'started')
+      const { payload } = expressRequest.body
+      let username = payload.username as string
+      let member = await PLAYERS.get(username)
+      if (!member || !member.lobbyID)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+
+      const lobby = StandOff_Lobbies.get(member.lobbyID)
+      if (!lobby || lobby.status != 'started') {
+        if (!lobby) member.lobbyID = undefined
+        throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+      }
 
       if (
         !lobby.firstCommand.isCaptain(payload.username) &&
