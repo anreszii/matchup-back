@@ -22,7 +22,8 @@ export declare namespace Match {
     interface Instance extends ILobby {
       get readyToStart(): boolean
       vote(name: string, map: string): boolean
-      get votes(): { [key: string]: number }
+      get maps(): string[]
+      get votingCaptain(): string
       get isVotingStageEnd(): boolean
       get map(): string | undefined
       move(

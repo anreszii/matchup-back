@@ -232,7 +232,19 @@ CONTROLLERS.set('vote', vote)
  * @event
  */
 export async function get_maps(socket: WebSocket, params: unknown[]) {
-  return GAME_MAPS
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
+  }
+
+  return lobby.maps
 }
 CONTROLLERS.set('get_maps', get_maps)
 
@@ -525,8 +537,8 @@ function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'vote',
     captains,
-    maps: GAME_MAPS,
-    votes: lobby.votes,
+    votingCaptain: lobby.votingCaptain,
+    maps: lobby.maps,
   })
   lobby.chat.send('lobby', dto)
 }

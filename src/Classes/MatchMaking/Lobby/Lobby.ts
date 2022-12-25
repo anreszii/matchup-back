@@ -13,7 +13,6 @@ import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
 import { SECOND_IN_MS } from '../../../configs/time_constants'
-import { UserModel } from '../../../Models'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -25,10 +24,9 @@ export class Lobby implements Match.Lobby.Instance {
     Match.Lobby.Command.Types,
     Match.Lobby.Command.Instance
   > = new Map()
-  private _votes: {
-    command: Exclude<Match.Lobby.Command.Types, 'spectators' | 'neutrals'>
-    map: string
-  }[] = []
+  private _turn: Exclude<Match.Lobby.Command.Types, 'spectators' | 'neutrals'> =
+    'command1'
+  private _maps = new Set(GAME_MAPS)
   private _map?: string
   private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
@@ -129,28 +127,16 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
+    this._checkStatus()
     if (this.status != 'voting')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
-    if (!GAME_MAPS.includes(map))
+    if (!this._maps.has(map))
       throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
-    if (
-      this.firstCommand.captain == name &&
-      !this._votes.find((value) => value.command == 'command1')
-    ) {
-      this._votes.push({ command: 'command1', map })
-      return true
-    }
-    if (
-      this.secondCommand.captain == name &&
-      !this._votes.find((value) => value.command == 'command2')
-    ) {
-      this._votes.push({ command: 'command2', map })
-      return true
-    }
-    throw new TechnicalError(
-      'member command role',
-      TechnicalCause.NEED_HIGHER_VALUE,
-    )
+
+    this._checkTurn(name)
+    this._maps.delete(map)
+    this._startNextTurn()
+    return true
   }
 
   canAddTeam(id: number): boolean {
@@ -181,20 +167,18 @@ export class Lobby implements Match.Lobby.Instance {
 
   get isVotingStageEnd(): boolean {
     if (this._map) return true
-    if (this._votes.length != 2) return false
+    if (this._maps.size != 1) return false
 
-    this._map = this._mapFromVotes
+    this._map = Array.from(this._maps)[0]
     return true
   }
 
-  get votes() {
-    let result: { [key: string]: number } = {}
-    for (let i = 0; i < this._votes.length; i++) {
-      if (!result[this._votes[i].map]) result[this._votes[i].map] = 0
-      result[this._votes[i].map]++
-    }
+  get maps() {
+    return Array.from(this._maps)
+  }
 
-    return result
+  get votingCaptain() {
+    return this._getCaptainNameByTurn()
   }
 
   get map() {
@@ -294,24 +278,31 @@ export class Lobby implements Match.Lobby.Instance {
     this._counter = value
   }
 
-  private get _mapFromVotes() {
-    let recordsWithMaxVotes: { map: string; count: number }[] = [
-      {
-        map: '',
-        count: -1,
-      },
-    ]
-    const votes = this.votes
-    for (let map in votes) {
-      if (recordsWithMaxVotes[0].count < votes[map])
-        recordsWithMaxVotes = [{ map, count: votes[map] }]
-      else if (recordsWithMaxVotes[0].count == votes[map])
-        recordsWithMaxVotes.push({ map, count: votes[map] })
+  private _startNextTurn() {
+    switch (this._turn) {
+      case 'command1':
+        this._turn = 'command2'
+        return
+      case 'command2':
+        this._turn = 'command1'
+        return
     }
+  }
 
-    if (recordsWithMaxVotes.length > 1)
-      return recordsWithMaxVotes[minMax(0, recordsWithMaxVotes.length - 1)].map
-    return recordsWithMaxVotes[0].map
+  private _checkTurn(name: string) {
+    let captain = this._getCaptainNameByTurn()
+
+    if (captain != name)
+      throw new TechnicalError('turn', TechnicalCause.INVALID)
+  }
+
+  private _getCaptainNameByTurn() {
+    switch (this._turn) {
+      case 'command1':
+        return this.firstCommand.captain
+      case 'command2':
+        return this.secondCommand.captain
+    }
   }
 
   private get _commandWithSpace() {
@@ -322,7 +313,6 @@ export class Lobby implements Match.Lobby.Instance {
 
   private async _joinWithTeam(member: Match.Member.Instance): Promise<boolean> {
     let team = TEAMS.findById(member.teamID!)
-
     if (!team) {
       member.teamID = undefined
       return false
@@ -351,7 +341,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _leaveWithTeam(
-    member: Match.Member.InstanceData,
+    member: Match.Member.Instance,
   ): Promise<boolean> {
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
@@ -360,7 +350,7 @@ export class Lobby implements Match.Lobby.Instance {
     }
 
     if (this.type != 'rating') {
-      if (!(await this.leave(member.name))) return false
+      if (!(await this._leaveSolo(member))) return false
       return team.leave(member.name)
     }
 
