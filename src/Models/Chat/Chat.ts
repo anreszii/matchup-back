@@ -56,36 +56,38 @@ export class Chat {
     return chat
   }
 
-  async join(this: DocumentType<Chat>, memberName: string) {
+  join(this: DocumentType<Chat>, memberName: string) {
     if (this.hasMember(memberName)) return true
-    const user = await UserModel.findOne(
-      { 'profile.username': memberName },
-      '_id',
-    )
-    if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-
-    this.members.push({ id: user.id, name: memberName })
-    await this.save()
-
-    return true
+    try {
+      UserModel.findOne(
+        { 'profile.username': memberName },
+        '_id',
+        (err, user) => {
+          if (err) throw err
+          if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+          this.members.push({ id: user.id, name: memberName })
+          return true
+        },
+      )
+    } catch (e) {
+      throw e
+    }
   }
 
-  async leave(this: DocumentType<Chat>, memberName: string) {
+  leave(this: DocumentType<Chat>, memberName: string) {
     if (!this.hasMember(memberName)) return true
 
     let index = this.members.indexOf(this.getMember(memberName))
     this.members.splice(index, 1)
-    await this.save()
 
     return true
   }
 
-  async message(this: DocumentType<Chat>, message: IChat.Message) {
+  message(this: DocumentType<Chat>, message: IChat.Message) {
     if (!this.hasMember(message.author.name))
       throw new TechnicalError('chat member', TechnicalCause.NOT_EXIST)
 
     this.history.push(new Message(message))
-    await this.save()
 
     return true
   }

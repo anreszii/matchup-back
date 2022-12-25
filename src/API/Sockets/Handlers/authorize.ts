@@ -7,6 +7,7 @@ import { isMatchUpError, ServerCause, ServerError } from '../../../error'
 import { DTO } from '../../../Classes/DTO/DTO'
 import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
 import { WebSocketValidatior } from '../../../validation/websocket'
+import { ChatStore } from '../../../Classes/Chat/Store'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
@@ -38,6 +39,7 @@ export function authorize(escort: IDataEscort) {
     wsValidator.authorizeSocket(socketID)
 
     clientServer.Aliases.set(socket.username, socket.id)
+    ChatStore.joinChats(socket.username, socket)
     response = new DTO({ label: request.label, status: 'success' })
     return clientServer.control(socketID).emit('authorize', response.to.JSON)
   } catch (e) {

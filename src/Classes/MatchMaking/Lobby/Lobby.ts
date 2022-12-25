@@ -377,7 +377,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(member))) return false
     if (!this._leaveCommand(member)) return false
 
-    await this.chat.leave(member.name)
+    this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
     this._status = 'searching'
 
