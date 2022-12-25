@@ -344,7 +344,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._joinCommand(member)) return false
 
     this.chat.join(member.name)
-    this._joinDiscrod(member.discordNick).catch((e) => console.log(e))
+    this._joinDiscord(member.discordNick).catch((e) => console.log(e))
 
     this._counter.searching++
     return true
@@ -377,7 +377,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._controller.removeMembers(member))) return false
     if (!this._leaveCommand(member)) return false
 
-    this.chat.leave(member.name)
+    await this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
     this._status = 'searching'
 
@@ -407,7 +407,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _joinDiscrod(name: string) {
+  private async _joinDiscord(name: string) {
     let guild = await this.discord.guildWithFreeChannelsForVoice
     if (!guild) return
 
