@@ -509,21 +509,23 @@ function createFiltersForSoloSearch(
   return Filters
 }
 
-function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
+async function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'sync',
     lobby: lobby.id,
     status: lobby.status,
     players: lobby.players,
+    avatar: await getAvatars(lobby.players),
   })
   lobby.chat.send('lobby', dto)
 }
 
-function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
+async function sendReadyIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'ready',
     lobby: lobby.id,
     players: lobby.players,
+    avatar: await getAvatars(lobby.players),
   })
   lobby.chat.send('lobby', dto)
 }
@@ -548,4 +550,20 @@ function sendStartIventToLobby(lobby: Match.Lobby.Instance) {
     label: 'start',
   })
   lobby.chat.send('lobby', dto)
+}
+
+async function getAvatars(members: Match.Member.InstanceData[]) {
+  const names = []
+  for (let member of members) names.push(member.name)
+  let documents = await UserModel.find(
+    { 'profile.username': names },
+    'profile.username profile.avatar',
+  )
+  const avatars = []
+  for (let document of documents)
+    avatars.push({
+      name: document.profile.username,
+      avatar: document.profile.avatar,
+    })
+  return avatars
 }
