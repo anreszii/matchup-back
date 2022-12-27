@@ -372,6 +372,7 @@ export class Lobby implements Match.Lobby.Instance {
     this._status = 'searching'
 
     this._counter.searching--
+    member.lobbyID = undefined
     return true
   }
 
