@@ -3,6 +3,7 @@ import { TechnicalCause, TechnicalError } from '../../../error'
 import { shuffle } from '../../../Utils/shuffle'
 import { expType } from '../ExpirationTime'
 import { TaskTypeReward } from './Reward'
+import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../configs/time_constants'
 
 export type DYNAMIC_TASK = {
   minPoints: number
@@ -71,8 +72,10 @@ export class DynamicTask implements DYNAMIC_TASK {
   public static async getRandomDaily(
     this: ReturnModelType<typeof DynamicTask>,
     usedTasksNames?: Array<string>,
+    types?: DocumentType<DynamicTask>[],
   ) {
-    const types = shuffle(await this.find())
+    if (!types) types = await this.find({})
+    types = shuffle(types)
     for (let i = 0; i < types.length; i++) {
       let type = types[i]
       if (
@@ -82,6 +85,7 @@ export class DynamicTask implements DYNAMIC_TASK {
         return {
           name: type.name,
           data: type as DYNAMIC_TASK & { expirationType: 'day' },
+          types,
         }
       }
     }
@@ -90,8 +94,10 @@ export class DynamicTask implements DYNAMIC_TASK {
   public static async getRandomWeekly(
     this: ReturnModelType<typeof DynamicTask>,
     usedTasksNames?: Array<string>,
+    types?: DocumentType<DynamicTask>[],
   ) {
-    const types = shuffle(await this.find())
+    if (!types) types = await this.find({})
+    types = shuffle(types)
     for (let i = 0; i < types.length; i++) {
       let type = types[i]
       if (
@@ -101,6 +107,7 @@ export class DynamicTask implements DYNAMIC_TASK {
         return {
           name: type.name,
           data: type as DYNAMIC_TASK & { expirationType: 'week' },
+          types,
         }
       }
     }

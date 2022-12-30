@@ -1,10 +1,11 @@
 import { prop, Ref, DocumentType, ReturnModelType } from '@typegoose/typegoose'
-import { Types } from 'mongoose'
+import { RefType, Types } from 'mongoose'
 import {
   DynamicTaskModel,
   StaticTaskModel,
   STATIC_TASK,
   UserModel,
+  DynamicTask,
 } from '../index'
 import { TaskData } from './TaskData'
 import { User } from '../User/User'
@@ -24,6 +25,7 @@ export class TaskList {
   owner!: Ref<User>
   @prop({ required: true, ref: () => Task, default: [] })
   tasks!: Ref<Task>[]
+  private static _cacheOwners: Map<Ref<User>, DocumentType<User>> = new Map()
 
   public static async getForUser(
     this: ReturnModelType<typeof TaskList>,
@@ -64,8 +66,13 @@ export class TaskList {
     if (!tasks)
       throw new TechnicalError('daily task list', TechnicalCause.CAN_NOT_ADD)
 
-    const user = await this._getOwner()
-    user.notify('Ежедневные задания обновлены')
+    this._getOwner()
+      .then((user) => {
+        if (user) user.notify('Ежедневные задания обновлены')
+      })
+      .catch((e) => {
+        throw e
+      })
     return tasks
   }
 
@@ -269,8 +276,7 @@ export class TaskList {
     this: ReturnModelType<typeof TaskList>,
     owner: DocumentType<User> | Types.ObjectId,
   ) {
-    let user = await this.findOne({ owner })
-    return user
+    return this.findOne({ owner })
   }
 
   /** В случае, если количество ежедневных заданий меньше трех, или не было сгенерировано задание на выполнение ежедневных заданий, удаляет их
@@ -279,30 +285,33 @@ export class TaskList {
   private async _clearCurrentDailyTasksIfCountInvalid(
     this: DocumentType<TaskList>,
   ) {
-    let correctTaskCount = (await this._getCorrectTaskCount()).day
-    if (correctTaskCount > 1) correctTaskCount++ //если ежедневное не одно, то будет существовать результирующее задание
-
-    let dailyTasks = await this._findCurrentDailyTasks()
-    if (dailyTasks.length == correctTaskCount) return false
+    const [correctTaskCount, tasks] = await Promise.all([
+      this._getCorrectTaskCount(),
+      this._findCurrentDailyTasks(),
+    ])
+    if (tasks.length == correctTaskCount.day) return false
 
     let promises = []
-    for (let task of dailyTasks) promises.push(task.delete())
+    for (let task of tasks) promises.push(task.delete())
     if (promises.length != 0) await Promise.all(promises)
     return true
   }
 
   private async _findCurrentDailyTasks(this: DocumentType<TaskList>) {
-    let dailyTasks: Array<DocumentType<Task>> = new Array()
-    for (let i = 0; i < this.tasks.length; i++) {
-      let taskID = this.tasks[i]
-      if (!taskID) continue
-
-      let task = await TaskModel.findById(taskID)
-      if (!task || task.isExpired || !task.expires) continue
-      if (this._isDailyTask(task)) dailyTasks.push(task)
-    }
-
-    return dailyTasks
+    const result: DocumentType<Task>[] = []
+    return TaskModel.find({
+      _id: this.tasks,
+    })
+      .then((userTasks) => {
+        for (let task of userTasks) {
+          if (!task || task.isExpired || !task.expires) continue
+          if (this._isCurrentDailyTask(task)) result.push(task)
+        }
+        return result
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   /** В случае, если количество еженедельных заданий меньше жвух, или не было сгенерировано задание на выполнение еженедельных заданий, удаляет их
@@ -311,28 +320,33 @@ export class TaskList {
   private async _clearCurrentWeeklyTasksIfCountInvalid(
     this: DocumentType<TaskList>,
   ) {
-    let correctTaskCount = (await this._getCorrectTaskCount()).week
-    let weeklyTasks = await this._findCurrentWeeklyTasks()
-    if (weeklyTasks.length == correctTaskCount) return false
+    const [correctTaskCount, tasks] = await Promise.all([
+      this._getCorrectTaskCount(),
+      this._findCurrentWeeklyTasks(),
+    ])
+    if (tasks.length == correctTaskCount.week) return false
 
     let promises = []
-    for (let task of weeklyTasks) promises.push(task.delete())
+    for (let task of tasks) promises.push(task.delete())
     if (promises.length != 0) await Promise.all(promises)
     return true
   }
 
   private async _findCurrentWeeklyTasks(this: DocumentType<TaskList>) {
-    let dailyTasks: Array<DocumentType<Task>> = new Array()
-    for (let i = 0; i < this.tasks.length; i++) {
-      let taskID = this.tasks[i]
-      if (!taskID) continue
-
-      let task = await TaskModel.findById(taskID)
-      if (!task || task.isExpired || !task.expires) continue
-      if (this._isWeeklyTask(task)) dailyTasks.push(task)
-    }
-
-    return dailyTasks
+    const result: DocumentType<Task>[] = []
+    return TaskModel.find({
+      _id: this.tasks,
+    })
+      .then((tasks) => {
+        for (let task of tasks) {
+          if (!task || task.isExpired || !task.expires) continue
+          if (this._isCurrentWeeklyTask(task)) result.push(task)
+        }
+        return result
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private async _createDailyTasks(this: DocumentType<TaskList>) {
@@ -340,14 +354,16 @@ export class TaskList {
     let usedNames: Array<string> = []
     let dailyTasks = []
     let promises = []
-    let task
+    let result
+    let types: undefined | DocumentType<DynamicTask>[]
 
     while (dailyTasks.length != correctTaskCount) {
-      task = await this._createRandomDailyTask(usedNames)
+      result = await this._createRandomDailyTask(usedNames)
+      if (!types) types = result.types
 
-      dailyTasks.push(task)
-      usedNames.push(task.name)
-      promises.push(task.save())
+      dailyTasks.push(result.task)
+      usedNames.push(result.task.name)
+      promises.push(result.task.save())
     }
 
     if (correctTaskCount > 1) {
@@ -366,8 +382,9 @@ export class TaskList {
   private async _createRandomDailyTask(
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
+    types?: DocumentType<DynamicTask>[],
   ) {
-    let task = await DynamicTaskModel.getRandomDaily(usedTasksNames)
+    let task = await DynamicTaskModel.getRandomDaily(usedTasksNames, types)
     if (!task)
       throw new TechnicalError('day task', TechnicalCause.CAN_NOT_CREATE)
 
@@ -383,7 +400,7 @@ export class TaskList {
       format: task.data.expirationType,
     }
 
-    return createdTask
+    return { task: createdTask, types: task.types }
   }
 
   private async _createWeeklyTasks(this: DocumentType<TaskList>) {
@@ -391,14 +408,16 @@ export class TaskList {
     let usedNames: Array<string> = []
     let weekTasks = []
     let promises = []
-    let task
+    let result
+    let types: undefined | DocumentType<DynamicTask>[]
 
     while (weekTasks.length != correctTaskCount) {
-      task = await this._createRandomWeeklyTask(usedNames)
+      result = await this._createRandomWeeklyTask(usedNames, types)
+      if (!types) types = result.types
 
-      weekTasks.push(task)
-      usedNames.push(task.name)
-      promises.push(task.save())
+      weekTasks.push(result.task)
+      usedNames.push(result.task.name)
+      promises.push(result.task.save())
     }
 
     await Promise.all(promises)
@@ -408,8 +427,9 @@ export class TaskList {
   private async _createRandomWeeklyTask(
     this: DocumentType<TaskList>,
     usedTasksNames: Array<string>,
+    types?: DocumentType<DynamicTask>[],
   ) {
-    let task = await DynamicTaskModel.getRandomWeekly(usedTasksNames)
+    let task = await DynamicTaskModel.getRandomWeekly(usedTasksNames, types)
     if (!task)
       throw new TechnicalError('week task', TechnicalCause.CAN_NOT_CREATE)
 
@@ -425,16 +445,22 @@ export class TaskList {
       format: task.data.expirationType,
     }
 
-    return createdTask
+    return { task: createdTask, types: task.types }
   }
 
   private async _getCorrectTaskCount(this: DocumentType<TaskList>) {
-    switch (await this._ownerIsPremium()) {
-      case true:
-        return { week: 2, day: 3 }
-      case false:
-        return { week: 1, day: 1 }
-    }
+    return this._ownerIsPremium()
+      .then((status) => {
+        switch (status) {
+          case true:
+            return { week: 2, day: 3 }
+          case false:
+            return { week: 1, day: 1 }
+        }
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private async _createTaskToCompleteAllDaily(this: DocumentType<TaskList>) {
@@ -456,21 +482,41 @@ export class TaskList {
   }
 
   private async _getOwnerName(this: DocumentType<TaskList>) {
-    return (await this._getOwner()).profile.username
+    return this._getOwner()
+      .then((owner) => {
+        return owner.profile.username
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private async _ownerIsPremium(this: DocumentType<TaskList>) {
-    return (await this._getOwner()).isPremium()
+    return this._getOwner()
+      .then((owner) => {
+        return owner.isPremium()
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private async _getOwner(this: DocumentType<TaskList>) {
-    let owner = await UserModel.findById(this.owner)
-    if (!owner) {
-      this.delete()
-      throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-    }
+    if (TaskList._cacheOwners.has(this.owner))
+      return TaskList._cacheOwners.get(this.owner)!
+    return UserModel.findById(this.owner)
+      .then((owner) => {
+        if (!owner) {
+          this.delete()
+          throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+        }
 
-    return owner
+        TaskList._cacheOwners.set(this.owner, owner)
+        return owner
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private _create(taskName: string, requiredPoints: number) {
@@ -486,12 +532,12 @@ export class TaskList {
     return task
   }
 
-  private _isDailyTask(task: DocumentType<Task>) {
+  private _isCurrentDailyTask(task: DocumentType<Task>) {
     if (!task.expires || task.expires.expirationType != 'day') return false
     return true
   }
 
-  private _isWeeklyTask(task: DocumentType<Task>) {
+  private _isCurrentWeeklyTask(task: DocumentType<Task>) {
     if (!task.expires || task.expires.expirationType != 'week') return false
     return true
   }
