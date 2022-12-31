@@ -18,7 +18,7 @@ export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _counter!: Match.Lobby.Counter
   private _game!: Match.Manager.supportedGames
-  private _prepareStageStarted?: Date
+  private _stagesTimers: Map<Match.Lobby.Status, Date> = new Map()
   private _members: MemberList = new MemberList()
   private _commands: Map<
     Match.Lobby.Command.Types,
@@ -187,9 +187,10 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get readyToStart() {
-    if (this.status != 'preparing' || !this._prepareStageStarted) return false
+    if (this.status != 'preparing' || !this._stagesTimers.has('preparing'))
+      return false
     return (
-      Date.now() - this._prepareStageStarted.getMilliseconds() >
+      Date.now() - this._stagesTimers.get('preparing')!.getMilliseconds() >
       SECOND_IN_MS * 5
     )
   }
@@ -255,6 +256,17 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get isReady(): boolean {
+    if (this.status != 'filled') return false
+    const passedTime =
+      Date.now() - this._stagesTimers.get('filled')!.getMilliseconds()
+    let somebodyWasKicked = false
+    for (let member of this.players) {
+      if (!member.isReady && passedTime > SECOND_IN_MS * 20) {
+        this.leave(member.name)
+        somebodyWasKicked = true
+      }
+    }
+    if (somebodyWasKicked) return false
     return this.firstCommand.isReady && this.secondCommand.isReady
   }
 
@@ -366,9 +378,11 @@ export class Lobby implements Match.Lobby.Instance {
   private async _leaveSolo(member: Match.Member.Instance) {
     if (!(await this._controller.removeMembers(member))) return false
     if (!this._leaveCommand(member)) return false
-
+    if (this._status != 'searching' && this._status != 'filled')
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
+    this._stagesTimers = new Map()
     this._status = 'searching'
 
     this._counter.searching--
@@ -445,14 +459,15 @@ export class Lobby implements Match.Lobby.Instance {
       let members = this._members.membersCount
       this._counter.searching -= members
       this._counter.playing += members
+      this._stagesTimers.set('filled', new Date())
       this._status = 'filled'
     }
     if (this._status == 'filled' && this.isReady) this._status = 'voting'
     if (this._status == 'voting' && this.isVotingStageEnd)
       this._status = 'preparing'
 
-    if (this._status == 'preparing' && !this._prepareStageStarted)
-      this._prepareStageStarted = new Date()
+    if (this._status == 'preparing' && !this._stagesTimers.has('preparing'))
+      this._stagesTimers.set('preparing', new Date())
   }
 
   private async _checkChat() {

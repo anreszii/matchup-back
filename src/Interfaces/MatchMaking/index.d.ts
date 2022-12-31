@@ -65,7 +65,7 @@ export declare namespace Match {
         isCaptain(member: string | Member.Instance): boolean
         move(name: string, command: Instance | Types | number): Promise<boolean>
         has(name: string): boolean
-        get(name: string): Member.InstanceData | null
+        get(name: string): Member.Instance | null
 
         get lobbyID(): string
         get type(): Types
@@ -74,7 +74,7 @@ export declare namespace Match {
         get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
-        get players(): Member.InstanceData[]
+        get players(): Member.Instance[]
 
         get playersCount(): number
         get teamPlayersCount(): number
