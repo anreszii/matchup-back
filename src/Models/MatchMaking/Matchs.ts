@@ -16,7 +16,6 @@ import { ServiceInformation } from '../ServiceInformation'
 import { Reward } from '../Reward'
 import { StandOff_Lobbies } from '../../API/Sockets'
 import WebSocket = require('ws')
-const socket = new WebSocket('ws://192.168.0.101:6666/')
 
 export class MatchServiceInformation extends ServiceInformation {
   constructor(lobbyID: string) {
@@ -65,25 +64,31 @@ export class Match {
   }
 
   async parseNickNames(this: DocumentType<Match>) {
-    const membersInLobby = StandOff_Lobbies.get(this.info.lobby)?.members
-      .toArray
-    if (!membersInLobby)
-      throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
-    const usernames = []
-    for (let member of membersInLobby) usernames.push(member.name)
-    const documents = await UserModel.find({ 'profile.username': usernames })
+    try {
+      const membersInLobby = StandOff_Lobbies.get(this.info.lobby)?.members
+        .toArray
+      if (!membersInLobby)
+        throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
+      const usernames = []
+      for (let member of membersInLobby) usernames.push(member.name)
+      const documents = await UserModel.find({ 'profile.username': usernames })
 
-    const nicknamesInLobby = []
-    const nicknamesToParse = []
+      const nicknamesInLobby = []
+      const nicknamesToParse = []
 
-    for (let member of documents) nicknamesInLobby.push(member.profile.nickname)
-    for (let member of this.members) nicknamesToParse.push(member.name)
-    socket.send({
-      inLobby: nicknamesInLobby,
-      toParse: nicknamesToParse,
-      cutOff: 2,
-      id: this._id,
-    })
+      for (let member of documents)
+        nicknamesInLobby.push(member.profile.nickname)
+      for (let member of this.members) nicknamesToParse.push(member.name)
+      const socket = new WebSocket('ws://192.168.0.101:6666/')
+      socket.send({
+        inLobby: nicknamesInLobby,
+        toParse: nicknamesToParse,
+        cutOff: 2,
+        id: this._id,
+      })
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   async calculateResults(this: DocumentType<Match>) {
