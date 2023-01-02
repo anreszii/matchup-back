@@ -14,8 +14,9 @@ import {
 } from '../../error'
 import { ServiceInformation } from '../ServiceInformation'
 import { Reward } from '../Reward'
-import { StandOff_Lobbies } from '../../API/Sockets'
-import WebSocket = require('ws')
+import { CachedLobbies } from '../../Classes/MatchMaking/LobbyCache'
+import { fetchWebSocket } from '../../Utils/dataHookSocket'
+const socket = new fetchWebSocket('ws://217.25.93.43:6666/')
 
 export class MatchServiceInformation extends ServiceInformation {
   constructor(lobbyID: string) {
@@ -26,7 +27,6 @@ export class MatchServiceInformation extends ServiceInformation {
   lobby!: string
 }
 
-type FuzzedNicknames = Array<Array<string | number>>
 export class Match {
   @prop({
     required: true,
@@ -42,8 +42,6 @@ export class Match {
   public score?: MapScore
   @prop()
   public screen?: string
-  @prop()
-  public parseResult?: { [key: string]: FuzzedNicknames }
 
   static async log(
     this: ReturnModelType<typeof Match>,
@@ -63,28 +61,21 @@ export class Match {
     })
   }
 
-  async parseNickNames(this: DocumentType<Match>) {
+  async getParsedNames(this: DocumentType<Match>) {
     try {
-      const membersInLobby = StandOff_Lobbies.get(this.info.lobby)?.members
-        .toArray
+      const membersInLobby = CachedLobbies.get(this.info.lobby)
       if (!membersInLobby)
         throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
-      const usernames = []
-      for (let member of membersInLobby) usernames.push(member.name)
-      const documents = await UserModel.find({ 'profile.username': usernames })
 
       const nicknamesInLobby = []
       const nicknamesToParse = []
 
-      for (let member of documents)
-        nicknamesInLobby.push(member.profile.nickname)
+      for (let member of membersInLobby) nicknamesInLobby.push(member.nickname)
       for (let member of this.members) nicknamesToParse.push(member.name)
-      const socket = new WebSocket('ws://192.168.0.101:6666/')
-      socket.send({
+      return socket.fetch({
         inLobby: nicknamesInLobby,
         toParse: nicknamesToParse,
         cutOff: 2,
-        id: this._id,
       })
     } catch (e) {
       console.log(e)

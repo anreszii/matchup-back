@@ -6,9 +6,10 @@ import {
 } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
 import { TechnicalCause, TechnicalError } from '../../error'
-import { MatchListModel } from '../index'
-import { Match } from '../MatchMaking/Matchs'
+import { MatchListModel, Match } from '../index'
 import { ServiceInformation } from '../ServiceInformation'
+import { StandOff_Lobbies } from '../../API/Sockets'
+import { MINUTE_IN_MS } from '../../configs/time_constants'
 
 class MatchModerationRecord {
   constructor() {
@@ -42,3 +43,25 @@ class MatchModerationRecord {
 export const MatchModerationRecordModel = getModelForClass(
   MatchModerationRecord,
 )
+
+setInterval(function () {
+  MatchModerationRecordModel.find({})
+    .then((records) => {
+      for (let record of records) {
+        if (!record.moderated) continue
+        MatchListModel.findById(record.match)
+          .then(async (match) => {
+            if (!match) {
+              await record.delete()
+              throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
+            }
+            await match.calculateResults()
+            let lobby = StandOff_Lobbies.get(match.info.lobby)
+            if (!lobby) return
+            await lobby.stop()
+          })
+          .catch((e) => console.log(e))
+      }
+    })
+    .catch((e) => console.log(e))
+}, MINUTE_IN_MS * 30)
