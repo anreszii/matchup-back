@@ -16,6 +16,7 @@ import { ServiceInformation } from '../ServiceInformation'
 import { Reward } from '../Reward'
 import { CachedLobbies } from '../../Classes/MatchMaking/LobbyCache'
 import { fetchWebSocket } from '../../Utils/dataHookSocket'
+import { MatchModerationRecordModel } from '../Moderation/ModerateMatchs'
 const socket = new fetchWebSocket('ws://217.25.93.43:6666/')
 
 export class MatchServiceInformation extends ServiceInformation {
@@ -23,7 +24,7 @@ export class MatchServiceInformation extends ServiceInformation {
     super()
     this.lobby = lobbyID
   }
-  @prop({ required: true })
+  @prop()
   lobby!: string
 }
 
@@ -61,16 +62,28 @@ export class Match {
     })
   }
 
-  async getParsedNames(this: DocumentType<Match>) {
-    try {
-      const membersInLobby = CachedLobbies.get(this.info.lobby)
-      if (!membersInLobby)
-        throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
+  async getLoggedNames(this: DocumentType<Match>) {
+    const lobbyMembers = CachedLobbies.get(this.info.lobby)
+    if (lobbyMembers) return lobbyMembers
 
+    const names = []
+    for (let member of this.members) names.push(member.name)
+    return names
+  }
+
+  async getParsedNames(this: DocumentType<Match>, customNicknames?: string[]) {
+    try {
       const nicknamesInLobby = []
       const nicknamesToParse = []
 
-      for (let member of membersInLobby) nicknamesInLobby.push(member.nickname)
+      if (!customNicknames) {
+        const membersInLobby = CachedLobbies.get(this.info.lobby)
+        if (!membersInLobby)
+          throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
+        for (let member of membersInLobby)
+          nicknamesInLobby.push(member.nickname)
+      } else nicknamesInLobby.push(...customNicknames)
+
       for (let member of this.members) nicknamesToParse.push(member.name)
       return socket.fetch({
         inLobby: nicknamesInLobby,

@@ -14,9 +14,8 @@ import { Report } from './MatchMaking/Reports'
 import { Chat } from './Chat/Chat'
 import { PERIODS } from './User/Premium'
 import { Leaderboard } from './Leaderboard/Leaderboar'
-import { DAY_IN_MS, HOUR_IN_MS } from '../configs/time_constants'
+import { HOUR_IN_MS } from '../configs/time_constants'
 import { NotificationQueue } from './User/Notify/Queue'
-import { MatchModerationRecordModel } from './Moderation/ModerateMatchs'
 
 export const UserModel = getModelForClass(User)
 export const TaskModel = getModelForClass(Task)
@@ -67,4 +66,3 @@ MODELS.set(ChatModel.modelName, ChatModel)
 MODELS.set(LeaderboardModel.modelName, LeaderboardModel)
 MODELS.set(NotificationModel.modelName, NotificationModel)
 MODELS.set(PERIODS.modelName, PERIODS)
-MODELS.set(MatchModerationRecordModel.modelName, MatchModerationRecordModel)

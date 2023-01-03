@@ -74,6 +74,8 @@ export type MODELS_ACTION_LIST =
   | 'Match/changeRecord'
   | 'Match/changeRecordName'
   | 'Match/setScreen'
+  | 'Match/getLoggedNames'
+  | 'Match/getParsedNames'
   | 'Match/generateTestData'
   | 'Match/getTestData'
   | 'Match/deleteTestData'
@@ -171,6 +173,8 @@ MODELS_ACTIONS.set('Match/setScreen', 2)
 MODELS_ACTIONS.set('Match/generateTestData', 2)
 MODELS_ACTIONS.set('Match/getTestData', 2)
 MODELS_ACTIONS.set('Match/deleteTestData', 2)
+MODELS_ACTIONS.set('Match/getLoggedNames', 2)
+MODELS_ACTIONS.set('Match/getParsedNames', 2)
 
 /* Task Types Model Actions */
 MODELS_ACTIONS.set('StaticTask/createType', 2)
