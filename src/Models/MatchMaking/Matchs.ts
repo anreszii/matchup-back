@@ -302,20 +302,20 @@ export class Match {
     member: MemberRecord,
   ) {
     switch (task.name) {
-      case 'Убить противников':
+      case 'Убийств|Kills':
         task.addProgess(member.statistic.kills)
         break
-      case 'Выиграть':
+      case 'Побед|Wins':
         if (this._resultOfMatchForMember(member.name) == IMatch.Result.WIN)
           task.addProgess(1)
         break
-      case 'Набрать очков':
+      case 'Набрать очков|Gained points':
         task.addProgess(member.statistic.points)
         break
-      case 'Ассистов':
+      case 'Сделать ассистов|Assists':
         task.addProgess(member.statistic.assists)
         break
-      case 'Сыграть':
+      case 'Сыграть|Matches played':
         task.addProgess(1)
         break
       case 'Sandstone':

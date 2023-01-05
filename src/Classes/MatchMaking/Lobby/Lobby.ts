@@ -4,7 +4,7 @@ import { COMMANDS } from '../Command/Manager'
 import { PLAYERS } from '../MemberManager'
 
 import { MemberList } from '../MemberList'
-import { getMedian, minMax } from '../../../Utils/math'
+import { getMedian, getRandom, minMax } from '../../../Utils/math'
 
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
@@ -19,6 +19,7 @@ export class Lobby implements Match.Lobby.Instance {
   private _counter!: Match.Lobby.Counter
   private _game!: Match.Manager.supportedGames
   private _stagesTimers: Map<Match.Lobby.Status, Date> = new Map()
+  private _timers: Map<string, Date> = new Map()
   private _members: MemberList = new MemberList()
   private _commands: Map<
     Match.Lobby.Command.Types,
@@ -27,6 +28,8 @@ export class Lobby implements Match.Lobby.Instance {
   private _turn: Exclude<Match.Lobby.Command.Types, 'spectators' | 'neutrals'> =
     'command1'
   private _maps = new Set(GAME_MAPS)
+  private _owner?: string
+  private _gameID?: string
   private _map?: string
   private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
@@ -116,18 +119,17 @@ export class Lobby implements Match.Lobby.Instance {
     else return this._joinSolo(member)
   }
 
-  async leave(name: string) {
+  async leave(name: string, forceFlag = false) {
     await this._checkChat()
     if (this.status != 'searching' && this.status != 'filled') return false
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id) return false
 
-    if (member.teamID) return this._leaveWithTeam(member)
-    else return this._leaveSolo(member)
+    if (member.teamID) return this._leaveWithTeam(member, forceFlag)
+    else return this._leaveSolo(member, forceFlag)
   }
 
   vote(name: string, map: string): boolean {
-    this._checkStatus()
     if (this.status != 'voting')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._maps.has(map))
@@ -159,6 +161,28 @@ export class Lobby implements Match.Lobby.Instance {
     for (let [type, command] of this._commands)
       if (command.becomeReady(name)) return true
     throw new TechnicalError('lobby member', TechnicalCause.NOT_EXIST)
+  }
+
+  setGameId(name: string, id: string) {
+    if (this.status != 'preparing')
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
+    if (!this._owner || name != this._owner)
+      throw new TechnicalError('executor', TechnicalCause.INVALID)
+
+    this._gameID = id
+    return true
+  }
+
+  get gameID(): string {
+    if (!this._gameID)
+      throw new TechnicalError('game ID', TechnicalCause.NOT_EXIST)
+    return this._gameID
+  }
+
+  get owner(): string {
+    if (!this._owner)
+      throw new TechnicalError('owner', TechnicalCause.NOT_EXIST)
+    return this._owner
   }
 
   get readyToDrop(): boolean {
@@ -260,14 +284,18 @@ export class Lobby implements Match.Lobby.Instance {
     const passedTime =
       Date.now() - this._stagesTimers.get('filled')!.getMilliseconds()
     let somebodyWasKicked = false
+
     for (let member of this.players) {
       if (!member.isReady && passedTime > SECOND_IN_MS * 20) {
-        this.leave(member.name)
+        this.leave(member.name, true)
         somebodyWasKicked = true
       }
     }
-    if (somebodyWasKicked) return false
-    return this.firstCommand.isReady && this.secondCommand.isReady
+    if (!somebodyWasKicked)
+      return this.firstCommand.isReady && this.secondCommand.isReady
+
+    this._setLobbyStatusToSearching()
+    return false
   }
 
   set discord(client: DiscordClient) {
@@ -290,7 +318,13 @@ export class Lobby implements Match.Lobby.Instance {
     this._counter = value
   }
 
+  private _setLobbyStatusToSearching() {
+    for (let member of this.members.toArray) member.isReady = false
+    this._status = 'searching'
+  }
+
   private _startNextTurn() {
+    this._timers.set('turn_start', new Date())
     switch (this._turn) {
       case 'command1':
         this._turn = 'command2'
@@ -354,6 +388,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   private async _leaveWithTeam(
     member: Match.Member.Instance,
+    forceFlag = false,
   ): Promise<boolean> {
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
@@ -366,7 +401,7 @@ export class Lobby implements Match.Lobby.Instance {
       return team.leave(member.name)
     }
 
-    if (team.captainName != member.name) return false
+    if (team.captainName != member.name && !forceFlag) return false
 
     let promises = []
     for (let member of team.members.toArray)
@@ -375,11 +410,12 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _leaveSolo(member: Match.Member.Instance) {
+  private async _leaveSolo(member: Match.Member.Instance, forceFlag = false) {
+    if (this._status != 'searching' && this._status != 'filled' && !forceFlag)
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!(await this._controller.removeMembers(member))) return false
     if (!this._leaveCommand(member)) return false
-    if (this._status != 'searching' && this._status != 'filled')
-      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
+
     this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
     this._stagesTimers = new Map()
@@ -462,9 +498,23 @@ export class Lobby implements Match.Lobby.Instance {
       this._stagesTimers.set('filled', new Date())
       this._status = 'filled'
     }
-    if (this._status == 'filled' && this.isReady) this._status = 'voting'
-    if (this._status == 'voting' && this.isVotingStageEnd)
+    if (this._status == 'filled' && this.isReady) {
+      this._timers.set('turn_start', new Date())
+      this._status = 'voting'
+    }
+    if (this._status == 'voting' && !this.isVotingStageEnd) {
+      const timePassedAfterTurnStart =
+        Date.now() - this._timers.get('turn_start')!.getMilliseconds()
+      if (timePassedAfterTurnStart <= SECOND_IN_MS * 20) return
+
+      const maps = this.maps
+      this.vote(this.votingCaptain, maps[getRandom(0, maps.length - 1)])
+      return
+    } else if (this._status == 'voting' && this.isVotingStageEnd) {
       this._status = 'preparing'
+      const captains = [this.firstCommand.captain, this.secondCommand.captain]
+      this._owner = captains[getRandom(0, 1)]
+    }
 
     if (this._status == 'preparing' && !this._stagesTimers.has('preparing'))
       this._stagesTimers.set('preparing', new Date())

@@ -10,6 +10,9 @@ export type API_ACTION_LIST =
   | 'get_ready'
   | 'get_maps'
   | 'get_captain'
+  | 'get_owner'
+  | 'get_game_id'
+  | 'set_game_id'
   | 'vote'
   | 'sync_lobby'
   | 'change_command'
@@ -43,6 +46,9 @@ API_ACTIONS.set('get_lobby_players_count', 0)
 API_ACTIONS.set('get_ready', 0)
 API_ACTIONS.set('get_maps', 0)
 API_ACTIONS.set('get_captain', 0)
+API_ACTIONS.set('get_owner', 0)
+API_ACTIONS.set('get_game_id', 0)
+API_ACTIONS.set('set_game_id', 0)
 API_ACTIONS.set('vote', 0)
 API_ACTIONS.set('sync_lobby', 0)
 API_ACTIONS.set('create_team', 0)

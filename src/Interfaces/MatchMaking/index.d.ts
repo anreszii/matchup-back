@@ -37,6 +37,11 @@ export declare namespace Match {
 
       set counter(value: Counter)
       get isReady(): boolean
+
+      setGameId(name: string, id: string): boolean
+
+      get owner(): string
+      get gameID(): string
     }
 
     type Counter = {

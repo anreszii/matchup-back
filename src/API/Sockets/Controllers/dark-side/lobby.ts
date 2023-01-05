@@ -7,7 +7,6 @@ import { DTO } from '../../../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../../../error'
 
 import { CONTROLLERS as CONTROLLERS } from '../../Handlers/dark-side'
-import { GAME_MAPS } from '../../../../configs/standoff_maps'
 
 import { SearchEngine } from '../../../../Classes/MatchMaking/Rating/SearchEngine'
 import { LobbyManager } from '../../../../Classes/MatchMaking/Lobby/Manager'
@@ -19,7 +18,7 @@ import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 import { DISCORD_ROBOT } from '../../../../app'
 import { MatchListModel, UserModel } from '../../../../Models/index'
-import { MINUTE_IN_MS } from '../../../../configs/time_constants'
+import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../../configs/time_constants'
 import { MatchModerationRecordModel } from '../../../../Models/Moderation/ModerateMatchs'
 
 export const StandOff_Lobbies = new LobbyManager(
@@ -51,27 +50,36 @@ setInterval(function () {
 
 const Searcher = new SearchEngine(StandOff_Lobbies)
 
-setInterval(async () => {
-  for (let lobby of StandOff_Lobbies.lobbies) {
-    switch (lobby.status) {
-      case 'searching':
-        sendSyncIventToLobby(lobby)
-        break
-      case 'filled':
-        sendReadyIventToLobby(lobby)
-        break
-      case 'voting':
-        sendVoteIventToLobby(lobby)
-        break
-      case 'preparing':
-        if (lobby.readyToStart) {
-          sendStartIventToLobby(lobby)
-          await lobby.start()
-        }
-        break
+setInterval(function () {
+  try {
+    for (let lobby of StandOff_Lobbies.lobbies) {
+      switch (lobby.status) {
+        case 'searching':
+          sendSyncIventToLobby(lobby)
+          break
+        case 'filled':
+          sendReadyIventToLobby(lobby)
+          break
+        case 'voting':
+          sendVoteIventToLobby(lobby)
+          break
+        case 'preparing':
+          switch (lobby.readyToStart) {
+            case false:
+              sendPrepareIventToLobby(lobby)
+              break
+            case true:
+              sendStartIventToLobby(lobby)
+              lobby.start().then()
+              break
+          }
+          break
+      }
     }
+  } catch (e) {
+    console.log(e)
   }
-}, 1000 * 10)
+}, SECOND_IN_MS * 2)
 
 /**
  * Обработчик для поиска лобби.
@@ -303,6 +311,82 @@ export async function get_captain(socket: WebSocket, params: unknown[]) {
   }
 }
 CONTROLLERS.set('get_captain', get_captain)
+
+/**
+ * Контроллер для получения текущего владельца лобби.</br>
+ * @returns имя капитана команды игрока
+ * @category Lobby
+ * @event
+ */
+export async function get_owner(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('command', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
+  }
+
+  return lobby.owner
+}
+CONTROLLERS.set('get_owner', get_owner)
+
+/**
+ * Контроллер для получения id катки.</br>
+ * @returns имя капитана команды игрока
+ * @category Lobby
+ * @event
+ */
+export async function get_game_id(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('command', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
+  }
+
+  return lobby.gameID
+}
+CONTROLLERS.set('get_game_id', get_game_id)
+
+/**
+ * Контроллер для установки id катки.</br>
+ * @params ["id"]
+ * @returns имя капитана команды игрока
+ * @category Lobby
+ * @event
+ */
+export async function set_game_id(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('command', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
+  }
+
+  let id = params[0]
+  if (!id || typeof id != 'string')
+    throw new TechnicalError('game id', TechnicalCause.INVALID_FORMAT)
+
+  if (!lobby.setGameId(member.name, id)) return false
+  sendPrepareIventToLobby(lobby)
+  return true
+}
+CONTROLLERS.set('set_game_id', set_game_id)
 
 /**
  * Обработчик для приглашения игрока в лобби.
@@ -541,6 +625,15 @@ function sendVoteIventToLobby(lobby: Match.Lobby.Instance) {
     captains,
     votingCaptain: lobby.votingCaptain,
     maps: lobby.maps,
+  })
+  lobby.chat.send('lobby', dto)
+}
+
+function sendPrepareIventToLobby(lobby: Match.Lobby.Instance) {
+  const dto = new DTO({
+    label: 'prepare',
+    owner: lobby.owner,
+    gameID: lobby.gameID,
   })
   lobby.chat.send('lobby', dto)
 }
