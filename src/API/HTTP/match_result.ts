@@ -33,10 +33,13 @@ router.post(
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
       const lobby = StandOff_Lobbies.get(member.lobbyID)
-      if (!lobby || lobby.status != 'started') {
+      if (!lobby) {
         if (!lobby) member.lobbyID = undefined
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
+
+      if (lobby.status != 'started' || lobby.type != 'rating')
+        throw new TechnicalError('lobby', TechnicalCause.INVALID)
 
       if (
         !lobby.firstCommand.isCaptain(payload.username) &&

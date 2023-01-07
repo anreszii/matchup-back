@@ -58,10 +58,10 @@ setInterval(function () {
             await match.calculateResults()
             let lobby = StandOff_Lobbies.get(match.info.lobby)
             if (!lobby) return
-            await lobby.stop()
+            await lobby.markToDelete()
           })
           .catch((e) => console.log(e))
       }
     })
-    .catch((e) => console.log(e))
+    .catch((e) => console.error(e))
 }, MINUTE_IN_MS * 30)

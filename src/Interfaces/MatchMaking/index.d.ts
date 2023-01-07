@@ -102,6 +102,7 @@ export declare namespace Match {
     }
     interface Instance extends IMatchMember {
       notify(content: string): Promise<boolean>
+      isPremium(): Promise<boolean>
     }
 
     interface InstanceData extends Omit<Instance, 'readyToDrop' | 'delete'> {}

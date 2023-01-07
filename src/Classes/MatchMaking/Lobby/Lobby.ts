@@ -69,7 +69,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  async stop() {
+  async markToDelete() {
     await this.delete()
     await this._controller.stop()
     this._deleted = true

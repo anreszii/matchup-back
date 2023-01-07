@@ -28,7 +28,7 @@ export declare interface ILobby extends IEntity<string> {
   get playersCount(): number
 
   start(): Promise<boolean>
-  stop(): Promise<boolean>
+  markToDelete(): Promise<boolean>
 
   canAddTeam(id: number): boolean
 

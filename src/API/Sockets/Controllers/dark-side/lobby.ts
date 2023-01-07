@@ -26,28 +26,6 @@ export const StandOff_Lobbies = new LobbyManager(
   DISCORD_ROBOT,
 )
 
-setInterval(function () {
-  MatchModerationRecordModel.find({})
-    .then((records) => {
-      for (let record of records) {
-        if (!record.moderated) continue
-        MatchListModel.findById(record.match)
-          .then(async (match) => {
-            if (!match) {
-              await record.delete()
-              throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
-            }
-            await match.calculateResults()
-            let lobby = StandOff_Lobbies.get(match.info.lobby)
-            if (!lobby) return
-            await lobby.stop()
-          })
-          .catch((e) => console.log(e))
-      }
-    })
-    .catch((e) => console.log(e))
-}, MINUTE_IN_MS * 30)
-
 const Searcher = new SearchEngine(StandOff_Lobbies)
 
 setInterval(function () {
@@ -71,6 +49,7 @@ setInterval(function () {
             case true:
               sendStartIventToLobby(lobby)
               lobby.start().then()
+              if (lobby.type != 'rating') lobby.markToDelete()
               break
           }
           break
