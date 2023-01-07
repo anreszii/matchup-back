@@ -214,7 +214,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (this.status != 'preparing' || !this._stagesTimers.has('preparing'))
       return false
     return (
-      Date.now() - this._stagesTimers.get('preparing')!.getMilliseconds() >
+      Date.now() - this._stagesTimers.get('preparing')!.getTime() >
       SECOND_IN_MS * 5
     )
   }
@@ -280,9 +280,8 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get isReady(): boolean {
-    if (this.status != 'filled') return false
-    const passedTime =
-      Date.now() - this._stagesTimers.get('filled')!.getMilliseconds()
+    if (this._status != 'filled') return false
+    const passedTime = Date.now() - this._stagesTimers.get('filled')!.getTime()
     let somebodyWasKicked = false
 
     for (let member of this.players) {
@@ -504,7 +503,7 @@ export class Lobby implements Match.Lobby.Instance {
     }
     if (this._status == 'voting' && !this.isVotingStageEnd) {
       const timePassedAfterTurnStart =
-        Date.now() - this._timers.get('turn_start')!.getMilliseconds()
+        Date.now() - this._timers.get('turn_start')!.getTime()
       if (timePassedAfterTurnStart <= SECOND_IN_MS * 20) return
 
       const maps = this.maps
