@@ -9,10 +9,10 @@ type PlayerCommand = Exclude<
 
 export function distribute(manager: StateManager, guild: Guild | string) {
   let memberCommand = manager.memberCommand
-  if (!memberCommand) return
+  if (!memberCommand) return (manager.channel = null)
 
   let teamID = manager.memberTeamID
-  if (!teamID) return
+  if (!teamID) return (manager.channel = null)
 
   manager.channel = guild
 }

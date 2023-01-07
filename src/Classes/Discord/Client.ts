@@ -29,9 +29,12 @@ export class DiscordClient {
   })
   private _guilds!: Collection<string, OAuth2Guild>
   constructor(token: string) {
-    this.client.login(token).then(async () => {
-      this._guilds = await this.client.guilds.fetch()
-    })
+    this.client
+      .login(token)
+      .then(async () => {
+        this._guilds = await this.client.guilds.fetch()
+      })
+      .catch((e) => console.error(e))
 
     setInterval(
       async function (this: DiscordClient) {
