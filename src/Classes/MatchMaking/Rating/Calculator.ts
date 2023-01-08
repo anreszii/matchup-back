@@ -1,4 +1,4 @@
-import type { Match, Rating } from '../../../Interfaces'
+import { Match, Rating } from '../../../Interfaces'
 
 export class RatingCalculator implements Rating.Calculator.Instance {
   private _RI: number = 1
@@ -11,7 +11,7 @@ export class RatingCalculator implements Rating.Calculator.Instance {
     return this
   }
   get RatingIndicator(): number {
-    return this._RI
+    return Math.round(this._RI)
   }
 
   public calculateDeaths(deaths: number) {
@@ -30,7 +30,17 @@ export class RatingCalculator implements Rating.Calculator.Instance {
   }
 
   public calculateMatchResult(result: Match.Result) {
-    this._RI += result * 10
+    switch (result) {
+      case Match.Result.WIN:
+        this._RI += 3
+        break
+      case Match.Result.LOSE:
+        this._RI -= 3
+        break
+      case Match.Result.DRAW:
+        this._RI += 1
+        break
+    }
     return this
   }
 }
