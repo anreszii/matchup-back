@@ -1,11 +1,16 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
 import { inRange, getRounded } from '../../../../Utils/math'
+const DEFAULT_MPR_SPREAD = 200
 export class GRIFilter implements Rating.SearchEngine.Filter {
   private _GRI: number = 0
   constructor() {}
 
   isValid(lobby: Match.Lobby.Instance) {
-    return inRange(getRounded(this._GRI, 100), getRounded(lobby.GRI, 100), 100)
+    return inRange(
+      getRounded(this._GRI, 100),
+      getRounded(lobby.GRI, 100),
+      DEFAULT_MPR_SPREAD,
+    )
   }
 
   set GRI(value: number) {
