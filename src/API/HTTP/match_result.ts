@@ -41,10 +41,7 @@ router.post(
       if (lobby.status != 'started' || lobby.type != 'rating')
         throw new TechnicalError('lobby', TechnicalCause.INVALID)
 
-      if (
-        !lobby.firstCommand.isCaptain(payload.username) &&
-        !lobby.secondCommand.isCaptain(payload.username)
-      )
+      if (lobby.owner != payload.username)
         throw new TechnicalError('user role', TechnicalCause.NEED_HIGHER_VALUE)
       let body = new FormData()
 
