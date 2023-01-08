@@ -12,7 +12,7 @@ import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
-import { SECOND_IN_MS } from '../../../configs/time_constants'
+import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../configs/time_constants'
 import { DTO } from '../../DTO/DTO'
 import { clientServer } from '../../../API/Sockets'
 
@@ -212,7 +212,7 @@ export class Lobby implements Match.Lobby.Instance {
       return false
     return (
       Date.now() - this._stagesTimers.get('preparing')!.getTime() >
-      SECOND_IN_MS * 30
+      MINUTE_IN_MS * 3
     )
   }
 
