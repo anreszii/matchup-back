@@ -133,6 +133,6 @@ export class Task {
   }
 
   private get _hasRequiredPointsCount() {
-    return this.progress.currentPoints < this.progress.requiredPoints
+    return this.progress.currentPoints >= this.progress.requiredPoints
   }
 }
