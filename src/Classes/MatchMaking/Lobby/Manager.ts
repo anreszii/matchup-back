@@ -41,7 +41,7 @@ export class LobbyManager implements Match.Manager.Instance {
     if (!status)
       throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
 
-    let lobby = new Lobby(ID, type, 2, this._controller)
+    let lobby = new Lobby(ID, type, 5, this._controller)
     lobby.chat = await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`)
     lobby.counter = LobbyManager._counter
     lobby.discord = this._dsClient
