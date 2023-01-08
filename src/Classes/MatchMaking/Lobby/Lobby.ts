@@ -132,7 +132,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
-    if (this.status != 'voting' || this._maps.size < 2)
+    if (this._status != 'voting' || this._maps.size < 2)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._maps.has(map))
       throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
@@ -353,7 +353,8 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private get _commandWithSpace() {
-    if (this.type != 'rating') return this.neutrals
+    //TODO восстановить когда начнем нормально реализовывать режимы после ЗБТ
+    // if (this.type != 'rating') return this.neutrals
     if (this.firstCommand.hasSpaceFor(1)) return this.firstCommand
     if (this.secondCommand.hasSpaceFor(1)) return this.secondCommand
   }
