@@ -175,15 +175,11 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  get gameID(): string {
-    if (!this._gameID)
-      throw new TechnicalError('game ID', TechnicalCause.NOT_EXIST)
+  get gameID(): string | undefined {
     return this._gameID
   }
 
-  get owner(): string {
-    if (!this._owner)
-      throw new TechnicalError('owner', TechnicalCause.NOT_EXIST)
+  get owner(): string | undefined {
     return this._owner
   }
 

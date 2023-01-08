@@ -40,8 +40,8 @@ export declare namespace Match {
 
       setGameId(name: string, id: string): boolean
 
-      get owner(): string
-      get gameID(): string
+      get owner(): string | undefined
+      get gameID(): string | undefined
     }
 
     type Counter = {
