@@ -17,9 +17,8 @@ import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Comman
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 import { DISCORD_ROBOT } from '../../../../app'
-import { MatchListModel, UserModel } from '../../../../Models/index'
-import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../../configs/time_constants'
-import { MatchModerationRecordModel } from '../../../../Models/Moderation/ModerateMatchs'
+import { UserModel } from '../../../../Models/index'
+import { SECOND_IN_MS } from '../../../../configs/time_constants'
 
 export const StandOff_Lobbies = new LobbyManager(
   new StandOffController(),
@@ -120,6 +119,14 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   let type = params[1]
   if (!isCorrectType(type))
     throw new TechnicalError('regime type', TechnicalCause.INVALID)
+  if (type == 'rating' && team) {
+    if (
+      typeof team.maximumRatingSpread == 'number' &&
+      team.maximumRatingSpread > 100
+    )
+      throw new TechnicalError('team rating spread', TechnicalCause.INVALID)
+  }
+
   Filters.byRegime(type)
 
   let lobby = await Searcher.findLobby(Filters)

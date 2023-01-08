@@ -11,6 +11,8 @@ export class Team implements Match.Member.Team.Instance {
   private _maxTeamSize = 5
   private _keyGuild?: string
   private _deleted = false
+  private _min: Match.Member.Instance | null = null
+  private _max: Match.Member.Instance | null = null
 
   constructor(private _id: number) {}
 
@@ -26,6 +28,7 @@ export class Team implements Match.Member.Team.Instance {
 
     if (!this._captain) this._captain = member.name
     member.teamID = this.id
+    this._updateRatingRecords()
     return true
   }
 
@@ -42,6 +45,9 @@ export class Team implements Match.Member.Team.Instance {
     if (!this.members.deleteMember(name)) return false
     member.isReady = false
     member.teamID = undefined
+    if (this._min == member) this._min = null
+    if (this._max == member) this._max = null
+    this._updateRatingRecords()
     return true
   }
 
@@ -104,6 +110,11 @@ export class Team implements Match.Member.Team.Instance {
     return this._deleted
   }
 
+  get maximumRatingSpread(): number {
+    if (!this._min || !this._max) return 0
+    return this._max!.GRI - this._min!.GRI
+  }
+
   private _checkGuildAfterJoin(member: Match.Member.Instance) {
     if (this.members.count == 0) {
       this._keyGuild = member.guildName
@@ -112,18 +123,28 @@ export class Team implements Match.Member.Team.Instance {
     if (this._keyGuild != member.guildName) this._keyGuild = undefined
   }
 
-  private async _checkChat() {
-    if (this._chat) return
-    this._chat = await CLIENT_CHATS.spawn('team', `team#${this._id}`)
-
-    for (let member of this._members.values()) this._chat.join(member.name)
-  }
-
   private _checkGuildAfterLeave() {
     let members = this.members.toArray
     this._keyGuild = members[0].guildName
     for (let i = 1; i < members.length; i++)
       if (members[i].guildName != this._keyGuild)
         return (this._keyGuild = undefined)
+  }
+
+  private _updateRatingRecords() {
+    let min, max
+    for (let member of this.members.toArray) {
+      if (!min) min = member
+      if (!max) max = member
+      if (member.GRI < min.GRI) this._min = member
+      if (member.GRI > max.GRI) this._max = member
+    }
+  }
+
+  private async _checkChat() {
+    if (this._chat) return
+    this._chat = await CLIENT_CHATS.spawn('team', `team#${this._id}`)
+
+    for (let member of this._members.values()) this._chat.join(member.name)
   }
 }
