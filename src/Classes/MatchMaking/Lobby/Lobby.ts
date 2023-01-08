@@ -13,6 +13,8 @@ import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { CLIENT_CHATS } from '../../Chat/Manager'
 import { SECOND_IN_MS } from '../../../configs/time_constants'
+import { DTO } from '../../DTO/DTO'
+import { clientServer } from '../../../API/Sockets'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -130,7 +132,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
-    if (this.status != 'voting')
+    if (this.status != 'voting' || this._maps.size < 2)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._maps.has(map))
       throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
@@ -376,12 +378,17 @@ export class Lobby implements Match.Lobby.Instance {
 
   private async _joinSolo(member: Match.Member.Instance) {
     if (!(await this._controller.addMembers(member))) return false
-    if (!this._joinCommand(member)) return false
+    if (!(await this._joinCommand(member))) return false
 
     this.chat.join(member.name)
     this._joinDiscord(member.discordNick).catch((e) => console.log(e))
 
     this._counter.searching++
+
+    const dto = new DTO({ label: 'join', id: this.id })
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('lobby', dto.to.JSON)
     return true
   }
 
@@ -413,7 +420,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (this._status != 'searching' && this._status != 'filled' && !forceFlag)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!(await this._controller.removeMembers(member))) return false
-    if (!this._leaveCommand(member)) return false
+    if (!(await this._leaveCommand(member))) return false
 
     this.chat.leave(member.name)
     this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
@@ -422,23 +429,40 @@ export class Lobby implements Match.Lobby.Instance {
 
     this._counter.searching--
     member.lobbyID = undefined
+
+    const dto = new DTO({ label: 'leave', id: this.id })
+    clientServer
+      .control(clientServer.Aliases.get(member.name)!)
+      .emit('lobby', dto.to.JSON)
     return true
   }
 
   private _joinCommand(member: Match.Member.Instance) {
-    if (!this._commandWithSpace!.join(member.name)) return false
-    if (!this.members.addMember(member)) return false
-    member.lobbyID = this.id
-
-    return true
+    return this._commandWithSpace!.join(member.name)
+      .then((status) => {
+        if (!status) return false
+        if (!this.members.addMember(member)) return false
+        member.lobbyID = this.id
+        return true
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private _leaveCommand(member: Match.Member.InstanceData) {
-    if (!COMMANDS.get(member.commandID!)!.leave(member.name)) return false
-    if (!this.members.deleteMember(member.name)) return false
-    member.lobbyID = undefined
+    return COMMANDS.get(member.commandID!)!
+      .leave(member.name)
+      .then((status) => {
+        if (!status) return false
+        if (!this.members.deleteMember(member.name)) return false
+        member.lobbyID = undefined
 
-    return true
+        return true
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
   private _canAddTeam(team: Match.Member.Team.Instance) {
@@ -494,6 +518,7 @@ export class Lobby implements Match.Lobby.Instance {
       let members = this._members.membersCount
       this._counter.searching -= members
       this._counter.playing += members
+
       this._stagesTimers.set('filled', new Date())
       this._status = 'filled'
     }
@@ -504,7 +529,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (this._status == 'voting' && !this.isVotingStageEnd) {
       const timePassedAfterTurnStart =
         Date.now() - this._timers.get('turn_start')!.getTime()
-      if (timePassedAfterTurnStart <= SECOND_IN_MS * 20) return
+      if (timePassedAfterTurnStart <= SECOND_IN_MS * 10) return
 
       const maps = this.maps
       this.vote(this.votingCaptain, maps[getRandom(0, maps.length - 1)])
