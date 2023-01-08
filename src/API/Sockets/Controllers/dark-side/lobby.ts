@@ -47,6 +47,10 @@ setInterval(function () {
               sendPrepareIventToLobby(lobby)
               break
             case true:
+              if (!lobby.gameID) {
+                lobby.markToDelete()
+                break
+              }
               sendStartIventToLobby(lobby)
               lobby.start().then()
               if (lobby.type != 'rating') lobby.markToDelete()
