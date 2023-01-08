@@ -12,9 +12,6 @@ import { StandOff_Lobbies } from '../../API/Sockets'
 import { MINUTE_IN_MS } from '../../configs/time_constants'
 
 class MatchModerationRecord {
-  constructor() {
-    this.info = new ServiceInformation()
-  }
   @prop({ required: true, type: () => ServiceInformation, _id: false })
   info!: ServiceInformation
   @prop({ required: true, ref: () => Match })
@@ -24,16 +21,15 @@ class MatchModerationRecord {
 
   static async createTask(
     this: ReturnModelType<typeof MatchModerationRecord>,
-    match: string | Types.ObjectId,
+    match: Types.ObjectId,
   ) {
-    if (!Types.ObjectId.isValid(match))
-      throw new TechnicalError('match id', TechnicalCause.INVALID_FORMAT)
     const matchDocument = await MatchListModel.findById(match)
     if (!matchDocument)
       throw new TechnicalError('match id', TechnicalCause.INVALID)
 
     const record = new this()
     record.match = matchDocument._id
+    record.info = new ServiceInformation()
     await record.save()
 
     return true
