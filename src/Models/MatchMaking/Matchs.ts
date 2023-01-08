@@ -16,7 +16,6 @@ import { ServiceInformation } from '../ServiceInformation'
 import { Reward } from '../Reward'
 import { CachedLobbies } from '../../Classes/MatchMaking/LobbyCache'
 import { fetchWebSocket } from '../../Utils/dataHookSocket'
-import { MatchModerationRecordModel } from '../Moderation/ModerateMatchs'
 const socket = new fetchWebSocket('ws://217.25.93.43:6666/')
 
 export class MatchServiceInformation extends ServiceInformation {
