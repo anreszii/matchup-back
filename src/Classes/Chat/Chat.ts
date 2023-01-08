@@ -30,10 +30,14 @@ export class Chat implements IChat.Controller {
   }
 
   join(user: string): true {
+    if (user == 'system') return true
     if (!this._document.hasMember(user)) this._document.join(user)
     ChatStore.add(user, this.id)
 
-    this._namespace.control(this.room).join(this._namespace.Aliases.get(user)!)
+    if (this._namespace.Aliases.isSet(user))
+      this._namespace
+        .control(this.room)
+        .join(this._namespace.Aliases.get(user)!)
 
     const systemMessage = new Message('system', `${user} joined`)
     this.message(systemMessage)
@@ -41,10 +45,14 @@ export class Chat implements IChat.Controller {
   }
 
   leave(user: string): true {
+    if (user == 'system') return true
     if (this._document.hasMember(user)) this._document.leave(user)
     ChatStore.delete(user, this.id)
 
-    this._namespace.control(this.room).leave(this._namespace.Aliases.get(user)!)
+    if (this._namespace.Aliases.isSet(user))
+      this._namespace
+        .control(this.room)
+        .leave(this._namespace.Aliases.get(user)!)
 
     const systemMessage = new Message('system', `${user} leaved`)
     this.message(systemMessage)
@@ -81,11 +89,8 @@ export class Chat implements IChat.Controller {
   }
 
   async drop(): Promise<true> {
-    for (let member of this.members) this.leave(member)
     await this._document.delete()
-
-    this._deleted = true
-    return true
+    return this.delete()
   }
 
   get readyToDrop(): boolean {

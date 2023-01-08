@@ -81,11 +81,12 @@ export class Lobby implements Match.Lobby.Instance {
     for (let [_, command] of this._commands) command.delete()
     for (let member of this.members.values()) {
       this.chat.leave(member.name)
-      this._leaveDiscord(member.name)
+      this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
       member.lobbyID = undefined
+      this._leaveNotify(member.name)
     }
+    this.chat?.delete()
 
-    this.chat.delete()
     return true
   }
 
@@ -112,7 +113,8 @@ export class Lobby implements Match.Lobby.Instance {
 
   async join(name: string) {
     await this._checkChat()
-    if (this._status != 'searching') return false
+    if (this._status != 'searching')
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     this._counter.searching++
     let member = await PLAYERS.get(name)
 
@@ -122,9 +124,11 @@ export class Lobby implements Match.Lobby.Instance {
 
   async leave(name: string, forceFlag = false) {
     await this._checkChat()
-    if (this.status != 'searching' && this.status != 'filled') return false
+    if (this.status != 'searching' && this.status != 'filled')
+      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     let member = this.members.getByName(name)
-    if (!member || member.lobbyID != this.id) return false
+    if (!member || member.lobbyID != this.id)
+      throw new TechnicalError('member', TechnicalCause.INVALID)
 
     if (member.teamID) return this._leaveWithTeam(member, forceFlag)
     else return this._leaveSolo(member, forceFlag)
@@ -381,10 +385,7 @@ export class Lobby implements Match.Lobby.Instance {
 
     this._counter.searching++
 
-    const dto = new DTO({ label: 'join', id: this.id })
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
+    this._joinNotify(member.name)
     return true
   }
 
@@ -425,11 +426,7 @@ export class Lobby implements Match.Lobby.Instance {
 
     this._counter.searching--
     member.lobbyID = undefined
-
-    const dto = new DTO({ label: 'leave', id: this.id })
-    clientServer
-      .control(clientServer.Aliases.get(member.name)!)
-      .emit('lobby', dto.to.JSON)
+    this._leaveNotify(member.name)
     return true
   }
 
@@ -464,42 +461,6 @@ export class Lobby implements Match.Lobby.Instance {
   private _canAddTeam(team: Match.Member.Team.Instance) {
     if (this._maxTeamSize < team.size) return false
     if (!this.hasSpace(team.size)) return false
-    return true
-  }
-
-  private async _joinDiscord(name: string) {
-    let guild = await this.discord.guildWithFreeChannelsForVoice
-    if (!guild) return
-
-    let command: 'mm_command1' | 'mm_command2'
-    if (this.commands.get('command1')!.has(name)) command = 'mm_command1'
-    else if (this.commands.get('command2')!.has(name)) command = 'mm_command2'
-    else return
-
-    let commandRole = await DiscordRoleManager.findRoleByName(guild, command)
-    if (!commandRole) return
-
-    let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
-    if (!teamRole)
-      teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
-
-    this.discord
-      .addRolesToMember(guild, name, teamRole, commandRole)
-      .then(() => {
-        this.discord
-          .addUserToTeamVoiceChannel(name)
-          .catch((e) => console.log(e))
-      })
-      .catch((e) => console.log(e))
-    return true
-  }
-
-  private async _leaveDiscord(name: string) {
-    let guild = await this.discord?.findGuildWithCustomTeamIdRole(this._id)
-    if (guild)
-      this.discord
-        ?.removeUserFromMatchMaking(guild, name)
-        .catch((e) => console.log(e))
     return true
   }
 
@@ -538,6 +499,58 @@ export class Lobby implements Match.Lobby.Instance {
 
     if (this._status == 'preparing' && !this._stagesTimers.has('preparing'))
       this._stagesTimers.set('preparing', new Date())
+  }
+
+  private _joinNotify(name: string) {
+    const dto = new DTO({ label: 'join', id: this.id })
+    if (clientServer.Aliases.isSet(name))
+      clientServer
+        .control(clientServer.Aliases.get(name)!)
+        .emit('lobby', dto.to.JSON)
+  }
+
+  private _leaveNotify(name: string) {
+    const dto = new DTO({ label: 'leave', id: this.id })
+    if (clientServer.Aliases.isSet(name))
+      clientServer
+        .control(clientServer.Aliases.get(name)!)
+        .emit('lobby', dto.to.JSON)
+  }
+
+  private async _joinDiscord(name: string) {
+    let guild = await this.discord.guildWithFreeChannelsForVoice
+    if (!guild) return
+
+    let command: 'mm_command1' | 'mm_command2'
+    if (this.commands.get('command1')!.has(name)) command = 'mm_command1'
+    else if (this.commands.get('command2')!.has(name)) command = 'mm_command2'
+    else return
+
+    let commandRole = await DiscordRoleManager.findRoleByName(guild, command)
+    if (!commandRole) return
+
+    let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
+    if (!teamRole)
+      teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
+
+    this.discord
+      .addRolesToMember(guild, name, teamRole, commandRole)
+      .then(() => {
+        this.discord
+          .addUserToTeamVoiceChannel(name)
+          .catch((e) => console.log(e))
+      })
+      .catch((e) => console.log(e))
+    return true
+  }
+
+  private async _leaveDiscord(name: string) {
+    let guild = await this.discord?.findGuildWithCustomTeamIdRole(this._id)
+    if (guild)
+      this.discord
+        ?.removeUserFromMatchMaking(guild, name)
+        .catch((e) => console.log(e))
+    return true
   }
 
   private async _checkChat() {

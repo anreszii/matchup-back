@@ -124,6 +124,8 @@ export declare namespace Match {
         isCaptain(member: string | Member.Instance): boolean
         set captainName(value: string)
         get captainName(): string
+
+        get maximumRatingSpread(): number
       }
     }
 

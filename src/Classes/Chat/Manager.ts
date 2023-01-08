@@ -9,9 +9,9 @@ class ChatManager implements IChat.Manager {
   private _chats: Map<string, Chat> = new Map()
   constructor(private _namespace: Namespace) {
     setInterval(
-      function (this: ChatManager) {
+      async function (this: ChatManager) {
         for (let chat of this._chats.values())
-          if (chat.readyToDrop) this.drop(chat.id)
+          if (chat.readyToDrop) await this.drop(chat.id)
       }.bind(this),
       MINUTE_IN_MS * 2,
     )

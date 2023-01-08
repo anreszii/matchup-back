@@ -24,12 +24,8 @@ export class Command implements Match.Lobby.Command.Instance {
   ) {}
 
   async delete(): Promise<true> {
-    for (let member of this._members.toArray) {
-      this.chat.leave(member.name)
-      member.isReady = false
-      member.commandID = undefined
-    }
-    if (this.chat) this.chat.delete()
+    for (let member of this._members.toArray) this.leave(member.name)
+    this.chat?.delete()
     this._deleted = true
     return true
   }
