@@ -55,7 +55,19 @@ setInterval(function () {
               await record.delete()
               throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
             }
-            await match.calculateResults()
+            await match
+              .calculateResults()
+              .then(() => {
+                record
+                  .delete()
+                  .then()
+                  .catch((e) => {
+                    console.error(e)
+                  })
+              })
+              .catch((e) => {
+                console.error(e)
+              })
             let lobby = StandOff_Lobbies.get(match.info.lobby)
             if (!lobby) return
             await lobby.markToDelete()

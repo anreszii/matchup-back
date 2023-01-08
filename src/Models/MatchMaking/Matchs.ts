@@ -137,6 +137,7 @@ export class Match {
     await Promise.all(taskCheckPromises)
     for (let user of users) userSavePromises.push(user.save())
     await Promise.all(userSavePromises)
+    await this.save()
   }
 
   async addRecords(this: DocumentType<Match>, ...records: MemberRecord[]) {
@@ -261,6 +262,9 @@ export class Match {
     const winnerIsFirstCommand = this.score!.command1 > this.score!.command2
     if (winnerIsFirstCommand && member.command == 'command1')
       return IMatch.Result.WIN
+    if (!winnerIsFirstCommand && member.command == 'command2')
+      return IMatch.Result.WIN
+
     return IMatch.Result.LOSE
   }
 
