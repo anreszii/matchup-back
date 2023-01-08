@@ -51,7 +51,13 @@ export declare namespace Match {
 
     type Type = 'training' | 'arcade' | 'rating'
 
-    type Status = 'searching' | 'filled' | 'voting' | 'preparing' | 'started'
+    type Status =
+      | 'searching'
+      | 'filled'
+      | 'voting'
+      | 'preparing'
+      | 'started'
+      | 'deleted'
 
     namespace Command {
       type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'

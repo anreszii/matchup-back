@@ -36,7 +36,6 @@ export class Lobby implements Match.Lobby.Instance {
   private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
-  private _deleted = false
 
   constructor(
     private _id: string,
@@ -74,7 +73,7 @@ export class Lobby implements Match.Lobby.Instance {
   async markToDelete() {
     await this.delete()
     await this._controller.stop()
-    this._deleted = true
+    this._status = 'deleted'
     return true
   }
 
@@ -184,7 +183,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get readyToDrop(): boolean {
-    return this._deleted
+    return this._status == 'deleted'
   }
 
   get isVotingStageEnd(): boolean {
@@ -213,7 +212,7 @@ export class Lobby implements Match.Lobby.Instance {
       return false
     return (
       Date.now() - this._stagesTimers.get('preparing')!.getTime() >
-      SECOND_IN_MS * 5
+      SECOND_IN_MS * 30
     )
   }
 
