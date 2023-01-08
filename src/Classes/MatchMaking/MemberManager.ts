@@ -1,11 +1,15 @@
 import type { Match } from '../../Interfaces/index'
-import { GuildModel, UserModel } from '../../Models/index'
+import { GuildModel, User, UserModel } from '../../Models/index'
 import { v4 as uuid } from 'uuid'
 import { MemberList } from './MemberList'
 import { TechnicalCause, TechnicalError } from '../../error'
+import { SECOND_IN_MS } from '../../configs/time_constants'
 
 class PlayersManager implements Match.Member.Manager {
   private _players: MemberList = new MemberList()
+  construcror() {
+    setInterval(this._syncMembers.bind(this), SECOND_IN_MS * 30)
+  }
   async spawn(name: string): Promise<Match.Member.Instance> {
     let guildName: string | undefined = undefined
     let id = uuid()
@@ -79,6 +83,34 @@ class PlayersManager implements Match.Member.Manager {
     if (!member) return true
 
     return Boolean(this._players.delete(member))
+  }
+
+  private async _syncMembers() {
+    const names = []
+    const members: Match.Member.Instance[] = []
+    for (let member of this._players.values()) {
+      names.push(member.name)
+      members.push(member)
+    }
+
+    UserModel.find({ 'profile.username': names }).then((users) => {
+      for (let user of users) {
+        let member = members.find(
+          (member) => member.name == user.profile.username,
+        )
+        if (!member) continue
+
+        member.GRI = user.GRI
+        member.prefix = user.prefix
+
+        GuildModel.findById(user.guild)
+          .then((guild) => {
+            if (!guild) member!.guildName = undefined
+            else member!.guildName = guild.public.name
+          })
+          .catch((e) => console.error(e))
+      }
+    })
   }
 }
 
