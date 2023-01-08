@@ -67,6 +67,7 @@ setInterval(function () {
               })
               .catch((e) => {
                 console.error(e)
+                record.moderated = false
               })
             let lobby = StandOff_Lobbies.get(match.info.lobby)
             if (!lobby) return

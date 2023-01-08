@@ -101,11 +101,20 @@ export class Match {
     const users = await UserModel.find({ 'profile.username': names })
 
     const taskCheckPromises = []
+    let counter = 0
     for (let user of users) {
       let member = this.members.find(
         (member) => user.profile.username == member.name,
       )
-      if (!member) continue
+      if (member) counter++
+    }
+    if (counter != 10)
+      throw new TechnicalError('members count', TechnicalCause.INVALID)
+    for (let user of users) {
+      let member = this.members.find(
+        (member) => user.profile.username == member.name,
+      )
+      if (!member) throw new TechnicalError('member', TechnicalCause.INVALID)
       let result = this._resultOfMatchForMember(user.profile.username)
       let ratingChange = user.rating.integrate(member.statistic, result)
 
