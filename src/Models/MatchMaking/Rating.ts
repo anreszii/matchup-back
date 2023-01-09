@@ -26,6 +26,7 @@ export class Rating {
     statistic: Match.Member.Statistic,
     resultOfMatch: Match.Result,
   ) {
+    const previousValue = this.GRI
     if (resultOfMatch == Match.Result.WIN) this.WC++
     if (resultOfMatch == Match.Result.LOSE) this.LC++
     if (resultOfMatch == Match.Result.DRAW) this.DC++
@@ -43,8 +44,9 @@ export class Rating {
 
     Calculator.calculateMatchResult(resultOfMatch)
     this.GRI += Calculator.RatingIndicator
+    if (this.GRI < 0) this.GRI = 0
 
-    return Calculator.RatingIndicator
+    return this.GRI - previousValue
   }
 
   private _addKills(count: number) {
