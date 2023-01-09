@@ -4,14 +4,13 @@ import { COMMANDS } from '../Command/Manager'
 import { PLAYERS } from '../MemberManager'
 
 import { MemberList } from '../MemberList'
-import { getMedian, getRandom, minMax } from '../../../Utils/math'
+import { getMedian, getRandom } from '../../../Utils/math'
 
 import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { TEAMS } from '../Team/Manager'
 import { TechnicalCause, TechnicalError } from '../../../error'
-import { CLIENT_CHATS } from '../../Chat/Manager'
 import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../configs/time_constants'
 import { DTO } from '../../DTO/DTO'
 import { clientServer } from '../../../API/Sockets'
@@ -33,7 +32,6 @@ export class Lobby implements Match.Lobby.Instance {
   private _owner?: string
   private _gameID?: string
   private _map?: string
-  private _chat!: IChat.Controller
   private _discordClient!: DiscordClient
   private _status: Match.Lobby.Status = 'searching'
 
@@ -42,6 +40,7 @@ export class Lobby implements Match.Lobby.Instance {
     private _type: Match.Lobby.Type,
     private _maxCommandSize: number,
     private _controller: Match.Controller,
+    private _chat: IChat.Controller,
   ) {
     this._game = _controller.gameName
     this._commands.set(
@@ -82,8 +81,8 @@ export class Lobby implements Match.Lobby.Instance {
     for (let member of this.members.values()) {
       this.chat.leave(member.name)
       this._leaveDiscord(member.discordNick).catch((e) => console.log(e))
-      member.lobbyID = undefined
       this._leaveNotify(member.name)
+      member.lobbyID = undefined
     }
     this.chat?.delete()
 
@@ -111,19 +110,17 @@ export class Lobby implements Match.Lobby.Instance {
     return COMMANDS.move(name, commandWithMember, command)
   }
 
-  async join(name: string) {
-    await this._checkChat()
+  join(name: string) {
     if (this._status != 'searching')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     this._counter.searching++
-    let member = await PLAYERS.get(name)
-
-    if (member.teamID) return this._joinWithTeam(member)
-    else return this._joinSolo(member)
+    return PLAYERS.get(name).then((member) => {
+      if (member.teamID) return this._joinWithTeam(member)
+      else return this._joinSolo(member)
+    })
   }
 
-  async leave(name: string, forceFlag = false) {
-    await this._checkChat()
+  leave(name: string, forceFlag = false) {
     if (this.status != 'searching' && this.status != 'filled')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     let member = this.members.getByName(name)
@@ -551,13 +548,6 @@ export class Lobby implements Match.Lobby.Instance {
         ?.removeUserFromMatchMaking(guild, name)
         .catch((e) => console.log(e))
     return true
-  }
-
-  private async _checkChat() {
-    if (this._chat) return
-
-    this._chat = await CLIENT_CHATS.spawn('lobby', `lobby#${this._id}`)
-    for (let member of this._members.values()) this._chat.join(member.name)
   }
 
   private get _maxTeamSize() {
