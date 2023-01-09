@@ -1,8 +1,7 @@
 import { Router } from 'express'
 import { TechnicalCause, TechnicalError } from '../../error'
-import { ImageModel } from '../../Models/Image'
 import { validateToken } from '../../Token/index'
-const uploader = require('imgbb-uploader')
+import { postToImgbb } from '../../Utils/imgbb'
 
 const router = Router()
 router.post('/upload', validateToken, async (req, res, next) => {
@@ -11,9 +10,9 @@ router.post('/upload', validateToken, async (req, res, next) => {
     if (!req.files.image || req.files.image instanceof Array)
       throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
     let image = req.files.image
-    uploader({
-      apiKey: process.env.IMGBB_KEY,
-      base64string: image.data.toString('base64'),
+    postToImgbb({
+      apiKey: process.env.IMGBB_KEY as string,
+      image: image.data.toString('base64'),
       name: `${new Date().toDateString()}-${image.name}`,
     })
       .then(

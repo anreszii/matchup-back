@@ -10,7 +10,7 @@ import { IncomingMessage } from 'http'
 import { Match } from '../../Interfaces/index'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
 import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
-const uploader = require('imgbb-uploader')
+import { postToImgbb } from '../../Utils/imgbb'
 
 const router = Router()
 router.post(
@@ -93,23 +93,31 @@ function parseRespone(
   })
 
   formResponse.on('end', async () => {
-    try {
-      const imgbbResponse = await uploader({
-        apiKey: process.env.IMGBB_KEY,
-        base64string: image.data.toString('base64'),
-        name: `${new Date().toDateString()}-${image.name}`,
+    const document = parseResults(
+      chunks.join(' '),
+      lobby.id,
+      lobby.map as string,
+    )
+    let screen: string
+    return postToImgbb({
+      apiKey: process.env.IMGBB_KEY as string,
+      image: image.data.toString('base64'),
+      name: `${new Date().toDateString()}-${image.name}`,
+    })
+      .then((imgbbResponse) => {
+        screen = imgbbResponse.thumb.url
       })
-      const document = parseResults(chunks.join(' '), lobby.id, lobby.map!)
-      document.screen = imgbbResponse.thumb.url
-      await document.save()
-      await MatchModerationRecordModel.createTask(document._id)
-
-      return expressResponse.json(
-        new DTO({ label: 'result upload', status: 'success' }).to.JSON,
-      )
-    } catch (e) {
-      throw e
-    }
+      .catch((e) => {
+        console.error(e)
+      })
+      .finally(async () => {
+        document.screen = screen
+        await document.save()
+        await MatchModerationRecordModel.createTask(document._id)
+        return expressResponse.json(
+          new DTO({ label: 'result upload', status: 'success' }).to.JSON,
+        )
+      })
   })
 }
 
