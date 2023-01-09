@@ -22,7 +22,7 @@ export class LobbyManager implements Match.Manager.Instance {
         for (let lobby of this._lobbyMap.values())
           if (lobby.readyToDrop) this.drop(lobby)
       }.bind(this),
-      MINUTE_IN_MS * 2,
+      MINUTE_IN_MS * 5,
     )
   }
 
@@ -41,8 +41,13 @@ export class LobbyManager implements Match.Manager.Instance {
     if (!status)
       throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
 
-    let lobby = new Lobby(ID, type, 5, this._controller)
-    lobby.chat = await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`)
+    let lobby = new Lobby(
+      ID,
+      type,
+      2,
+      this._controller,
+      await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`),
+    )
     lobby.counter = LobbyManager._counter
     lobby.discord = this._dsClient
 

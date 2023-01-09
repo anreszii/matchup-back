@@ -21,15 +21,17 @@ class MatchModerationRecord {
 
   static async createTask(
     this: ReturnModelType<typeof MatchModerationRecord>,
-    match: Types.ObjectId,
+    match: string | Types.ObjectId,
   ) {
+    if (!match || !Types.ObjectId.isValid(match))
+      throw new TechnicalError('match id', TechnicalCause.NOT_EXIST)
     const matchDocument = await MatchListModel.findById(match)
     if (!matchDocument)
       throw new TechnicalError('match id', TechnicalCause.INVALID)
 
     const record = new this()
-    record.match = matchDocument._id
     record.info = new ServiceInformation()
+    record.match = matchDocument._id
     await record.save()
 
     return true
@@ -51,7 +53,7 @@ setInterval(function () {
               await record.delete()
               throw new TechnicalError('match', TechnicalCause.NOT_EXIST)
             }
-            await match
+            match
               .calculateResults()
               .then(() => {
                 record
@@ -67,7 +69,7 @@ setInterval(function () {
               })
             let lobby = StandOff_Lobbies.get(match.info.lobby)
             if (!lobby) return
-            await lobby.markToDelete()
+            lobby.markToDelete()
           })
           .catch((e) => console.log(e))
       }
