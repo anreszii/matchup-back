@@ -155,32 +155,36 @@ export class Match {
 
   async changeRecordName(
     this: DocumentType<Match>,
-    username: string,
-    newName: string,
+    pairs: { old: string; new: string }[],
   ) {
-    if (typeof newName != 'string')
-      throw new TechnicalError('new name', TechnicalCause.INVALID_FORMAT)
-    let member = this.members.find((member) => member.name == username)
-    if (!member)
-      throw new TechnicalError('member record', TechnicalCause.NOT_EXIST)
-    member.name = newName
+    for (let pair of pairs) {
+      let member = this.members.find((member) => member.name == pair.old)
+      if (!member) continue
+      member.name = pair.new
+    }
     return this.save()
   }
 
   async changeRecord(
     this: DocumentType<Match>,
-    username: string,
-    command?: IMatch.Lobby.Command.Types,
-    statistic?: Statistic,
+    updateOfMembers: Partial<Exclude<MemberRecord, 'image' | 'ratingChange'>>[],
   ) {
-    let member = this.members.find((member) => member.name == username)
-    if (!member)
-      throw new TechnicalError('member record', TechnicalCause.NOT_EXIST)
+    for (let updatedMember of updateOfMembers) {
+      if (!updatedMember.name) continue
+      let member = this.members.find(
+        (member) => member.name == updatedMember.name,
+      )
+      if (!member) continue
 
-    if (command) member.command = command
-
-    if (statistic) member.statistic = statistic
-
+      if (updatedMember.command) member.command = updatedMember.command
+      if (updatedMember.statistic) {
+        const statistic = updatedMember.statistic
+        if (statistic.kills) member.statistic.kills = statistic.kills
+        if (statistic.deaths) member.statistic.deaths = statistic.deaths
+        if (statistic.assists) member.statistic.assists = statistic.assists
+        if (statistic.points) member.statistic.points = statistic.points
+      }
+    }
     return this.save()
   }
 
