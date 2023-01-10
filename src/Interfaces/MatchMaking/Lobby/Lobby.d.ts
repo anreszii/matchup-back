@@ -3,6 +3,7 @@ import type { IEntity, IChat, Rating } from '../../index'
 export declare interface ILobby extends IEntity<string> {
   join(name: string): Promise<boolean>
   leave(name: string): Promise<boolean>
+  updateStatus(): Promise<void>
 
   get id(): string
   get status(): Match.Lobby.Status

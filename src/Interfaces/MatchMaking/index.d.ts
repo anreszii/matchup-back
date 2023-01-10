@@ -36,7 +36,7 @@ export declare namespace Match {
       get discord(): DiscordClient
 
       set counter(value: Counter)
-      get isReady(): boolean
+      get isReady(): Promise<boolean>
 
       setGameId(name: string, id: string): boolean
 

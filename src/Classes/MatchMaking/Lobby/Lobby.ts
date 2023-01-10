@@ -110,6 +110,10 @@ export class Lobby implements Match.Lobby.Instance {
     return COMMANDS.move(name, commandWithMember, command)
   }
 
+  updateStatus(): Promise<void> {
+    return this._updateStatus()
+  }
+
   join(name: string) {
     if (this._status != 'searching')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
@@ -121,14 +125,14 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   leave(name: string, forceFlag = false) {
-    if (this.status != 'searching' && this.status != 'filled')
+    if (this._status != 'searching' && this._status != 'filled' && !forceFlag)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id)
       throw new TechnicalError('member', TechnicalCause.INVALID)
 
     if (member.teamID) return this._leaveWithTeam(member, forceFlag)
-    else return this._leaveSolo(member, forceFlag)
+    else return this._leaveSolo(member)
   }
 
   vote(name: string, map: string): boolean {
@@ -166,7 +170,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   setGameId(name: string, id: string) {
-    if (this.status != 'preparing')
+    if (this._status != 'preparing')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._owner || name != this._owner)
       throw new TechnicalError('executor', TechnicalCause.INVALID)
@@ -204,12 +208,12 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get map() {
-    if (this.status != 'started') return undefined
+    if (this._status != 'started') return undefined
     return this._map
   }
 
   get readyToStart() {
-    if (this.status != 'preparing' || !this._stagesTimers.has('preparing'))
+    if (this._status != 'preparing' || !this._stagesTimers.has('preparing'))
       return false
     return (
       Date.now() - this._stagesTimers.get('preparing')!.getTime() >
@@ -265,7 +269,6 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get status() {
-    this._checkStatus()
     return this._status
   }
 
@@ -277,22 +280,30 @@ export class Lobby implements Match.Lobby.Instance {
     return this.firstCommand.playersCount + this.secondCommand.playersCount
   }
 
-  get isReady(): boolean {
-    if (this._status != 'filled') return false
+  get isReady(): Promise<boolean> {
+    if (this._status != 'filled')
+      return new Promise((resolve) => {
+        return resolve(false)
+      })
     const passedTime = Date.now() - this._stagesTimers.get('filled')!.getTime()
     let somebodyWasKicked = false
+    const promises = []
 
     for (let member of this.players) {
       if (!member.isReady && passedTime > SECOND_IN_MS * 20) {
-        this.leave(member.name, true)
+        promises.push(this.leave(member.name))
         somebodyWasKicked = true
       }
     }
     if (!somebodyWasKicked)
-      return this.firstCommand.isReady && this.secondCommand.isReady
+      return new Promise((resolve) => {
+        resolve(this.firstCommand.isReady && this.secondCommand.isReady)
+      })
 
-    this._setLobbyStatusToSearching()
-    return false
+    return Promise.all(promises).then(() => {
+      this._setLobbyStatusToSearching()
+      return false
+    })
   }
 
   set discord(client: DiscordClient) {
@@ -410,9 +421,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _leaveSolo(member: Match.Member.Instance, forceFlag = false) {
-    if (this._status != 'searching' && this._status != 'filled' && !forceFlag)
-      throw new TechnicalError('lobby status', TechnicalCause.INVALID)
+  private async _leaveSolo(member: Match.Member.Instance) {
     if (!(await this._controller.removeMembers(member))) return false
     if (!(await this._leaveCommand(member))) return false
 
@@ -461,7 +470,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private _checkStatus() {
+  private async _updateStatus() {
     if (
       this._status == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
@@ -476,7 +485,7 @@ export class Lobby implements Match.Lobby.Instance {
       this._stagesTimers.set('filled', new Date())
       this._status = 'filled'
     }
-    if (this._status == 'filled' && this.isReady) {
+    if (this._status == 'filled' && (await this.isReady)) {
       this._timers.set('turn_start', new Date())
       this._status = 'voting'
     }

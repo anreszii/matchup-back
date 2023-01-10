@@ -28,38 +28,41 @@ export const StandOff_Lobbies = new LobbyManager(
 const Searcher = new SearchEngine(StandOff_Lobbies)
 
 setInterval(function () {
-  try {
-    for (let lobby of StandOff_Lobbies.lobbies) {
-      switch (lobby.status) {
-        case 'searching':
-          sendSyncIventToLobby(lobby)
-          break
-        case 'filled':
-          sendReadyIventToLobby(lobby)
-          break
-        case 'voting':
-          sendVoteIventToLobby(lobby)
-          break
-        case 'preparing':
-          switch (lobby.readyToStart) {
-            case false:
-              sendPrepareIventToLobby(lobby)
-              break
-            case true:
-              if (!lobby.gameID) {
-                lobby.markToDelete()
+  for (let lobby of StandOff_Lobbies.lobbies) {
+    lobby
+      .updateStatus()
+      .then(() => {
+        switch (lobby.status) {
+          case 'searching':
+            sendSyncIventToLobby(lobby)
+            break
+          case 'filled':
+            sendReadyIventToLobby(lobby)
+            break
+          case 'voting':
+            sendVoteIventToLobby(lobby)
+            break
+          case 'preparing':
+            switch (lobby.readyToStart) {
+              case false:
+                sendPrepareIventToLobby(lobby)
                 break
-              }
-              sendStartIventToLobby(lobby)
-              lobby.start().then()
-              if (lobby.type != 'rating') lobby.markToDelete()
-              break
-          }
-          break
-      }
-    }
-  } catch (e) {
-    console.log(e)
+              case true:
+                if (!lobby.gameID) {
+                  lobby.markToDelete()
+                  break
+                }
+                sendStartIventToLobby(lobby)
+                lobby.start().then()
+                if (lobby.type != 'rating') lobby.markToDelete()
+                break
+            }
+            break
+        }
+      })
+      .catch((e) => {
+        console.error(e)
+      })
   }
 }, SECOND_IN_MS * 2)
 
