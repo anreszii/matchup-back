@@ -14,6 +14,7 @@ import { TechnicalCause, TechnicalError } from '../../../error'
 import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../configs/time_constants'
 import { DTO } from '../../DTO/DTO'
 import { clientServer } from '../../../API/Sockets'
+import { Guild } from 'discord.js'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
@@ -32,7 +33,8 @@ export class Lobby implements Match.Lobby.Instance {
   private _owner?: string
   private _gameID?: string
   private _map?: string
-  private _discordClient!: DiscordClient
+  private _discordClient?: DiscordClient
+  private _guild?: Guild
   private _status: Match.Lobby.Status = 'searching'
 
   constructor(
@@ -66,6 +68,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._map) return false
     await this._controller.start()
     this._status = 'started'
+    this._stagesTimers.set('started', new Date())
     return true
   }
 
@@ -85,7 +88,7 @@ export class Lobby implements Match.Lobby.Instance {
       member.lobbyID = undefined
     }
     this.chat?.delete()
-
+    if (this.guild) this._discordClient!.removeLobby(this.guild, this.id)
     return true
   }
 
@@ -306,16 +309,28 @@ export class Lobby implements Match.Lobby.Instance {
     })
   }
 
-  set discord(client: DiscordClient) {
+  set discord(client: DiscordClient | undefined) {
     this._discordClient = client
   }
 
-  get discord(): DiscordClient {
+  get discord() {
     return this._discordClient
+  }
+
+  set guild(value: Guild | undefined) {
+    this._guild = value
+  }
+
+  get guild() {
+    return this._guild
   }
 
   get chat(): IChat.Controller {
     return this._chat
+  }
+
+  get startedAt() {
+    return this._stagesTimers.get('started')
   }
 
   set chat(instance: IChat.Controller) {
@@ -492,7 +507,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (this._status == 'voting' && !this.isVotingStageEnd) {
       const timePassedAfterTurnStart =
         Date.now() - this._timers.get('turn_start')!.getTime()
-      if (timePassedAfterTurnStart <= SECOND_IN_MS * 10) return
+      if (timePassedAfterTurnStart <= SECOND_IN_MS * 15) return
 
       const maps = this.maps
       this.vote(this.votingCaptain, maps[getRandom(0, maps.length - 1)])
@@ -524,38 +539,42 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _joinDiscord(name: string) {
-    let guild = await this.discord.guildWithFreeChannelsForVoice
-    if (!guild) return
+    if (!this.guild || !this.discord) return
 
     let command: 'mm_command1' | 'mm_command2'
     if (this.commands.get('command1')!.has(name)) command = 'mm_command1'
     else if (this.commands.get('command2')!.has(name)) command = 'mm_command2'
     else return
 
-    let commandRole = await DiscordRoleManager.findRoleByName(guild, command)
+    let commandRole = await DiscordRoleManager.findRoleByName(
+      this.guild,
+      command,
+    )
     if (!commandRole) return
 
-    let teamRole = await DiscordRoleManager.findRoleByTeamId(guild, this.id)
+    let teamRole = await DiscordRoleManager.findRoleByTeamId(
+      this.guild,
+      this.id,
+    )
     if (!teamRole)
-      teamRole = await DiscordRoleManager.createTeamRole(guild, this.id)
+      teamRole = await DiscordRoleManager.createTeamRole(this.guild, this.id)
 
     this.discord
-      .addRolesToMember(guild, name, teamRole, commandRole)
+      .addRolesToMember(this.guild, name, teamRole, commandRole)
       .then(() => {
-        this.discord
-          .addUserToTeamVoiceChannel(name)
-          .catch((e) => console.log(e))
+        this.discord!.addUserToTeamVoiceChannel(name).catch((e) =>
+          console.log(e),
+        )
       })
       .catch((e) => console.log(e))
     return true
   }
 
   private async _leaveDiscord(name: string) {
-    let guild = await this.discord?.findGuildWithCustomTeamIdRole(this._id)
-    if (guild)
-      this.discord
-        ?.removeUserFromMatchMaking(guild, name)
-        .catch((e) => console.log(e))
+    if (!this.guild || !this.discord) return
+    this.discord
+      .removeUserFromMatchMaking(this.guild, name)
+      .catch((e) => console.log(e))
     return true
   }
 

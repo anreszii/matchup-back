@@ -3,10 +3,8 @@ import {
   Collection,
   GatewayIntentBits,
   Guild,
-  GuildMember,
   OAuth2Guild,
   Role,
-  VoiceChannel,
 } from 'discord.js'
 import { distribute } from '../../API/Discord/distributor'
 import type { Match } from '../../Interfaces/index'
@@ -35,14 +33,6 @@ export class DiscordClient {
         this._guilds = await this.client.guilds.fetch()
       })
       .catch((e) => console.error(e))
-
-    setInterval(
-      async function (this: DiscordClient) {
-        for (let [_, guild] of this._guilds)
-          markChannelsForDelete(guild.fetch())
-      }.bind(this),
-      1000 * 60 * 15,
-    )
   }
   public async createChannelsForMatch(guild: string | Guild, teamID: string) {
     let voiceChannels = new Array()
@@ -168,7 +158,18 @@ export class DiscordClient {
     user.voice.setChannel(null)
   }
 
-  async removeLobby(id: string) {}
+  async removeLobby(guild: Guild, id: string) {
+    return guild.fetch().then((guild) => {
+      DiscordRoleManager.deleteTeamRole(guild, id)
+      for (let [_, channel] of guild.channels.cache) {
+        if (
+          channel.name == `command1#${id}` ||
+          channel.name == `command2#${id}`
+        )
+          channel.delete()
+      }
+    })
+  }
 
   public async addUserToTeamVoiceChannel(nick: string) {
     let result = await this._findUserByNicknameForMatchMaking(nick)
@@ -277,25 +278,4 @@ export class DiscordClient {
       }
     }
   }
-}
-
-async function markChannelsForDelete(value: Promise<Guild>) {
-  let guild = await value
-  for (let [id, channel] of guild.channels.cache) {
-    if (!channel.name.startsWith('command') || !channel.isVoiceBased) continue
-    let members = channel.members as Collection<string, GuildMember>
-    let func = checkChannelForDelete.bind({
-      guild: guild,
-      id: id,
-    })
-    if (members.size < 1) setTimeout(func, 1000 * 60 * 5)
-  }
-}
-
-async function checkChannelForDelete(this: { guild: Guild; id: string }) {
-  if (!this.guild.channels.cache.has(this.id)) return
-  let channel = await this.guild.channels.cache.get(this.id)!.fetch()
-
-  let members = channel.members as Collection<string, GuildMember>
-  if (members.size < 1) await channel.delete()
 }

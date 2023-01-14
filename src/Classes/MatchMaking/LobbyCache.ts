@@ -1,34 +1,54 @@
-type CachedMember = {
-  username: string
-  nickname: string
+import {
+  DocumentType,
+  ReturnModelType,
+  getModelForClass,
+  prop,
+} from '@typegoose/typegoose'
+
+export class CachedMember {
+  @prop({ required: true })
+  username!: string
+  @prop({ required: true })
+  nickname!: string
 }
 
-interface Cache {
-  set(id: string, members: CachedMember[]): boolean
-  push(id: string, member: CachedMember): boolean
-  delete(id: string): boolean
-  get(id: string): CachedMember[] | undefined
-}
-
-class LobbyCache implements Cache {
-  private _cached: Map<string, CachedMember[]> = new Map()
-
-  set(id: string, members: CachedMember[]): boolean {
-    this._cached.set(id, members)
+export class LobbyCache {
+  @prop({ required: true })
+  lobbyID!: string
+  @prop({ required: true })
+  owner!: string
+  @prop({ required: true })
+  map!: string
+  @prop({ required: true, default: [], _id: false, type: () => CachedMember })
+  cached!: CachedMember[]
+  static async set(
+    this: ReturnModelType<typeof LobbyCache>,
+    id: string,
+    owner: string,
+    map: string,
+    members: CachedMember[],
+  ) {
+    return this.get(id).then((document) => {
+      if (!document) document = new this()
+      document.lobbyID = id
+      document.owner = owner
+      document.map = map
+      document.cached = members
+      return document.save().then(() => document)
+    })
+  }
+  async push(this: DocumentType<LobbyCache>, member: CachedMember) {
+    this.cached.push(member)
+    await this.save()
     return true
   }
-  push(id: string, member: CachedMember): boolean {
-    if (!this._cached.has(id)) return this.set(id, [member])
-    this._cached.get(id)!.push(member)
-    return true
-  }
-  delete(id: string) {
-    return this._cached.delete(id)
+  static async delete(this: ReturnModelType<typeof LobbyCache>, id: string) {
+    return this.deleteOne({ lobbyID: id })
   }
 
-  get(id: string): CachedMember[] | undefined {
-    return this._cached.get(id)
+  static async get(this: ReturnModelType<typeof LobbyCache>, id: string) {
+    return this.findOne({ lobbyID: id })
   }
 }
 
-export const CachedLobbies = new LobbyCache()
+export const CachedLobbies = getModelForClass(LobbyCache)

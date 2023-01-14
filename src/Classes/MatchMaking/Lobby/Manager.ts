@@ -32,9 +32,8 @@ export class LobbyManager implements Match.Manager.Instance {
     const ID = LobbyManager._createID()
     let guild = await this._dsClient.guildWithFreeChannelsForVoice
     if (guild) {
-      DiscordRoleManager.createTeamRole(guild, ID).then(
-        async () => await this._dsClient.createChannelsForMatch(guild!, ID),
-      )
+      await DiscordRoleManager.createTeamRole(guild, ID)
+      await this._dsClient.createChannelsForMatch(guild!, ID)
     }
 
     let status = await this._controller.create()
@@ -49,7 +48,10 @@ export class LobbyManager implements Match.Manager.Instance {
       await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`),
     )
     lobby.counter = LobbyManager._counter
-    lobby.discord = this._dsClient
+    if (guild) {
+      lobby.discord = this._dsClient
+      lobby.guild = guild
+    }
 
     this._lobbyMap.set(ID, lobby)
     return lobby

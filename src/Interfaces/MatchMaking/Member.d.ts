@@ -2,6 +2,7 @@ import { IEntity } from '../Manager'
 export interface IMatchMember extends IEntity<string> {
   id: string
   name: string
+  nick: string
   isReady: boolean
   GRI: number
   discordNick: string

@@ -3,14 +3,14 @@ import { Response, Router } from 'express'
 import { DTO } from '../../Classes/DTO/DTO'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { validateToken } from '../../Token/index'
-import { StandOff_Lobbies } from '../Sockets/index'
 import { parseResults } from '../../Utils/resultParser'
 import FormData = require('form-data')
 import { IncomingMessage } from 'http'
-import { Match } from '../../Interfaces/index'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
 import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
 import { postToImgbb } from '../../Utils/imgbb'
+import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
+import { StandOff_Lobbies } from '../Sockets'
 
 const router = Router()
 router.post(
@@ -32,14 +32,17 @@ router.post(
       if (!member || !member.lobbyID)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-      const lobby = StandOff_Lobbies.get(member.lobbyID)
-      if (!lobby) {
-        if (!lobby) member.lobbyID = undefined
+      const lobbyObject = StandOff_Lobbies.get(member.lobbyID)
+      if (!lobbyObject) {
+        member.lobbyID = undefined
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
+      if (lobbyObject.status != 'started')
+        throw new TechnicalError('lobby status', TechnicalCause.INVALID)
 
-      if (lobby.status != 'started' || lobby.type != 'rating')
-        throw new TechnicalError('lobby', TechnicalCause.INVALID)
+      let lobby = await CachedLobbies.get(member.lobbyID)
+      if (!lobby)
+        throw new TechnicalError('lobby cache', TechnicalCause.NOT_EXIST)
 
       if (lobby.owner != payload.username)
         throw new TechnicalError('user role', TechnicalCause.NEED_HIGHER_VALUE)
@@ -66,7 +69,7 @@ router.post(
               formResponse,
               expressResponse,
               expressRequest.files!.screen as fileUpload.UploadedFile,
-              lobby,
+              lobby!,
             )
           } catch (e) {
             next(e)
@@ -83,7 +86,7 @@ function parseRespone(
   formResponse: IncomingMessage,
   expressResponse: Response,
   image: fileUpload.UploadedFile,
-  lobby: Match.Lobby.Instance,
+  lobby: LobbyCache,
 ) {
   const chunks: any[] = []
   if (image instanceof Array) throw new Error('array')
@@ -95,7 +98,7 @@ function parseRespone(
   formResponse.on('end', async () => {
     const document = parseResults(
       chunks.join(' '),
-      lobby.id,
+      lobby.lobbyID,
       lobby.map as string,
     )
     let screen: string
@@ -114,6 +117,8 @@ function parseRespone(
         document.screen = screen
         await document.save()
         await MatchModerationRecordModel.createTask(document._id)
+        let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
+        if (objLobby) objLobby.markToDelete()
         return expressResponse.json(
           new DTO({ label: 'result upload', status: 'success' }).to.JSON,
         )

@@ -5,7 +5,6 @@ import { MapScore } from './MapScore'
 import { v4 as uuid } from 'uuid'
 import { getRandom } from '../../Utils/math'
 import { MatchListModel, Task, TaskListModel, User, UserModel } from '../index'
-import { Statistic } from './Statistic'
 import {
   ServerCause,
   ServerError,
@@ -62,8 +61,8 @@ export class Match {
   }
 
   async getLoggedNames(this: DocumentType<Match>) {
-    const lobbyMembers = CachedLobbies.get(this.info.lobby)
-    if (lobbyMembers) return lobbyMembers
+    const lobbyMembers = await CachedLobbies.get(this.info.lobby)
+    if (lobbyMembers) return lobbyMembers.cached
 
     const names = []
     for (let member of this.members) names.push(member.name)
@@ -76,10 +75,10 @@ export class Match {
       const nicknamesToParse = []
 
       if (!customNicknames) {
-        const membersInLobby = CachedLobbies.get(this.info.lobby)
+        const membersInLobby = await CachedLobbies.get(this.info.lobby)
         if (!membersInLobby)
           throw new ServerError(ServerCause.UNKNOWN_ERROR, 'parse nicknames')
-        for (let member of membersInLobby)
+        for (let member of membersInLobby.cached)
           nicknamesInLobby.push(member.nickname)
       } else nicknamesInLobby.push(...customNicknames)
 
@@ -87,7 +86,7 @@ export class Match {
       return socket.fetch({
         inLobby: nicknamesInLobby,
         toParse: nicknamesToParse,
-        cutOff: 2,
+        cutOff: 5,
       })
     } catch (e) {
       console.log(e)
@@ -146,6 +145,7 @@ export class Match {
     for (let user of users) userSavePromises.push(user.save())
     await Promise.all(userSavePromises)
     await this.save()
+    await CachedLobbies.delete(this.info.lobby)
   }
 
   async addRecords(this: DocumentType<Match>, ...records: MemberRecord[]) {

@@ -9,6 +9,7 @@ import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
 import type { DiscordClient } from '../../Classes/Discord/Client'
+import { Guild } from 'discord.js'
 
 export declare namespace Match {
   namespace Manager {
@@ -20,23 +21,28 @@ export declare namespace Match {
   }
   namespace Lobby {
     interface Instance extends ILobby {
-      get readyToStart(): boolean
       vote(name: string, map: string): boolean
-      get maps(): string[]
-      get votingCaptain(): string
-      get isVotingStageEnd(): boolean
-      get map(): string | undefined
       move(
         name: string,
         command: Command.Instance | Command.Types | number,
       ): Promise<boolean>
       becomeReady(name: string): boolean
       get commands(): Map<Command.Types, Command.Instance>
-      set discord(client: DiscordClient)
-      get discord(): DiscordClient
+      set discord(client: DiscordClient | undefined)
+      get discord(): DiscordClient | undefined
+
+      get guild(): Guild | undefined
+      set guild(guild: Guild | undefined)
 
       set counter(value: Counter)
       get isReady(): Promise<boolean>
+
+      get maps(): string[]
+      get votingCaptain(): string
+      get isVotingStageEnd(): boolean
+      get map(): string | undefined
+      get readyToStart(): boolean
+      get startedAt(): Date | undefined
 
       setGameId(name: string, id: string): boolean
 

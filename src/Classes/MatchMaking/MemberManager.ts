@@ -22,9 +22,12 @@ class PlayersManager implements Match.Member.Manager {
 
     let discordNick = user.profile.discord_nickname
     if (!discordNick) discordNick = user.profile.username
+    let nick = user.profile.nickname
+    if (!nick) nick = 'undefined'
     let member = {
       id,
       name,
+      nick,
       isReady: false,
       GRI: user.GRI,
       guildName,

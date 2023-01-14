@@ -18,7 +18,15 @@ import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
 import { DISCORD_ROBOT } from '../../../../app'
 import { UserModel } from '../../../../Models/index'
-import { SECOND_IN_MS } from '../../../../configs/time_constants'
+import {
+  HOUR_IN_MS,
+  MINUTE_IN_MS,
+  SECOND_IN_MS,
+} from '../../../../configs/time_constants'
+import {
+  CachedLobbies,
+  CachedMember,
+} from '../../../../Classes/MatchMaking/LobbyCache'
 
 export const StandOff_Lobbies = new LobbyManager(
   new StandOffController(),
@@ -53,10 +61,36 @@ setInterval(function () {
                   break
                 }
                 sendStartIventToLobby(lobby)
-                lobby.start().then()
-                if (lobby.type != 'rating') lobby.markToDelete()
+                lobby
+                  .start()
+                  .then(async () => {
+                    if (lobby.type != 'rating') lobby.markToDelete()
+                    const members: CachedMember[] = []
+                    for (let member of lobby.members.toArray)
+                      members.push({
+                        username: member.name,
+                        nickname: member.nick,
+                      })
+                    CachedLobbies.set(
+                      lobby.id,
+                      lobby.owner as string,
+                      lobby.map as string,
+                      members,
+                    )
+                      .then(() => {})
+                      .catch((e) => {
+                        console.error(e)
+                      })
+                  })
+                  .catch((e) => {
+                    console.error(e)
+                  })
                 break
             }
+            break
+          case 'started':
+            if (Date.now() - lobby.startedAt!.getTime() > HOUR_IN_MS * 1)
+              lobby.markToDelete()
             break
         }
       })
