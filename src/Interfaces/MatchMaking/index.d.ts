@@ -81,7 +81,7 @@ export declare namespace Match {
       interface Instance extends Group<number> {
         isCaptain(member: string | Member.Instance): boolean
         move(name: string, command: Instance | Types | number): Promise<boolean>
-        has(name: string): boolean
+        has(entity: Match.Member.Instance | string): boolean
         get(name: string): Member.Instance | null
 
         get lobbyID(): string
