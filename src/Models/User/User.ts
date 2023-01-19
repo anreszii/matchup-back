@@ -374,20 +374,22 @@ export class User {
     return true
   }
 
-  async isPremium(this: DocumentType<User>) {
-    await this._checkPremium()
-    return this.premium.isPremium
+  isPremium(this: DocumentType<User>) {
+    let result = this._checkPremium()
+    if (typeof result == 'boolean') return this.premium.isPremium
+
+    return result.then(() => this.premium.isPremium)
   }
 
-  async extendPremium(this: DocumentType<User>, period: number) {
-    let premiumPeriod = await PERIODS.findByPeriod(period)
-    if (!premiumPeriod)
-      throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
+  extendPremium(this: DocumentType<User>, period: number) {
+    return PERIODS.findByPeriod(period).then((premiumPeriod) => {
+      if (!premiumPeriod)
+        throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
 
-    this.buy(premiumPeriod.price)
-    this._extendPremiumStatus(period)
-    await this.save()
-    return true
+      this.buy(premiumPeriod.price)
+      this._extendPremiumStatus(period)
+      return this.save().then(() => true)
+    })
   }
 
   buy(this: DocumentType<User>, itemPrice: number) {
@@ -488,20 +490,23 @@ export class User {
     return NotificationModel.getForUser(this)
   }
 
-  private async _checkPremium(this: DocumentType<User>) {
-    if (!this.premium.isPremium) return
+  private _checkPremium(this: DocumentType<User>) {
+    if (!this.premium.isPremium) return false
     if (
       !this.premium.expiresIn ||
       0 >= this.premium.expiresIn.getTime() - Date.now()
     ) {
       this.premium.isPremium = false
-      await this.save()
-      return
+      return this.save().then(() => true)
     }
+    return false
   }
 
-  private async _extendPremiumStatus(this: DocumentType<User>, months: number) {
+  private _extendPremiumStatus(this: DocumentType<User>, months: number) {
+    let status = this.isPremium()
     let now = new Date()
+    if (typeof status == 'boolean' && status && this.premium.expiresIn)
+      now = this.premium.expiresIn
     now.setMonth(now.getMonth() + months)
 
     this.premium.expiresIn = now

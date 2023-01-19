@@ -19,6 +19,7 @@ export type MODELS_ACTION_LIST =
 
   /* PREMIUM CONFIG */
   | 'PremiumPeriods/createPeriod'
+  | 'PremiumPeriods/deletePeriod'
   | 'PremiumPeriods/changePrice'
 
   /* Notifications */

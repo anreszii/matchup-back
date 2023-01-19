@@ -14,6 +14,7 @@ import { validatePasswordFormat } from '../../validation/password'
 import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
 import { Mail, SMTP } from '../../Utils/smtp'
 import { generatePassword } from '../../Utils/passwordGenerator'
+import { DTO } from '../../Classes/DTO/DTO'
 require('dotenv').config()
 
 let router = Router()
@@ -204,6 +205,56 @@ router.post('/set_status', async (req, res, next) => {
     await user.save()
 
     res.status(200).json({ user: user })
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * name: имя кому надо увеличить прем
+ * period: количество месяцев према
+ */
+router.post('/extend_premium', async (req, res, next) => {
+  try {
+    let { name, period: periodInMonth, pass } = req.body
+    if (pass != process.env.ROUTE_PASS)
+      throw new ServerError(ServerCause.INVALID_ROUTE)
+    if (!name || typeof name != 'string')
+      throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
+    if (!periodInMonth || typeof periodInMonth != 'number' || periodInMonth < 0)
+      throw new TechnicalError('period', TechnicalCause.INVALID_FORMAT)
+    UserModel.findByName(name)
+      .then(async (user) => {
+        if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+        await user.extendPremium(periodInMonth)
+        const dto = new DTO({ status: 'success' })
+        res.status(200).json(dto.to.JSON)
+      })
+      .catch((e) => {
+        next(e)
+      })
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * :name - имя пользователя
+ */
+router.get('/premium/:name', async (req, res, next) => {
+  try {
+    let name = req.params.name
+    if (!name || typeof name != 'string')
+      throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
+    UserModel.findByName(name)
+      .then(async (user) => {
+        if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
+        await user.isPremium()
+        res.status(200).json(user.premium)
+      })
+      .catch((e) => {
+        next(e)
+      })
   } catch (e) {
     next(e)
   }

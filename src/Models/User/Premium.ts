@@ -29,35 +29,58 @@ class PremiumPeriods {
   })
   periodInMonths!: number
 
-  static async findByPeriod(
+  static findByPeriod(
     this: ReturnModelType<typeof PremiumPeriods>,
     period: number,
   ) {
     return this.findOne({ periodInMonths: period })
   }
 
-  static async createPeriod(
+  static createPeriod(
     this: ReturnModelType<typeof PremiumPeriods>,
     period: number,
     price: number,
   ) {
-    if (await this.findByPeriod(period))
-      throw new TechnicalError('period', TechnicalCause.ALREADY_EXIST)
-    await this.create({ price, periodInMonths: period })
-    return true
+    return this.findByPeriod(period)
+      .then((document) => {
+        if (document)
+          throw new TechnicalError('period', TechnicalCause.ALREADY_EXIST)
+
+        return this.create({ price, periodInMonths: period })
+          .then(() => true)
+          .catch((e) => {
+            console.error(e)
+          })
+      })
+      .catch((e) => {
+        throw e
+      })
   }
 
-  static async changePrice(
+  static changePrice(
     this: ReturnModelType<typeof PremiumPeriods>,
     period: number,
     price: number,
   ) {
-    const document = await this.findByPeriod(period)
-    if (!document) throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
+    return this.findByPeriod(period).then(async (document) => {
+      if (!document)
+        throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
+      document.price = price
+      await document.save()
 
-    document.price = price
-    await document.save()
-    return true
+      return true
+    })
+  }
+
+  static deletePeriod(
+    this: ReturnModelType<typeof PremiumPeriods>,
+    period: number,
+  ) {
+    return this.findByPeriod(period).then((period) => {
+      if (!period)
+        throw new TechnicalError('period', TechnicalCause.ALREADY_EXIST)
+      return period.delete()
+    })
   }
 }
 
