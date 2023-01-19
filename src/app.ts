@@ -16,8 +16,8 @@ import mongoose from 'mongoose'
 import { DiscordClient } from './Classes/Discord/Client'
 
 export const WS_SERVER = io({
-  key_file_name: `${__dirname}/key.pem`,
-  cert_file_name: `${__dirname}/cert.pem`,
+  key_file_name: `${__dirname}/privkey.pem`,
+  cert_file_name: `${__dirname}/fullchain.pem`,
 })
 export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
@@ -50,8 +50,8 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
 })
 
 const fs = require('fs')
-const privateKey = fs.readFileSync(`${__dirname}/key.pem`)
-const certificate = fs.readFileSync(`${__dirname}/cert.pem`)
+const privateKey = fs.readFileSync(`${__dirname}/privkey.pem`)
+const certificate = fs.readFileSync(`${__dirname}/fullchain.pem`)
 require('https')
   .createServer({ key: privateKey, cert: certificate }, app)
   .listen(Number(process.env.HTTP_PORT), () => {
