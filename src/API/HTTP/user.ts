@@ -217,8 +217,6 @@ router.post('/set_status', async (req, res, next) => {
 router.post('/extend_premium', async (req, res, next) => {
   try {
     let { name, period: periodInMonth, pass } = req.body
-    if (pass != process.env.ROUTE_PASS)
-      throw new ServerError(ServerCause.INVALID_ROUTE)
     if (!name || typeof name != 'string')
       throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
     if (!periodInMonth || typeof periodInMonth != 'number' || periodInMonth < 0)
