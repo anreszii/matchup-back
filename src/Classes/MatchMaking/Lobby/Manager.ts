@@ -43,7 +43,7 @@ export class LobbyManager implements Match.Manager.Instance {
     let lobby = new Lobby(
       ID,
       type,
-      2,
+      5,
       this._controller,
       await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`),
     )
