@@ -34,7 +34,48 @@ export class DiscordClient {
       })
       .catch((e) => console.error(e))
   }
-  public async createChannelsForMatch(guild: string | Guild, teamID: string) {
+
+  findGuildWithCustomTeamIdRole(teamID: string) {
+    return this._updateGuilds().then(async (guilds) => {
+      for (let [_, guild] of guilds) {
+        let fetchedGuild = await guild.fetch()
+        let role = await DiscordRoleManager.findRoleByTeamId(
+          fetchedGuild,
+          teamID,
+        )
+        if (role) return fetchedGuild
+      }
+    })
+  }
+
+  removeLobby(guild: Guild, id: string) {
+    return guild.fetch().then((guild) => {
+      DiscordRoleManager.deleteTeamRole(guild, id)
+      for (let [_, channel] of guild.channels.cache) {
+        if (
+          channel.name == `command1#${id}` ||
+          channel.name == `command2#${id}`
+        )
+          channel.delete()
+      }
+    })
+  }
+
+  async findChannelForMatch(
+    guild: string | Guild,
+    teamID: string,
+    command: PlayerCommand,
+  ) {
+    if (typeof guild == 'string') {
+      let tmp = await this.getGuildByName(guild)
+      if (!tmp) return
+
+      guild = tmp
+    }
+    return DiscordChannelManager.findChannel(guild, teamID, command)
+  }
+
+  async createChannelsForMatch(guild: string | Guild, teamID: string) {
     let voiceChannels = new Array()
     if (typeof guild == 'string') {
       let tmp = await this.getGuildByName(guild)
@@ -60,31 +101,7 @@ export class DiscordClient {
     return voiceChannels
   }
 
-  public async findChannelForMatch(
-    guild: string | Guild,
-    teamID: string,
-    command: PlayerCommand,
-  ) {
-    if (typeof guild == 'string') {
-      let tmp = await this.getGuildByName(guild)
-      if (!tmp) return
-
-      guild = tmp
-    }
-    return DiscordChannelManager.findChannel(guild, teamID, command)
-  }
-
-  public async findGuildWithCustomTeamIdRole(teamID: string) {
-    let guilds = await this._updateGuilds()
-
-    for (let [_, guild] of guilds) {
-      let fetchedGuild = await guild.fetch()
-      let role = await DiscordRoleManager.findRoleByTeamId(fetchedGuild, teamID)
-      if (role) return fetchedGuild
-    }
-  }
-
-  public async addRolesToMember(
+  async addRolesToMember(
     guild: string | Guild,
     nick: string,
     ...roles: string[] | Role[]
@@ -111,7 +128,7 @@ export class DiscordClient {
     }
   }
 
-  public async removeRolesFromMember(
+  async removeRolesFromMember(
     guild: string | Guild,
     nick: string,
     ...roles: string[] | Role[]
@@ -139,7 +156,7 @@ export class DiscordClient {
     }
   }
 
-  public async removeUserFromMatchMaking(guild: string | Guild, nick: string) {
+  async removeUserFromMatchMaking(guild: string | Guild, nick: string) {
     if (typeof guild == 'string') {
       let tmp = await this.getGuildByName(guild)
       if (!tmp) return
@@ -158,27 +175,7 @@ export class DiscordClient {
     user.voice.setChannel(null)
   }
 
-  async removeLobby(guild: Guild, id: string) {
-    return guild.fetch().then((guild) => {
-      DiscordRoleManager.deleteTeamRole(guild, id)
-      for (let [_, channel] of guild.channels.cache) {
-        if (
-          channel.name == `command1#${id}` ||
-          channel.name == `command2#${id}`
-        )
-          channel.delete()
-      }
-    })
-  }
-
-  public async addUserToTeamVoiceChannel(nick: string) {
-    let result = await this._findUserByNicknameForMatchMaking(nick)
-    if (!result || !result.user.voice || !result.user.voice.channelId) return
-
-    distribute(new StateManager(result.user.voice, this), result.guild)
-  }
-
-  public async changeCommandRoleOfMember(
+  async changeCommandRoleOfMember(
     guild: string | Guild,
     nick: string,
     command: PlayerCommand,
@@ -203,35 +200,50 @@ export class DiscordClient {
     user.roles.add(role)
   }
 
-  public async getMemberByNickanme(guild: string | Guild, nick: string) {
-    let members = await this._getMembersFromGuild(guild)
-    return members?.find((member) => {
-      if (member.nickname != nick) return false
-      return true
+  addUserToTeamVoiceChannel(nick: string) {
+    let result = this._findUserByNicknameForMatchMaking(nick)
+    if (!result) return
+    result.then((result) => {
+      if (!result || !result.user.voice || !result.user.voice.channelId) return
+      distribute(new StateManager(result.user.voice, this), result.guild)
     })
   }
 
-  public async getMemberById(guildName: string, id: string) {
-    let members = await this._getMembersFromGuild(guildName)
-    if (members?.has(id)) return members.get(id)!
-  }
-
-  public async getGuildByName(name: string) {
-    await this._updateGuilds()
-
-    let guild = this._guilds.find((guild) => {
-      if (guild.name != name) return false
-      return true
+  getMemberByNickanme(guild: string | Guild, nick: string) {
+    return this._getMembersFromGuild(guild).then((members) => {
+      return members?.find((member) => {
+        if (member.nickname) return member.nickname == nick
+        else return member.user.username == nick
+      })
     })
-
-    return guild?.fetch()
   }
 
-  public get guilds() {
+  getMemberById(guildName: string, id: string) {
+    return this._getMembersFromGuild(guildName)
+      .then((members) => {
+        if (members?.has(id)) return members.get(id)!
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+  }
+
+  getGuildByName(name: string) {
+    return this._updateGuilds().then((guilds) => {
+      return guilds
+        .find((guild) => {
+          if (guild.name != name) return false
+          return true
+        })
+        ?.fetch()
+    })
+  }
+
+  get guilds() {
     return this._updateGuilds()
   }
 
-  public get guildWithFreeChannelsForVoice() {
+  get guildWithFreeChannelsForVoice() {
     return this._updateGuilds().then(async (guilds) => {
       for (let [_, guild] of guilds) {
         let tmp = await guild.fetch().then((fetchedGuild) => {
@@ -244,6 +256,29 @@ export class DiscordClient {
     })
   }
 
+  private _updateGuilds() {
+    return this.client.guilds.fetch().then((guilds) => {
+      this._guilds = guilds
+      return guilds
+    })
+  }
+
+  private _findUserByNicknameForMatchMaking(nick: string) {
+    for (let [_, guild] of this._guilds)
+      return guild.fetch().then((fetchedGuild) => {
+        return this.getMemberByNickanme(fetchedGuild, nick).then((user) => {
+          if (
+            user &&
+            user.roles.cache.find((role) => {
+              if (role.name.includes('mm_')) return true
+              return false
+            })
+          )
+            return { guild: fetchedGuild, user }
+        })
+      })
+  }
+
   private async _getMembersFromGuild(guild: string | Guild) {
     if (typeof guild == 'string') {
       await this._updateGuilds()
@@ -254,28 +289,5 @@ export class DiscordClient {
     }
 
     return guild.members.fetch()
-  }
-
-  private async _updateGuilds() {
-    return this.client.guilds.fetch().then((guilds) => {
-      this._guilds = guilds
-      return guilds
-    })
-  }
-
-  private async _findUserByNicknameForMatchMaking(nick: string) {
-    for (let [_, guild] of this._guilds) {
-      let fetchedGuild = await guild.fetch()
-      let user = await this.getMemberByNickanme(fetchedGuild, nick)
-      if (
-        user &&
-        user.roles.cache.find((role) => {
-          if (role.name.includes('mm_')) return true
-          return false
-        })
-      ) {
-        return { guild: fetchedGuild, user }
-      }
-    }
   }
 }
