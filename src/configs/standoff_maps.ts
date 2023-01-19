@@ -1,1 +1,1 @@
-export const GAME_MAPS = ['Sandstone', 'Rust', 'Sakura', 'Province', 'Zone 9']
+export const GAME_MAPS = ['Sandstone', 'Rust', 'Sakura', 'Breeze', 'Zone 9']
