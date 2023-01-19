@@ -1,6 +1,5 @@
 import { DocumentType, prop, ReturnModelType } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
-import { v4 as uuid } from 'uuid'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { IChat } from '../../Interfaces/index'
 import { UserModel } from '../index'

@@ -79,8 +79,9 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._maxSize - this.playersCount >= size
   }
 
-  has(name: string): boolean {
-    return this.members.hasMember(name)
+  has(entity: Match.Member.Instance | string): boolean {
+    if (typeof entity == 'string') return this.members.hasMember(entity)
+    else return this.members.hasMember(entity.name)
   }
 
   get(name: string) {
