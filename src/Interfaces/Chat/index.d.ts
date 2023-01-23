@@ -13,6 +13,7 @@ export declare namespace IChat {
     get members(): Array<string>
     connect(socket: WebSocket): void
     join(user: string): PromiseOrValue<true | never>
+    forceJoin(user: string): void
     leave(user: string): PromiseOrValue<true | never>
     message(msg: Message): PromiseOrValue<true | never>
     send(event: string, content: DTO.Object): void

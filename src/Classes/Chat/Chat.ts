@@ -29,6 +29,13 @@ export class Chat implements IChat.Controller {
     this._namespace.control(this.room).join(socket.id)
   }
 
+  forceJoin(user: string) {
+    if (this._namespace.Aliases.isSet(user))
+      this._namespace
+        .control(this.room)
+        .join(this._namespace.Aliases.get(user)!)
+  }
+
   join(user: string): true {
     if (user == 'system') return true
     if (!this._document.hasMember(user)) this._document.join(user)

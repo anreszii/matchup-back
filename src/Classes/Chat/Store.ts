@@ -17,14 +17,19 @@ export class ChatStore {
     else return ChatStore._chats.get(member)!.delete(id)
   }
 
-  static joinChats(member: Name, socket: WebSocket) {
-    const chats = ChatStore._chats.get(member)!
+  static joinChats(member: Name) {
+    const chats = ChatStore._chats.get(member)
     if (!chats) return
 
-    for (let id of chats)
-      CLIENT_CHATS.get(id).then((chat) => {
-        chat.connect(socket)
-      })
+    const promises = []
+    for (let id of chats) {
+      promises.push(
+        CLIENT_CHATS.get(id).then((chat) => {
+          chat.forceJoin(member)
+        }),
+      )
+    }
+    return Promise.all(promises).then(() => true)
   }
 
   static get(member: Name) {
