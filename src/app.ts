@@ -28,7 +28,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
 mongoose.connect(
-  'mongodb+srv://Perception:eWvXO4EXlwTQ2Dpx@testcluster.vbwobca.mongodb.net/?retryWrites=true&w=majority',
+  `mongodb+srv://Perception:${process.env.MONGO_PASS}@testcluster.vbwobca.mongodb.net/?retryWrites=true&w=majority`,
   (error) => {
     if (error) return console.log(error)
 
