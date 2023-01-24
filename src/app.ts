@@ -2,6 +2,10 @@ import type { Response } from 'express'
 require('dotenv').config()
 
 import io from 'gamesocket.io'
+export const WS_SERVER = io({
+  key_file_name: `${__dirname}/privkey.pem`,
+  cert_file_name: `${__dirname}/fullchain.pem`,
+})
 
 import express = require('express')
 import fileUploader = require('express-fileupload')
@@ -12,21 +16,16 @@ const corsOptions = {
   optionSuccessStatus: 200,
 }
 
-import mongoose from 'mongoose'
-import { DiscordClient } from './Classes/Discord/Client'
-
-export const WS_SERVER = io({
-  key_file_name: `${__dirname}/privkey.pem`,
-  cert_file_name: `${__dirname}/fullchain.pem`,
-})
-export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
-
 const app = express()
 app.use(cors(corsOptions))
 app.use(fileUploader())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+import { DiscordClient } from './Classes/Discord/Client'
+export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
+
+import mongoose from 'mongoose'
 mongoose.connect(
   `mongodb+srv://Perception:${process.env.MONGO_PASS}@testcluster.vbwobca.mongodb.net/?retryWrites=true&w=majority`,
   (error) => {
