@@ -1,7 +1,7 @@
 import type { Match } from '../../../Interfaces'
 
 export class StandOffController implements Match.Controller {
-  private _status: Exclude<Match.Lobby.Status, 'searching'> = 'filled'
+  private _status: Exclude<Match.Lobby.State, 'searching'> = 'filled'
   constructor() {
     //connection
   }

@@ -37,7 +37,7 @@ router.post(
         member.lobbyID = undefined
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
-      if (lobbyObject.status != 'started')
+      if (lobbyObject.state != 'started')
         throw new TechnicalError('lobby status', TechnicalCause.INVALID)
 
       let lobby = await CachedLobbies.get(member.lobbyID)

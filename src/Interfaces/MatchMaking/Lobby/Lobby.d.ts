@@ -6,7 +6,7 @@ export declare interface ILobby extends IEntity<string> {
   updateStatus(): Promise<void>
 
   get id(): string
-  get status(): Match.Lobby.Status
+  get state(): Match.Lobby.State
   get game(): Match.Manager.supportedGames
   get type(): Match.Lobby.Type
   get members(): Match.Member.List
@@ -29,7 +29,7 @@ export declare interface ILobby extends IEntity<string> {
   get playersCount(): number
 
   start(): Promise<boolean>
-  markToDelete(): Promise<boolean>
+  markToDelete(): boolean
 
   canAddTeam(id: number): boolean
 

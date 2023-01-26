@@ -3,7 +3,7 @@ import { GRIFilter } from './ByGRI'
 import { GuildFilter } from './ByGuild'
 import { RegimeFilter } from './ByRegime'
 import { RegionFilter } from './ByRegion'
-import { StatusFilter } from './ByStatus'
+import { StateFilter } from './ByStatus'
 import { TeamFilter } from './ByTeam'
 
 export class Filters implements Rating.SearchEngine.Filters {
@@ -11,7 +11,7 @@ export class Filters implements Rating.SearchEngine.Filters {
   private _filters: Array<Rating.SearchEngine.Filter> = new Array()
 
   constructor() {
-    this._addFilter(new StatusFilter())
+    this._addFilter(new StateFilter())
   }
   byGRI(GRI: number) {
     let filter = new GRIFilter()

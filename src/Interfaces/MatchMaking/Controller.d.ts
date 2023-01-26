@@ -1,6 +1,6 @@
 import type { Match } from './'
 export declare interface MatchController {
-  get status(): Exclude<Match.Lobby.Status, 'searching'>
+  get status(): Exclude<Match.Lobby.State, 'searching'>
 
   create(): Promise<boolean>
   start(): Promise<boolean>

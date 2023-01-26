@@ -16,22 +16,14 @@ import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
 import { isCorrectCommand } from '../../../../Classes/MatchMaking/Command/Command'
 import { StandOffController } from '../../../../Classes/MatchMaking/Controllers/StandOff'
 import { dtoParser } from '../../../../Classes/DTO/Parser/Parser'
-import { DISCORD_ROBOT } from '../../../../app'
 import { UserModel } from '../../../../Models/index'
-import {
-  HOUR_IN_MS,
-  MINUTE_IN_MS,
-  SECOND_IN_MS,
-} from '../../../../configs/time_constants'
+import { HOUR_IN_MS, SECOND_IN_MS } from '../../../../configs/time_constants'
 import {
   CachedLobbies,
   CachedMember,
 } from '../../../../Classes/MatchMaking/LobbyCache'
 
-export const StandOff_Lobbies = new LobbyManager(
-  new StandOffController(),
-  DISCORD_ROBOT,
-)
+export const StandOff_Lobbies = new LobbyManager(new StandOffController())
 
 const Searcher = new SearchEngine(StandOff_Lobbies)
 
@@ -40,7 +32,7 @@ setInterval(function () {
     lobby
       .updateStatus()
       .then(() => {
-        switch (lobby.status) {
+        switch (lobby.state) {
           case 'searching':
             sendSyncIventToLobby(lobby)
             break
@@ -169,17 +161,8 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   let lobby = await Searcher.findLobby(Filters)
   if (!lobby.region) lobby.region = region
 
-  const dto = new DTO({ lobbyID: lobby.id, chatID: lobby.chat!.id })
-  if ((await lobby.join(username)) && team) {
-    for (let member of team.members.toArray)
-      clientServer
-        .control(clientServer.Aliases.get(member.name)!)
-        .emit('lobby_join', dto.to.JSON)
-  }
-  return {
-    lobbyID: lobby.id,
-    chatID: lobby.chat!.id,
-  }
+  await lobby.join(username)
+  return { lobbyID: lobby.id, chatID: lobby.chat!.id }
 }
 CONTROLLERS.set('find_lobby', find_lobby)
 
@@ -495,7 +478,7 @@ export async function join_to_lobby(socket: WebSocket, params: unknown[]) {
 
   if (!(await lobby.join(socket.username))) return
   return {
-    status: lobby.status,
+    status: lobby.state,
     players: lobby.players,
   }
 }
@@ -532,13 +515,13 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
       'sync_lobby',
       dtoParser.from.Object({
         label: 'join',
-        status: lobby.status,
+        status: lobby.state,
         players: lobby.players,
       }).to.JSON,
     )
   }
   return {
-    status: lobby.status,
+    status: lobby.state,
     players: lobby.players,
   }
 }
@@ -624,7 +607,7 @@ async function sendSyncIventToLobby(lobby: Match.Lobby.Instance) {
   const dto = new DTO({
     label: 'sync',
     lobby: lobby.id,
-    status: lobby.status,
+    status: lobby.state,
     players: lobby.players,
   })
   lobby.chat.send('lobby', dto)

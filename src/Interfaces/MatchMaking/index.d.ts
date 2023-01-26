@@ -8,8 +8,6 @@ import type { IMatchMember } from './Member'
 import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
-import type { DiscordClient } from '../../Classes/Discord/Client'
-import { Guild } from 'discord.js'
 
 export declare namespace Match {
   namespace Manager {
@@ -28,11 +26,6 @@ export declare namespace Match {
       ): Promise<boolean>
       becomeReady(name: string): boolean
       get commands(): Map<Command.Types, Command.Instance>
-      set discord(client: DiscordClient | undefined)
-      get discord(): DiscordClient | undefined
-
-      get guild(): Guild | undefined
-      set guild(guild: Guild | undefined)
 
       set counter(value: Counter)
       get isReady(): Promise<boolean>
@@ -57,7 +50,7 @@ export declare namespace Match {
 
     type Type = 'training' | 'arcade' | 'rating'
 
-    type Status =
+    type State =
       | 'searching'
       | 'filled'
       | 'voting'
