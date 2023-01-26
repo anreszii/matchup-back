@@ -11,6 +11,9 @@ import type { Match } from '../../Interfaces/index'
 import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
 import { StateManager } from './StateManager'
+import { Command } from '../MatchMaking/Command/Command'
+import { COMMANDS } from '../MatchMaking/Command/Manager'
+import { StandOff_Lobbies } from '../../API/Sockets'
 
 type PlayerCommand = Exclude<
   Match.Lobby.Command.Types,
@@ -35,6 +38,20 @@ export class DiscordClient {
       .catch((e) => console.error(e))
   }
 
+  addUserToTeamVoiceChannel(nick: string) {
+    let result = this._findUserByNicknameForMatchMaking(nick)
+    if (!result) return
+    return result
+      .then((result) => {
+        if (!result || !result.user.voice || !result.user.voice.channelId)
+          return
+        distribute(new StateManager(result.user.voice, this), result.guild)
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+  }
+
   findGuildWithCustomTeamIdRole(teamID: string) {
     return this._updateGuilds().then(async (guilds) => {
       for (let [_, guild] of guilds) {
@@ -49,15 +66,52 @@ export class DiscordClient {
   }
 
   removeLobby(guild: Guild, id: string) {
-    return guild.fetch().then((guild) => {
-      DiscordRoleManager.deleteTeamRole(guild, id)
-      for (let [_, channel] of guild.channels.cache) {
-        if (
-          channel.name == `command1#${id}` ||
-          channel.name == `command2#${id}`
-        )
-          channel.delete()
-      }
+    return guild
+      .fetch()
+      .then((guild) => {
+        DiscordRoleManager.deleteTeamRole(guild, id).catch((e) => {
+          console.error(e)
+        })
+        for (let [_, channel] of guild.channels.cache) {
+          if (
+            channel.name == `command1#${id}` ||
+            channel.name == `command2#${id}`
+          )
+            channel.delete()
+        }
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+  }
+
+  getMemberByNickanme(guild: string | Guild, nick: string) {
+    return this._getMembersFromGuild(guild).then((members) => {
+      return members?.find((member) => {
+        if (member.nickname) return member.nickname == nick
+        else return member.user.username == nick
+      })
+    })
+  }
+
+  getMemberById(guildName: string, id: string) {
+    return this._getMembersFromGuild(guildName)
+      .then((members) => {
+        if (members?.has(id)) return members.get(id)!
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+  }
+
+  getGuildByName(name: string) {
+    return this._updateGuilds().then((guilds) => {
+      return guilds
+        .find((guild) => {
+          if (guild.name != name) return false
+          return true
+        })
+        ?.fetch()
     })
   }
 
@@ -156,25 +210,6 @@ export class DiscordClient {
     }
   }
 
-  async removeUserFromMatchMaking(guild: string | Guild, nick: string) {
-    if (typeof guild == 'string') {
-      let tmp = await this.getGuildByName(guild)
-      if (!tmp) return
-
-      guild = tmp
-    }
-
-    let user = await this.getMemberByNickanme(guild, nick)
-    if (!user) return
-
-    let promises = []
-    for (let [_, role] of user.roles.cache)
-      if (role.name.startsWith('mm_')) promises.push(user.roles.remove(role))
-
-    await Promise.all(promises)
-    user.voice.setChannel(null)
-  }
-
   async changeCommandRoleOfMember(
     guild: string | Guild,
     nick: string,
@@ -200,42 +235,49 @@ export class DiscordClient {
     user.roles.add(role)
   }
 
-  addUserToTeamVoiceChannel(nick: string) {
-    let result = this._findUserByNicknameForMatchMaking(nick)
-    if (!result) return
-    result.then((result) => {
-      if (!result || !result.user.voice || !result.user.voice.channelId) return
-      distribute(new StateManager(result.user.voice, this), result.guild)
-    })
-  }
+  async joinDiscordLobby(guild: Guild, member: Match.Member.Instance) {
+    const parsedMemberData = parseLobbyAndCommandFromMember(member)
+    if (!parsedMemberData) return false
+    let commandRole = await DiscordRoleManager.findRoleByName(
+      guild,
+      parsedMemberData.command,
+    )
+    if (!commandRole) return false
 
-  getMemberByNickanme(guild: string | Guild, nick: string) {
-    return this._getMembersFromGuild(guild).then((members) => {
-      return members?.find((member) => {
-        if (member.nickname) return member.nickname == nick
-        else return member.user.username == nick
-      })
-    })
-  }
+    let teamRole = await DiscordRoleManager.findRoleByTeamId(
+      guild,
+      parsedMemberData.id,
+    )
+    if (!teamRole)
+      teamRole = await DiscordRoleManager.createTeamRole(
+        guild,
+        parsedMemberData.id,
+      )
 
-  getMemberById(guildName: string, id: string) {
-    return this._getMembersFromGuild(guildName)
-      .then((members) => {
-        if (members?.has(id)) return members.get(id)!
-      })
-      .catch((e) => {
-        console.error(e)
-      })
-  }
-
-  getGuildByName(name: string) {
-    return this._updateGuilds().then((guilds) => {
-      return guilds
-        .find((guild) => {
-          if (guild.name != name) return false
-          return true
+    this.addRolesToMember(guild, member.discordNick, teamRole, commandRole)
+      .then(() => {
+        this.addUserToTeamVoiceChannel(member.discordNick)?.catch((e) => {
+          console.error(e)
+          return
         })
-        ?.fetch()
+      })
+      .catch((e) => console.log(e))
+    return true
+  }
+
+  async leaveDiscordLobby(guild: Guild, member: Match.Member.Instance) {
+    return this.getMemberByNickanme(guild, member.discordNick).then((user) => {
+      if (!user) return false
+
+      let promises = []
+      for (let [_, role] of user.roles.cache)
+        if (role.name.startsWith('mm_')) promises.push(user.roles.remove(role))
+
+      Promise.all(promises).then(() => {
+        user.voice.setChannel(null)
+      })
+
+      return true
     })
   }
 
@@ -289,5 +331,27 @@ export class DiscordClient {
     }
 
     return guild.members.fetch()
+  }
+}
+
+function parseLobbyAndCommandFromMember(member: Match.Member.Instance) {
+  if (!member.commandID || !member.lobbyID) return null
+  const command = COMMANDS.get(member.commandID)
+  if (!command) return null
+  let discordCommandRoleName: 'mm_command1' | 'mm_command2'
+  switch (command.type) {
+    case 'command1':
+      discordCommandRoleName = 'mm_command1'
+      break
+    case 'command2':
+      discordCommandRoleName = 'mm_command2'
+      break
+    default:
+      return null
+  }
+
+  return {
+    command: discordCommandRoleName,
+    id: member.lobbyID,
   }
 }

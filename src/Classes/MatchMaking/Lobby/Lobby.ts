@@ -6,7 +6,6 @@ import { PLAYERS } from '../MemberManager'
 import { MemberList } from '../MemberList'
 import { getMedian, getRandom } from '../../../Utils/math'
 
-import { DiscordClient } from '../../Discord/Client'
 import { DiscordRoleManager } from '../../Discord/RoleManager'
 import { GAME_MAPS } from '../../../configs/standoff_maps'
 import { TEAMS } from '../Team/Manager'
@@ -14,13 +13,15 @@ import { TechnicalCause, TechnicalError } from '../../../error'
 import { MINUTE_IN_MS, SECOND_IN_MS } from '../../../configs/time_constants'
 import { DTO } from '../../DTO/DTO'
 import { clientServer } from '../../../API/Sockets'
+import { DISCORD_ROBOT } from '../../../app'
+import { DiscordClient } from '../../Discord/Client'
 import { Guild } from 'discord.js'
 
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _counter!: Match.Lobby.Counter
   private _game!: Match.Manager.supportedGames
-  private _stagesTimers: Map<Match.Lobby.Status, Date> = new Map()
+  private _stagesTimers: Map<Match.Lobby.State, Date> = new Map()
   private _timers: Map<string, Date> = new Map()
   private _members: MemberList = new MemberList()
   private _commands: Map<
@@ -33,9 +34,9 @@ export class Lobby implements Match.Lobby.Instance {
   private _owner?: string
   private _gameID?: string
   private _map?: string
-  private _discordClient?: DiscordClient
-  private _guild?: Guild
-  private _status: Match.Lobby.Status = 'searching'
+  private _state: Match.Lobby.State = 'searching'
+
+  private _discord?: { client: DiscordClient; guild: Guild }
 
   constructor(
     private _id: string,
@@ -64,31 +65,29 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   async start() {
-    if (this._status != 'preparing') return false
+    if (this._state != 'preparing') return false
     if (!this._map) return false
     await this._controller.start()
-    this._status = 'started'
+    this._state = 'started'
     this._stagesTimers.set('started', new Date())
     return true
   }
 
-  async markToDelete() {
-    await this.delete()
-    await this._controller.stop()
-    this._status = 'deleted'
+  markToDelete() {
+    this._state = 'deleted'
+    this.delete()
+    this._controller.stop()
     return true
   }
 
   async delete(): Promise<true> {
     for (let [_, command] of this._commands) command.delete()
     for (let member of this.members.values()) {
-      this.chat.leave(member.name)
-      this._leaveDiscord(member).catch((e) => console.log(e))
       this._leaveNotify(member)
       member.lobbyID = undefined
     }
-    this.chat?.delete()
-    if (this.guild) this._discordClient!.removeLobby(this.guild, this.id)
+    await this.chat?.delete()
+    await this._deleteDiscordLobby()
     return true
   }
 
@@ -114,11 +113,11 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   updateStatus(): Promise<void> {
-    return this._updateStatus()
+    return this._updateState()
   }
 
   join(name: string) {
-    if (this._status != 'searching')
+    if (this._state != 'searching')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     this._counter.searching++
     return PLAYERS.get(name).then((member) => {
@@ -128,7 +127,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   leave(name: string, forceFlag = false) {
-    if (this._status != 'searching' && this._status != 'filled' && !forceFlag)
+    if (this._state != 'searching' && this._state != 'filled' && !forceFlag)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     let member = this.members.getByName(name)
     if (!member || member.lobbyID != this.id)
@@ -139,7 +138,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
-    if (this._status != 'voting' || this._maps.size < 2)
+    if (this._state != 'voting' || this._maps.size < 2)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._maps.has(map))
       throw new TechnicalError('map', TechnicalCause.NOT_EXIST)
@@ -173,7 +172,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   setGameId(name: string, id: string) {
-    if (this._status != 'preparing')
+    if (this._state != 'preparing')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._owner || name != this._owner)
       throw new TechnicalError('executor', TechnicalCause.INVALID)
@@ -191,7 +190,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get readyToDrop(): boolean {
-    return this._status == 'deleted'
+    return this._state == 'deleted'
   }
 
   get isVotingStageEnd(): boolean {
@@ -211,12 +210,12 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get map() {
-    if (this._status != 'started') return undefined
+    if (this._state != 'started') return undefined
     return this._map
   }
 
   get readyToStart() {
-    if (this._status != 'preparing' || !this._stagesTimers.has('preparing'))
+    if (this._state != 'preparing' || !this._stagesTimers.has('preparing'))
       return false
     return (
       Date.now() - this._stagesTimers.get('preparing')!.getTime() >
@@ -271,8 +270,8 @@ export class Lobby implements Match.Lobby.Instance {
     return this._commands.get('spectators')!
   }
 
-  get status() {
-    return this._status
+  get state() {
+    return this._state
   }
 
   get players() {
@@ -284,7 +283,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   get isReady(): Promise<boolean> {
-    if (this._status != 'filled')
+    if (this._state != 'filled')
       return new Promise((resolve) => {
         return resolve(false)
       })
@@ -309,22 +308,6 @@ export class Lobby implements Match.Lobby.Instance {
     })
   }
 
-  set discord(client: DiscordClient | undefined) {
-    this._discordClient = client
-  }
-
-  get discord() {
-    return this._discordClient
-  }
-
-  set guild(value: Guild | undefined) {
-    this._guild = value
-  }
-
-  get guild() {
-    return this._guild
-  }
-
   get chat(): IChat.Controller {
     return this._chat
   }
@@ -343,7 +326,7 @@ export class Lobby implements Match.Lobby.Instance {
 
   private _setLobbyStatusToSearching() {
     for (let member of this.members.toArray) member.isReady = false
-    this._status = 'searching'
+    this._state = 'searching'
   }
 
   private _startNextTurn() {
@@ -404,8 +387,6 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._joinCommand(member))) return false
 
     this.chat.join(member.name)
-    this._joinDiscord(member).catch((e) => console.log(e))
-
     this._counter.searching++
 
     this._joinNotify(member)
@@ -441,9 +422,8 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._leaveCommand(member))) return false
 
     this.chat.leave(member.name)
-    this._leaveDiscord(member).catch((e) => console.log(e))
     this._stagesTimers = new Map()
-    this._status = 'searching'
+    this._state = 'searching'
 
     this._counter.searching--
     member.lobbyID = undefined
@@ -485,9 +465,9 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _updateStatus() {
+  private async _updateState() {
     if (
-      this._status == 'searching' &&
+      this._state == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
     ) {
       for (let member of this.members.toArray)
@@ -498,13 +478,14 @@ export class Lobby implements Match.Lobby.Instance {
       this._counter.playing += members
 
       this._stagesTimers.set('filled', new Date())
-      this._status = 'filled'
+      this._state = 'filled'
     }
-    if (this._status == 'filled' && (await this.isReady)) {
+    if (this._state == 'filled' && (await this.isReady)) {
       this._timers.set('turn_start', new Date())
-      this._status = 'voting'
+      this._state = 'voting'
     }
-    if (this._status == 'voting' && !this.isVotingStageEnd) {
+    let isVotingStageEnd = this.isVotingStageEnd
+    if (this._state == 'voting' && !isVotingStageEnd) {
       const timePassedAfterTurnStart =
         Date.now() - this._timers.get('turn_start')!.getTime()
       if (timePassedAfterTurnStart <= SECOND_IN_MS * 15) return
@@ -512,18 +493,21 @@ export class Lobby implements Match.Lobby.Instance {
       const maps = this.maps
       this.vote(this.votingCaptain, maps[getRandom(0, maps.length - 1)])
       return
-    } else if (this._status == 'voting' && this.isVotingStageEnd) {
-      this._status = 'preparing'
+    } else if (this._state == 'voting' && isVotingStageEnd) {
+      this._state = 'preparing'
       const captains = [this.firstCommand.captain, this.secondCommand.captain]
       this._owner = captains[getRandom(0, 1)]
+      const status = await this._createDiscordChannel()
+      if (!status) return
+      await this._connectMembersToDiscordChannel()
     }
 
-    if (this._status == 'preparing' && !this._stagesTimers.has('preparing'))
+    if (this._state == 'preparing' && !this._stagesTimers.has('preparing'))
       this._stagesTimers.set('preparing', new Date())
   }
 
   private _joinNotify(member: Match.Member.Instance) {
-    const dto = new DTO({ label: 'join', id: this.id })
+    const dto = new DTO({ label: 'join', id: this.id, chat: this.chat.id })
     if (clientServer.Aliases.isSet(member.name))
       clientServer
         .control(clientServer.Aliases.get(member.name)!)
@@ -538,42 +522,76 @@ export class Lobby implements Match.Lobby.Instance {
         .emit('lobby', dto.to.JSON)
   }
 
-  private async _joinDiscord(member: Match.Member.Instance) {
-    if (!this.guild || !this.discord) return
+  private async _connectMembersToDiscordChannel() {
+    if (!this._discord) {
+      const status = await this._createDiscordChannel()
+      if (!status) return false
+    }
 
-    let command: 'mm_command1' | 'mm_command2'
-    if (this.commands.get('command1')!.has(member)) command = 'mm_command1'
-    else if (this.commands.get('command2')!.has(member)) command = 'mm_command2'
-    else return
+    const promises = []
+    for (let member of this.members.toArray)
+      promises.push(this._connectMemberToDiscordChannel(member))
 
-    let commandRole = await DiscordRoleManager.findRoleByName(
-      this.guild,
-      command,
-    )
-    if (!commandRole) return
-
-    let teamRole = await DiscordRoleManager.findRoleByTeamId(
-      this.guild,
-      this.id,
-    )
-    if (!teamRole)
-      teamRole = await DiscordRoleManager.createTeamRole(this.guild, this.id)
-
-    this.discord
-      .addRolesToMember(this.guild, member.discordNick, teamRole, commandRole)
-      .then(() => {
-        this.discord!.addUserToTeamVoiceChannel(member.discordNick)
-      })
-      .catch((e) => console.log(e))
+    const result = await Promise.all(promises)
+    if (!result) return false
+    for (let status of result) if (!status) return false
     return true
   }
 
-  private async _leaveDiscord(member: Match.Member.Instance) {
-    if (!this.guild || !this.discord) return
-    this.discord
-      .removeUserFromMatchMaking(this.guild, member.discordNick)
-      .catch((e) => console.log(e))
+  private async _connectMemberToDiscordChannel(member: Match.Member.Instance) {
+    if (!this._discord) return false
+    let { client, guild } = this._discord
+    return client.joinDiscordLobby(guild, member)
+  }
+
+  private async _createDiscordChannel(): Promise<boolean> {
+    return getDiscordGuildWithChannel(this.id)
+      .then((guild) => {
+        if (!guild) return false
+        this._discord = {
+          client: DISCORD_ROBOT,
+          guild: guild,
+        }
+        return true
+      })
+      .catch((e) => {
+        console.error(e)
+        return false
+      })
+  }
+
+  private async _deleteDiscordLobby() {
+    if (!this._discord) return
+    let { client, guild } = this._discord
+    return this._deleteMembersFromDiscordChannel()
+      .catch((e) => {
+        console.error(e)
+      })
+      .finally(() => {
+        client.removeLobby(guild, this.id).catch((e) => {
+          console.error(e)
+        })
+      })
+  }
+
+  private async _deleteMembersFromDiscordChannel() {
+    if (!this._discord) return false
+
+    const promises = []
+    for (let member of this.members.toArray)
+      promises.push(this._deleteMemberFromDiscordChannel(member))
+
+    const result = await Promise.all(promises)
+    if (!result) return false
+    for (let status of result) if (!status) return false
     return true
+  }
+
+  private async _deleteMemberFromDiscordChannel(member: Match.Member.Instance) {
+    if (!this._discord) return false
+    let { client, guild } = this._discord
+
+    return client.leaveDiscordLobby(guild, member)
   }
 
   private get _maxTeamSize() {
@@ -584,6 +602,22 @@ export class Lobby implements Match.Lobby.Instance {
         : this.secondCommand.maxTeamSizeToJoin
     return maxTeamSizeToJoin
   }
+}
+
+async function getDiscordGuildWithChannel(ID: string) {
+  return DISCORD_ROBOT.guildWithFreeChannelsForVoice
+    .then(async (guild) => {
+      if (guild) {
+        await DiscordRoleManager.createTeamRole(guild, ID)
+        await DISCORD_ROBOT.createChannelsForMatch(guild, ID)
+        return guild
+      }
+      return null
+    })
+    .catch((e) => {
+      console.error(e)
+      return null
+    })
 }
 
 export function isCorrectType(value: unknown): value is Match.Lobby.Type {
