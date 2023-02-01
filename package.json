@@ -2,7 +2,7 @@
   "type": "commonjs",
   "scripts": {
     "doc": "npx typedoc",
-    "test": "npx jest",
+    "test": "node --test",
     "build": "tsc ; npx prettier --config ./.prettierrc.json -w ./"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "imgbb-uploader": "^1.5.0",
     "is-base64": "^1.1.0",
     "jsonwebtoken": "^9.0.0",
+    "log4js": "^6.7.1",
     "mongoose": "^6.4.3",
     "mongoose-unique-validator": "^3.1.0",
     "nodemailer": "^6.7.7",
@@ -29,7 +30,6 @@
     "@typegoose/typegoose": "^9.11.2",
     "@types/express": "^4.17.13",
     "@types/express-fileupload": "^1.2.2",
-    "@types/jest": "^28.1.1",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^17.0.45",
     "@types/nodemailer": "^6.4.6",
