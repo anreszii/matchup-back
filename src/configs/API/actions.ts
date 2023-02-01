@@ -16,6 +16,7 @@ export type API_ACTION_LIST =
   | 'vote'
   | 'sync_lobby'
   | 'change_command'
+  | 'force_stop_lobby'
   /* TEAM */
   | 'create_team'
   | 'join_team'
@@ -49,6 +50,7 @@ API_ACTIONS.set('get_captain', 0)
 API_ACTIONS.set('get_owner', 0)
 API_ACTIONS.set('get_game_id', 0)
 API_ACTIONS.set('set_game_id', 0)
+API_ACTIONS.set('force_stop_lobby', 0)
 API_ACTIONS.set('vote', 0)
 API_ACTIONS.set('sync_lobby', 0)
 API_ACTIONS.set('create_team', 0)

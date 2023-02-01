@@ -399,6 +399,37 @@ export async function set_game_id(socket: WebSocket, params: unknown[]) {
 CONTROLLERS.set('set_game_id', set_game_id)
 
 /**
+ * Контроллер для ручного удаления лобби после старта.</br>
+ * @returns status:'success' в случае успеха или ошибку
+ * @category Lobby
+ * @event
+ */
+export async function force_stop_lobby(socket: WebSocket, params: unknown[]) {
+  let username = socket.username as string
+  let member = await PLAYERS.get(username)
+
+  if (!member.lobbyID)
+    throw new TechnicalError('command', TechnicalCause.REQUIRED)
+
+  let lobby = StandOff_Lobbies.get(member.lobbyID)
+  if (!lobby) {
+    member.lobbyID = undefined
+    throw new TechnicalError('lobby', TechnicalCause.INVALID)
+  }
+
+  if (lobby.state != 'started')
+    throw new TechnicalError('lobby state', TechnicalCause.INVALID)
+
+  if (!lobby.owner || lobby.owner != username)
+    throw new TechnicalError(
+      'user privilelges',
+      TechnicalCause.NEED_HIGHER_VALUE,
+    )
+  return lobby.markToDelete()
+}
+CONTROLLERS.set('force_stop_lobby', force_stop_lobby)
+
+/**
  * Обработчик для приглашения игрока в лобби.
  * @param params - ["userNameToInvite"]
  *
