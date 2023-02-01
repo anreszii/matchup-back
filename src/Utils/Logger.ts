@@ -50,12 +50,16 @@ export class Logger implements ILogger {
   }
 
   debug(content: string): void {
-    if (this._logger.isLevelEnabled('debug'))
-      console.log(
-        `[${process.hrtime.bigint()}] [${this._module}::${
-          this._element
-        }::DEBUG]: ${content}`,
-      )
+    if (this._logger.isLevelEnabled('debug')) {
+      const debugMessage =
+        this._element != undefined
+          ? `[${process.hrtime.bigint()}] [${this._module}::${
+              this._element
+            }::DEBUG]: ${content}`
+          : `[${process.hrtime.bigint()}] [${this._module}::DEBUG]: ${content}`
+      console.log(debugMessage)
+    }
+
     this._logger.debug(content)
   }
 
