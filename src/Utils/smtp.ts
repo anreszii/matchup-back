@@ -62,7 +62,7 @@ export const SMTP = new Mailer(
       service: 'Mail.ru',
       auth: {
         user: 'appm.up@matchup.space',
-        pass: 'iO(GOUtuyt21',
+        pass: `${process.env.MAIL_BOT_PASSWORD}`,
       },
     },
     {
