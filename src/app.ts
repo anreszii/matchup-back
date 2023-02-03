@@ -26,11 +26,15 @@ import { DiscordClient } from './Classes/Discord/Client'
 export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 
 import mongoose from 'mongoose'
+import { Logger } from './Utils/Logger'
+const mongoLogger = new Logger('mongodb')
 mongoose.connect(
   `mongodb+srv://Perception:${process.env.MONGO_PASS}@testcluster.vbwobca.mongodb.net/?retryWrites=true&w=majority`,
   (error) => {
-    if (error) return console.log(error)
-
+    if (error)
+      return mongoLogger.fatal(
+        `[ERROR ${error.name}]: ${error.message}; STACK: ${error.stack}`,
+      )
     console.log('Connected to database')
   },
 )

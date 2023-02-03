@@ -1,4 +1,5 @@
 import type { Match, IChat } from '../../../Interfaces'
+import { Logger } from '../../../Utils/Logger'
 import { getMedian } from '../../../Utils/math'
 import { CLIENT_CHATS } from '../../Chat/Manager'
 import { MemberList } from '../MemberList'
@@ -13,12 +14,17 @@ export class Team implements Match.Member.Team.Instance {
   private _deleted = false
   private _min: Match.Member.Instance | null = null
   private _max: Match.Member.Instance | null = null
+  private _logger: Logger
 
-  constructor(private _id: number) {}
+  constructor(private _id: number) {
+    this._logger = new Logger(`TEAM#${_id}`)
+  }
 
   async join(name: string): Promise<boolean> {
     await this._checkChat()
     if (this.members.count >= 5) return false
+
+    this._logger.info(`${name} JOINS`)
 
     let member = await PLAYERS.get(name)
     if (!this.members.addMember(member)) return false
@@ -36,6 +42,8 @@ export class Team implements Match.Member.Team.Instance {
     if (this.members.count == 0) return false
     await this._checkChat()
 
+    this._logger.info(`${name} LEAVES`)
+
     let member = this.members.getByName(name)
     if (!member) return false
 
@@ -52,6 +60,7 @@ export class Team implements Match.Member.Team.Instance {
   }
 
   async delete(): Promise<true> {
+    this._logger.info('MARKED TO DELETE')
     for (let member of this._members.toArray) {
       this.chat.leave(member.name)
       member.isReady = false

@@ -15,6 +15,7 @@ import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
 import { Mail, SMTP } from '../../Utils/smtp'
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { DTO } from '../../Classes/DTO/DTO'
+import { Logger } from '../../Utils/Logger'
 require('dotenv').config()
 
 let router = Router()
@@ -23,6 +24,10 @@ router.put(
   '/',
   validateToken,
   async (req: Request, res: Response, next: NextFunction) => {
+    const logger = new Logger('HTTP', 'user')
+    logger.trace(
+      `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    )
     try {
       let {
         username: newName,
@@ -61,6 +66,7 @@ router.put(
         role: user.role,
       })
 
+      logger.trace(`SERVER RESPONSE: ${JSON.stringify({ token: token })}`)
       res.status(201).json({ token: token })
     } catch (e) {
       next(e)
@@ -69,6 +75,10 @@ router.put(
 )
 
 router.post('/login', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/login')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { username, password } = req.body
     if (!username) throw new TechnicalError('username', TechnicalCause.REQUIRED)
@@ -86,6 +96,7 @@ router.post('/login', async (req, res, next) => {
       role: user.role,
     })
 
+    logger.trace(`SERVER RESPONSE: ${JSON.stringify({ token: token })}`)
     res.status(201).json({ token: token })
   } catch (e) {
     next(e)
@@ -93,6 +104,10 @@ router.post('/login', async (req, res, next) => {
 })
 
 router.post('/registration', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/registration')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { username, password, id, nickname, email, region, discord } = req.body
     let user = new UserModel({
@@ -109,6 +124,7 @@ router.post('/registration', async (req, res, next) => {
 
     let payload = { username, nickname, email, region, role: user.role }
     let token = generateToken(payload)
+    logger.trace(`SERVER RESPONSE: ${JSON.stringify({ token: token })}`)
     res.status(201).json({ token: token })
   } catch (e) {
     next(e)
@@ -116,6 +132,10 @@ router.post('/registration', async (req, res, next) => {
 })
 
 router.put('/recover', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/recover')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { email } = req.body
     if (!email) throw new TechnicalError('email', TechnicalCause.REQUIRED)
@@ -144,7 +164,8 @@ router.put('/recover', async (req, res, next) => {
       `)
 
     SMTP.send(mail)
-    res.status(200)
+    logger.trace(`SERVER RESPONSE: [200]`)
+    res.status(200).end()
   } catch (e) {
     next(e)
   }
@@ -160,6 +181,10 @@ router.put('/recover', async (req, res, next) => {
  * @event
  */
 router.post('/add_mp', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/add_mp')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { name, mp, pass } = req.body
     if (pass != process.env.ROUTE_PASS)
@@ -175,6 +200,9 @@ router.post('/add_mp', async (req, res, next) => {
     user.addMP(mp)
     await user.save()
 
+    logger.trace(
+      `SERVER RESPONSE: ${JSON.stringify({ balance: user.profile.balance })}`,
+    )
     res.status(200).json({ balance: user.profile.balance })
   } catch (e) {
     next(e)
@@ -191,6 +219,10 @@ router.post('/add_mp', async (req, res, next) => {
  * @event
  */
 router.post('/set_status', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/set_status')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { status, pass, name } = req.body.status
     if (pass != process.env.ROUTE_PASS)
@@ -204,6 +236,7 @@ router.post('/set_status', async (req, res, next) => {
     user.role = status as USER_ROLE
     await user.save()
 
+    logger.trace(`SERVER RESPONSE: ${JSON.stringify({ user: user })}`)
     res.status(200).json({ user: user })
   } catch (e) {
     next(e)
@@ -215,6 +248,10 @@ router.post('/set_status', async (req, res, next) => {
  * period: количество месяцев према
  */
 router.post('/extend_premium', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/extend_premium')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let { name, period: periodInMonth, pass } = req.body
     if (!name || typeof name != 'string')
@@ -226,6 +263,7 @@ router.post('/extend_premium', async (req, res, next) => {
         if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
         await user.extendPremium(periodInMonth)
         const dto = new DTO({ status: 'success' })
+        logger.trace(`SERVER RESPONSE: ${dto.to.JSON}`)
         res.status(200).json(dto.to.JSON)
       })
       .catch((e) => {
@@ -240,6 +278,10 @@ router.post('/extend_premium', async (req, res, next) => {
  * :name - имя пользователя
  */
 router.get('/premium/:name', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/premium/')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+  )
   try {
     let name = req.params.name
     if (!name || typeof name != 'string')
@@ -248,6 +290,7 @@ router.get('/premium/:name', async (req, res, next) => {
       .then(async (user) => {
         if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
         await user.isPremium()
+        logger.trace(`SERVER RESPONSE: ${user.premium}`)
         res.status(200).json(user.premium)
       })
       .catch((e) => {

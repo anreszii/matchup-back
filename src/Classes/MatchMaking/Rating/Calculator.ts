@@ -1,12 +1,21 @@
 import { Match, Rating } from '../../../Interfaces'
+import { Logger } from '../../../Utils/Logger'
 
 export class RatingCalculator implements Rating.Calculator.Instance {
   private _RI: number = 1
+  private _logger = new Logger('Rating Calculator')
   integrateKDA(
     kills: number,
     deaths: number,
     assists: number,
   ): RatingCalculator {
+    this._logger.trace(
+      `KDA: ${JSON.stringify({
+        kills,
+        deaths,
+        assists,
+      })}; CALCULATED INDICATOR: ${this._RI}`,
+    )
     this.calculateKills(kills).calculateDeaths(deaths).calculateAssists(assists)
     return this
   }

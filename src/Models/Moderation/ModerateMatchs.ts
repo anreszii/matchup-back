@@ -11,6 +11,9 @@ import { Match } from '../MatchMaking/Matchs'
 import { ServiceInformation } from '../ServiceInformation'
 import { StandOff_Lobbies } from '../../API/Sockets'
 import { MINUTE_IN_MS } from '../../configs/time_constants'
+import { Logger } from '../../Utils/Logger'
+
+const logger = new Logger('Mongo', 'Match Moderation')
 
 class MatchModerationRecord {
   @prop({ required: true, type: () => ServiceInformation, _id: false })
@@ -24,6 +27,7 @@ class MatchModerationRecord {
     this: ReturnModelType<typeof MatchModerationRecord>,
     match: string | Types.ObjectId,
   ) {
+    logger.trace('CREATING RECORD')
     if (!match || !Types.ObjectId.isValid(match))
       throw new TechnicalError('match id', TechnicalCause.NOT_EXIST)
     const matchDocument = await MatchListModel.findById(match)
@@ -31,8 +35,12 @@ class MatchModerationRecord {
       throw new TechnicalError('match id', TechnicalCause.INVALID)
 
     const record = new this()
+
     record.info = new ServiceInformation()
     record.match = matchDocument._id
+    logger.trace(`RECORD: ${record}`)
+
+    logger.trace('SAVING CREATED RECORD')
     await record.save()
 
     return true
@@ -61,19 +69,19 @@ setInterval(function () {
                   .delete()
                   .then()
                   .catch((e) => {
-                    console.error(e)
+                    logger.fatal(e)
                   })
               })
               .catch((e) => {
-                console.error(e)
+                logger.critical(e)
                 record.moderated = false
               })
             let lobby = StandOff_Lobbies.get(match.info.lobby)
             if (!lobby) return
             lobby.markToDelete()
           })
-          .catch((e) => console.log(e))
+          .catch((e) => logger.warning(e))
       }
     })
-    .catch((e) => console.error(e))
+    .catch((e) => logger.warning(e))
 }, MINUTE_IN_MS * 30)

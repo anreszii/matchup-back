@@ -14,6 +14,7 @@ import { StateManager } from './StateManager'
 import { Command } from '../MatchMaking/Command/Command'
 import { COMMANDS } from '../MatchMaking/Command/Manager'
 import { StandOff_Lobbies } from '../../API/Sockets'
+import { Logger } from '../../Utils/Logger'
 
 type PlayerCommand = Exclude<
   Match.Lobby.Command.Types,
@@ -21,6 +22,7 @@ type PlayerCommand = Exclude<
 >
 
 export class DiscordClient {
+  private _logger = new Logger('Discord', 'Client')
   public client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -33,26 +35,30 @@ export class DiscordClient {
     this.client
       .login(token)
       .then(async () => {
+        this._logger.info('LOGGED IN')
         this._guilds = await this.client.guilds.fetch()
       })
-      .catch((e) => console.error(e))
+      .catch((e) => this._logger.critical(e))
   }
 
   addUserToTeamVoiceChannel(nick: string) {
+    this._logger.info(`${nick} CONNECTING TO VOICE`)
     let result = this._findUserByNicknameForMatchMaking(nick)
     if (!result) return
     return result
       .then((result) => {
+        this._logger.trace(`USER DATA: ${JSON.stringify(result)}`)
         if (!result || !result.user.voice || !result.user.voice.channelId)
           return
         distribute(new StateManager(result.user.voice, this), result.guild)
       })
       .catch((e) => {
-        console.error(e)
+        this._logger.warning(e)
       })
   }
 
   findGuildWithCustomTeamIdRole(teamID: string) {
+    this._logger.trace('SEARCHING FOR GUILD WITH ROLE')
     return this._updateGuilds().then(async (guilds) => {
       for (let [_, guild] of guilds) {
         let fetchedGuild = await guild.fetch()
@@ -60,17 +66,19 @@ export class DiscordClient {
           fetchedGuild,
           teamID,
         )
+        this._logger.trace(`FETCHED GUILD: ${fetchedGuild}`)
         if (role) return fetchedGuild
       }
     })
   }
 
   removeLobby(guild: Guild, id: string) {
+    this._logger.info('CLEANING LOBBY DATA')
     return guild
       .fetch()
       .then((guild) => {
         DiscordRoleManager.deleteTeamRole(guild, id).catch((e) => {
-          console.error(e)
+          this._logger.critical(e)
         })
         for (let [_, channel] of guild.channels.cache) {
           if (
@@ -81,7 +89,7 @@ export class DiscordClient {
         }
       })
       .catch((e) => {
-        console.error(e)
+        this._logger.critical(e)
       })
   }
 
@@ -166,6 +174,7 @@ export class DiscordClient {
 
       guild = tmp
     }
+    this._logger.info(`ADDING ROLES TO ${nick}`)
 
     let user = await this.getMemberByNickanme(guild, nick)
     if (!user) return
@@ -178,7 +187,14 @@ export class DiscordClient {
         role = tmp
       }
       if (!role) continue
-      user.roles.add(role)
+      user.roles
+        .add(role)
+        .then(() => {
+          this._logger.trace(`ADDED ROLE ${role} to ${nick}`)
+        })
+        .catch((e) => {
+          this._logger.warning(e)
+        })
     }
   }
 
@@ -193,6 +209,7 @@ export class DiscordClient {
 
       guild = tmp
     }
+    this._logger.info(`REMOVING ROLES TO ${nick}`)
 
     let user = await this.getMemberByNickanme(guild, nick)
     if (!user) return
@@ -205,7 +222,14 @@ export class DiscordClient {
         role = tmp
       }
       if (!role) continue
-      user.roles.remove(role)
+      user.roles
+        .remove(role)
+        .then(() => {
+          this._logger.trace(`REMOVED ROLE ${role} to ${nick}`)
+        })
+        .catch((e) => {
+          this._logger.warning(e)
+        })
       if (role.members.size == 0) await role.delete()
     }
   }
@@ -238,6 +262,7 @@ export class DiscordClient {
   async joinDiscordLobby(guild: Guild, member: Match.Member.Instance) {
     const parsedMemberData = parseLobbyAndCommandFromMember(member)
     if (!parsedMemberData) return false
+    this._logger.info(`${member.name} JOINS DISCORD LOBBY`)
     let commandRole = await DiscordRoleManager.findRoleByName(
       guild,
       parsedMemberData.command,
@@ -261,7 +286,7 @@ export class DiscordClient {
           return
         })
       })
-      .catch((e) => console.log(e))
+      .catch((e) => this._logger.warning(e))
     return true
   }
 
@@ -269,6 +294,7 @@ export class DiscordClient {
     return this.getMemberByNickanme(guild, member.discordNick).then((user) => {
       if (!user) return false
 
+      this._logger.info(`${member.name} LEAVES DISCORD LOBBY`)
       let promises = []
       for (let [_, role] of user.roles.cache)
         if (role.name.startsWith('mm_')) promises.push(user.roles.remove(role))

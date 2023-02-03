@@ -3,13 +3,16 @@ import { OneTypeArray } from '../../OneTypeArray'
 import { Team } from './Team'
 import { PLAYERS } from '../MemberManager'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
+import { Logger } from '../../../Utils/Logger'
 
 class TeamManager implements Match.Member.Team.Manager {
   private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()
+  private _logger = new Logger('Team Manager')
 
   constructor() {
     setInterval(
       function (this: TeamManager) {
+        this._logger.info('CLEANING GARBAGE')
         for (let team of this._teams.toArray)
           if (team.readyToDrop) this.drop(team.id)
       }.bind(this),
@@ -21,6 +24,7 @@ class TeamManager implements Match.Member.Team.Manager {
     let team = new Team(this._teams.freeSpace + 1)
 
     this._teams.addOne(team)
+    this._logger.info(`SPAWNED TEAM#${team.id}`)
     return team
   }
 
@@ -28,6 +32,7 @@ class TeamManager implements Match.Member.Team.Manager {
     let team = this._teams.valueOf(teamID - 1)
     if (!team) return true
 
+    this._logger.info(`DROPPED TEAM#${team.id}`)
     return Boolean(this._teams.delete(team))
   }
 

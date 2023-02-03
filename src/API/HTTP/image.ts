@@ -3,8 +3,16 @@ import { TechnicalCause, TechnicalError } from '../../error'
 import { validateToken } from '../../Token/index'
 import { postToImgbb } from '../../Utils/imgbb'
 
+import { Logger } from '../../Utils/Logger'
+
 const router = Router()
 router.post('/upload', validateToken, async (req, res, next) => {
+  const logger = new Logger('HTTP', 'image/upload')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+  )
   try {
     if (!req.files) throw new TechnicalError('files', TechnicalCause.REQUIRED)
     if (!req.files.image || req.files.image instanceof Array)
@@ -20,6 +28,12 @@ router.post('/upload', validateToken, async (req, res, next) => {
           thumb: { [key: string]: string }
           delete_url: string
         }) => {
+          logger.trace(
+            `
+            IMGBB RESPONSE: ${response}
+            SERVER RESPONSE: ${JSON.stringify({ display: response.thumb.url })}
+            `,
+          )
           res.json({ display: response.thumb.url })
         },
       )

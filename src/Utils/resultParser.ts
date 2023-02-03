@@ -4,6 +4,9 @@ import { MatchListModel, MatchServiceInformation } from '../Models/index'
 import { MapScore } from '../Models/MatchMaking/MapScore'
 import { MemberRecord } from '../Models/MatchMaking/Member'
 import { Statistic } from '../Models/MatchMaking/Statistic'
+import { Logger } from './Logger'
+
+const logger = new Logger('RECOGNIZER RESPONSE PARSER')
 
 const enum INDICATORS {
   KILLS = 0,
@@ -13,6 +16,7 @@ const enum INDICATORS {
 }
 
 export function parseResults(json: string, lobby: string, map: string) {
+  logger.trace(`START PARSING. DATA: ${json}; LOBBY: ${lobby}; MAP: ${map}`)
   const result = new MatchListModel()
 
   result.game = 'StandOff2'
@@ -35,6 +39,7 @@ export function parseResults(json: string, lobby: string, map: string) {
 }
 
 function getScoreData(score: string) {
+  logger.trace('PARSING MATCH SCORE')
   const result = new MapScore()
 
   let scores = score.split(':')
@@ -45,6 +50,7 @@ function getScoreData(score: string) {
   result.command1 = ctScore ? ctScore : 0
   result.command2 = tScore ? tScore : 0
 
+  logger.trace(`MATCH SCORE PARSING RESULT: ${JSON.stringify(result)}`)
   return result
 }
 
@@ -52,6 +58,7 @@ function getCommandData(
   members: Array<{ name: unknown; result: Array<unknown> }>,
   command: Exclude<Match.Lobby.Command.Types, 'neutrals' | 'spectators'>,
 ) {
+  logger.trace(`PARSING ${command.toUpperCase()} DATA`)
   const records = []
   for (let member of members) {
     if (!member.name || typeof member.name != 'string') continue
@@ -64,11 +71,15 @@ function getCommandData(
     records.push(record)
   }
 
+  logger.trace(
+    `${command.toUpperCase()} DATA PARSING RESULT: ${JSON.stringify(records)}`,
+  )
   return records
 }
 
 function getMemberStatistic(indicators: Array<unknown>) {
   const statistic = new Statistic()
+  logger.trace('PARSING MEMBER STATISTIC')
   for (let [indicatorType, indicatorValue] of indicators.entries()) {
     let indicatorAsNum = getNumber(indicatorValue)
     if (!indicatorAsNum) continue
@@ -91,6 +102,7 @@ function getMemberStatistic(indicators: Array<unknown>) {
     }
   }
 
+  logger.trace(`MEMBER STATISTIC: ${JSON.stringify(statistic)}`)
   return statistic
 }
 

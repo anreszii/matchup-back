@@ -17,6 +17,7 @@ import { set } from '../Controllers/query/set'
 import { syscall } from '../Controllers/query/syscall'
 import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
 import { WebSocketValidatior } from '../../../validation/websocket'
+import { Logger } from '../../../Utils/Logger'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
@@ -33,6 +34,8 @@ export interface Query {
   }
 }
 export async function HQuery(escort: IDataEscort) {
+  const logger = new Logger('query')
+  logger.trace(`[REQUETS] DATA: ${JSON.stringify(escort.used)}`)
   try {
     let response: DTO
 
@@ -84,6 +87,8 @@ export async function HQuery(escort: IDataEscort) {
         throw new TechnicalError('method', TechnicalCause.NOT_EXIST)
     }
   } catch (e) {
+    if (e instanceof Error)
+      logger.warning(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)
 
@@ -108,6 +113,8 @@ export interface SyscallQuery {
   }
 }
 export async function HSyscall(escort: IDataEscort) {
+  const logger = new Logger('syscall')
+  logger.trace(`[REQUETS] DATA: ${JSON.stringify(escort.used)}`)
   try {
     let response: DTO
     let socketID = escort.get('socket_id') as string
@@ -139,6 +146,8 @@ export async function HSyscall(escort: IDataEscort) {
 
     return clientServer.control(socketID).emit('syscall', response.to.JSON)
   } catch (e) {
+    if (e instanceof Error)
+      logger.warning(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)
 

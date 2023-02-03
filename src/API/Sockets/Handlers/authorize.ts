@@ -8,6 +8,7 @@ import { DTO } from '../../../Classes/DTO/DTO'
 import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
 import { WebSocketValidatior } from '../../../validation/websocket'
 import { ChatStore } from '../../../Classes/Chat/Store'
+import { Logger } from '../../../Utils/Logger'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
@@ -25,6 +26,8 @@ let wsValidator = new WebSocketValidatior(WS_SERVER)
  * @event
  */
 export async function authorize(escort: IDataEscort) {
+  const logger = new Logger('authorize')
+  logger.trace(`[REQUETS] DATA: ${JSON.stringify(escort.used)}`)
   try {
     let response: DTO
     const request = dtoParser.from.Object(escort.used)
@@ -43,6 +46,8 @@ export async function authorize(escort: IDataEscort) {
     await ChatStore.joinChats(socket.username)
     return clientServer.control(socketID).emit('authorize', response.to.JSON)
   } catch (e) {
+    if (e instanceof Error)
+      logger.warning(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)
 

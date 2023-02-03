@@ -1,11 +1,19 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
+import { Logger } from '../../../../Utils/Logger'
 
 export class RegionFilter implements Rating.SearchEngine.Filter {
+  private _logger = new Logger('Search Engine', 'Region Filter')
   private _region: Rating.SearchEngine.SUPPORTED_REGIONS = 'Europe'
   constructor() {}
 
   isValid(lobby: Match.Lobby.Instance) {
-    return lobby.region == this._region
+    const filterResult = lobby.region == this._region
+    this._logger.trace(
+      `LOBBY: ${JSON.stringify(
+        lobby,
+      )}; RESULT: ${filterResult}; REQUIRED REGION: ${this._region}`,
+    )
+    return filterResult
   }
 
   set region(value: Rating.SearchEngine.SUPPORTED_REGIONS) {

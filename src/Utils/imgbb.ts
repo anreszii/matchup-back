@@ -1,5 +1,6 @@
 import * as https from 'https'
 import { stringify } from 'querystring'
+import { Logger } from './Logger'
 
 interface IResponseObject {
   id: string
@@ -48,6 +49,7 @@ interface IOptionObject {
 interface IPostParams extends IOptionObject {
   image: string
 }
+const logger = new Logger('imgbb')
 
 export const postToImgbb = (params: IPostParams) =>
   new Promise<IResponseObject>((resolve, reject) => {
@@ -74,6 +76,7 @@ export const postToImgbb = (params: IPostParams) =>
       },
     }
 
+    logger.trace(`UPLOADING TO IMGBB. DATA: ${options}`)
     const req = https
       .request(options, (res: any) => {
         let response = ''

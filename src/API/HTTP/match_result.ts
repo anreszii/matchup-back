@@ -12,11 +12,23 @@ import { postToImgbb } from '../../Utils/imgbb'
 import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
 import { StandOff_Lobbies } from '../Sockets'
 
+import { Logger } from '../../Utils/Logger'
+const logger = new Logger('HTTP', 'result/upload')
+
 const router = Router()
 router.post(
   '/upload',
   validateToken,
   async (expressRequest, expressResponse, next) => {
+    logger.trace(
+      `[${expressRequest.ip}] METHOD: ${
+        expressRequest.method
+      } PARAMS: ${JSON.stringify(
+        expressRequest.params,
+      )}; BODY: ${JSON.stringify(expressRequest.body)}; FILES: ${JSON.stringify(
+        expressRequest.files,
+      )}`,
+    )
     try {
       if (!expressRequest.files)
         throw new TechnicalError('files', TechnicalCause.REQUIRED)
@@ -52,6 +64,7 @@ router.post(
         filename: 'image.jpg',
         contentType: expressRequest.files.screen.mimetype,
       })
+      logger.trace(`SUBMIT DATA TO PARSER`)
       body.submit(
         {
           method: 'post',
@@ -88,6 +101,7 @@ function parseRespone(
   image: fileUpload.UploadedFile,
   lobby: LobbyCache,
 ) {
+  logger.trace(`PARSING RECOGNIZER RESPOSNE`)
   const chunks: any[] = []
   if (image instanceof Array) throw new Error('array')
 
@@ -111,14 +125,24 @@ function parseRespone(
         screen = imgbbResponse.thumb.url
       })
       .catch((e) => {
-        console.error(e)
+        logger.warning(e)
       })
       .finally(async () => {
         document.screen = screen
+        logger.trace('SAVING MATCH SCREEN')
         await document.save()
         await MatchModerationRecordModel.createTask(document._id)
         let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
-        if (objLobby) objLobby.markToDelete()
+        if (objLobby) {
+          logger.trace(`DELETING LOBBY ${objLobby.id}`)
+          objLobby.markToDelete()
+        }
+
+        logger.trace(
+          `SERVER RESPONSE: ${
+            new DTO({ label: 'result upload', status: 'success' }).to.JSON
+          }`,
+        )
         return expressResponse.json(
           new DTO({ label: 'result upload', status: 'success' }).to.JSON,
         )

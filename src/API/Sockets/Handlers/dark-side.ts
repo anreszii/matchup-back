@@ -16,6 +16,7 @@ import {
 import { WebSocket } from 'uWebSockets.js'
 import { DTO } from '../../../Classes/DTO/DTO'
 import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
+import { Logger } from '../../../Utils/Logger'
 
 const wsValidator = new WebSocketValidatior(WS_SERVER)
 let RoleManager = new APIManager()
@@ -50,6 +51,8 @@ let RoleManager = new APIManager()
  * @event dark-side
  */
 export async function darkSideHandler(escort: IDataEscort) {
+  const logger = new Logger('dark-side')
+  logger.trace(`[REQUETS] DATA: ${JSON.stringify(escort.used)}`)
   try {
     let response: DTO
     let socketID = escort.get('socket_id') as string
@@ -95,6 +98,8 @@ export async function darkSideHandler(escort: IDataEscort) {
 
     clientServer.control(socketID).emit('dark-side', response.to.JSON)
   } catch (e) {
+    if (e instanceof Error)
+      logger.warning(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
     let socketID = escort.get('socket_id') as string
     const request = dtoParser.from.Object(escort.used)
     let error: DTO

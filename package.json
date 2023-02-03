@@ -2,7 +2,7 @@
   "type": "commonjs",
   "scripts": {
     "doc": "npx typedoc",
-    "test": "tsc; node --test",
+    "test": "node --test",
     "build": "tsc ; npx prettier --config ./.prettierrc.json -w ./"
   },
   "dependencies": {

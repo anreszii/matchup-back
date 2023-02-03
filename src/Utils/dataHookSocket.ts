@@ -2,8 +2,10 @@ import WebSocket = require('ws')
 import { SECOND_IN_MS } from '../configs/time_constants'
 import { sleep } from './sleep'
 import { v4 as uuid } from 'uuid'
+import { Logger } from './Logger'
 
 export class fetchWebSocket {
+  private _logger = new Logger('Client Web Socket Manager')
   private _parsedData: Map<string, unknown | null> = new Map()
   private _socket
   private _maxWaitingTime = SECOND_IN_MS * 5
@@ -13,6 +15,11 @@ export class fetchWebSocket {
     this._socket.on('message', (data) => {
       let parsed = JSON.parse(Buffer.from(data as Buffer).toString())
       if (typeof parsed.id == 'string') this._parsedData.set(parsed.id, parsed)
+    })
+    this._socket.on('error', (error) => {
+      this._logger.critical(
+        `[ERROR ${error.name}]: ${error.message}; STACK: ${error.stack}`,
+      )
     })
   }
 

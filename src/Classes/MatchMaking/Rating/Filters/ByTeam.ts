@@ -1,12 +1,20 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
+import { Logger } from '../../../../Utils/Logger'
 import { TEAMS } from '../../Team/Manager'
 
 export class TeamFilter implements Rating.SearchEngine.Filter {
+  private _logger = new Logger('Search Engine', 'Team Filter')
   private _ID!: number
   constructor() {}
 
   isValid(lobby: Match.Lobby.Instance) {
-    return lobby.canAddTeam(this._ID)
+    const filterResult = lobby.canAddTeam(this._ID)
+    this._logger.trace(
+      `LOBBY: ${JSON.stringify(lobby)}; RESULT: ${filterResult}; TEAM ID: ${
+        this._ID
+      }`,
+    )
+    return filterResult
   }
 
   set id(value: number) {

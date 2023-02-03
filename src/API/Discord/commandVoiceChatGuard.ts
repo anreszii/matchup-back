@@ -1,6 +1,9 @@
 import type { StateManager } from '../../Classes/Discord/StateManager'
+import { Logger } from '../../Utils/Logger'
+const logger = new Logger('Discord', 'Voice Guard')
 
 export function guardCommandVoice(manager: StateManager) {
+  logger.trace(`PROTECTING. MANAGER: ${JSON.stringify(manager)}`)
   let channelCommand = manager.channelCommand
   let memberCommand = manager.memberCommand
   if (!memberCommand) {

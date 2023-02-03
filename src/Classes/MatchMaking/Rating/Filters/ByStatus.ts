@@ -1,8 +1,16 @@
 import type { Match, Rating } from '../../../../Interfaces/index'
+import { Logger } from '../../../../Utils/Logger'
 
 export class StateFilter implements Rating.SearchEngine.Filter {
+  private _logger = new Logger('Search Engine', 'State Filter')
   isValid(lobby: Match.Lobby.Instance) {
-    return lobby.state == 'searching'
+    const filterResult = lobby.state == 'searching'
+    this._logger.trace(
+      `LOBBY: ${JSON.stringify(
+        lobby,
+      )}; RESULT: ${filterResult}; REQUIRED STATE: searching`,
+    )
+    return filterResult
   }
 
   get priority(): Rating.SearchEngine.FILTER_PRIORITY {

@@ -7,6 +7,7 @@ import { COMMANDS } from './Manager'
 import { TEAMS } from '../Team/Manager'
 import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
 import { CLIENT_CHATS } from '../../Chat/Manager'
+import { Logger } from '../../../Utils/Logger'
 
 export class Command implements Match.Lobby.Command.Instance {
   private _members: MemberList = new MemberList()
@@ -15,15 +16,19 @@ export class Command implements Match.Lobby.Command.Instance {
   private _teamIDs: Set<number> = new Set()
   private _keyGuild?: string
   private _deleted = false
+  private _logger: Logger
 
   constructor(
     private _commandID: number,
     private _lobbyID: string,
     private _commandType: Match.Lobby.Command.Types,
     private _maxSize: number = 5,
-  ) {}
+  ) {
+    this._logger = new Logger(`LOBBY#${_lobbyID}`, `COMMAND-${_commandID}`)
+  }
 
   async delete(): Promise<true> {
+    this._logger.trace('DELETING COMMAND')
     for (let member of this._members.toArray) this.leave(member.name)
     this.chat?.delete()
     this._deleted = true
@@ -31,6 +36,7 @@ export class Command implements Match.Lobby.Command.Instance {
   }
 
   async join(name: string): Promise<boolean> {
+    this._logger.trace(`MEMBER ${name} JOINING COMMAND`)
     await this._checkChat()
     if (this.members.count >= 5) return false
 
@@ -43,10 +49,12 @@ export class Command implements Match.Lobby.Command.Instance {
     if (!this._captain) this._captain = member.name
     if (member.teamID) this._addTeamOfMember(member.teamID)
     member.commandID = this.id
+    this._logger.trace(`MEMBER ${name} JOINED COMMAND`)
     return true
   }
 
   async leave(name: string): Promise<boolean> {
+    this._logger.trace(`MEMBER ${name} LEAVING COMMAND`)
     if (this.members.count == 0) return false
     await this._checkChat()
 
@@ -59,6 +67,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
     member.isReady = false
     member.commandID = undefined
+    this._logger.trace(`MEMBER ${name} LEAVED COMMAND`)
     return this.members.deleteMember(name)
   }
 

@@ -3,6 +3,9 @@ import { Error as MongoError } from 'mongoose'
 import { MongoServerError } from 'mongodb'
 import { isMatchUpError, MatchUpError } from '../../error'
 
+import { Logger } from '../../Utils/Logger'
+const logger = new Logger('HTTP', 'index')
+
 let router = Router()
 
 router.use('/api/user', require('./user'))
@@ -16,6 +19,9 @@ router.use(function (
   _1: unknown,
   next: NextFunction,
 ) {
+  logger.warning(
+    `[ERROR ${errorObject.name}]: ${errorObject.message}; STACK: ${errorObject.stack}`,
+  )
   let errors: Array<string> = []
 
   if (isMatchUpError(errorObject)) {

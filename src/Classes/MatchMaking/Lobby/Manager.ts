@@ -5,6 +5,7 @@ import { Lobby } from './Lobby'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { CLIENT_CHATS } from '../../Chat/Manager'
+import { Logger } from '../../../Utils/Logger'
 
 export class LobbyManager implements Match.Manager.Instance {
   private static _counter: Match.Lobby.Counter = {
@@ -13,10 +14,12 @@ export class LobbyManager implements Match.Manager.Instance {
   }
   private _lobbyMap: Map<string, Match.Lobby.Instance> = new Map()
   private _controller: Match.Controller
+  private _logger = new Logger('Lobby Manager')
   constructor(controller: Match.Controller) {
     this._controller = controller
     setInterval(
       function (this: LobbyManager) {
+        this._logger.info('CLEANING GARBAGE')
         for (let lobby of this._lobbyMap.values())
           if (lobby.readyToDrop) this.drop(lobby)
       }.bind(this),
@@ -42,6 +45,7 @@ export class LobbyManager implements Match.Manager.Instance {
     lobby.counter = LobbyManager._counter
 
     this._lobbyMap.set(ID, lobby)
+    this._logger.info(`SPAWNED LOBBY#${lobby.id}`)
     return lobby
   }
 
@@ -64,6 +68,7 @@ export class LobbyManager implements Match.Manager.Instance {
   }
 
   drop(lobby: string | Match.Lobby.Instance): boolean {
+    this._logger.info(`DROPPED LOBBY: ${JSON.stringify(lobby)}`)
     if (typeof lobby == 'string') return this._lobbyMap.delete(lobby)
     return this._lobbyMap.delete(lobby.id)
   }

@@ -17,9 +17,12 @@ import { DISCORD_ROBOT } from '../../../app'
 import { DiscordClient } from '../../Discord/Client'
 import { Guild } from 'discord.js'
 
+import { Logger } from '../../../Utils/Logger'
+
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _counter!: Match.Lobby.Counter
+  private _logger!: Logger
   private _game!: Match.Manager.supportedGames
   private _stagesTimers: Map<Match.Lobby.State, Date> = new Map()
   private _timers: Map<string, Date> = new Map()
@@ -46,6 +49,7 @@ export class Lobby implements Match.Lobby.Instance {
     private _chat: IChat.Controller,
   ) {
     this._game = _controller.gameName
+    this._logger = new Logger(`LOBBY#${_id}`)
     this._commands.set(
       'spectators',
       COMMANDS.spawn(this.id, 'spectators', _maxCommandSize),
@@ -77,16 +81,24 @@ export class Lobby implements Match.Lobby.Instance {
     this._state = 'deleted'
     this.delete()
     this._controller.stop()
+    this._logger.info('MARKED TO DELETE')
     return true
   }
 
   async delete(): Promise<true> {
+    this._logger.trace('COMMANDS DELETING')
     for (let [_, command] of this._commands) command.delete()
+    this._logger.trace('MEMBERS LEAVING')
     for (let member of this.members.values()) {
       this._leaveNotify(member)
       member.lobbyID = undefined
+      this._logger.trace(
+        `MEMBER ${member.name} LEAVED; MEMBER DATA: ${JSON.stringify(member)}`,
+      )
     }
+    this._logger.trace('CHAT DELETING')
     await this.chat?.delete()
+    this._logger.trace('DISCORD DELETING')
     await this._deleteDiscordLobby()
     return true
   }
@@ -117,6 +129,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   join(name: string) {
+    this._logger.info(`${name} JOINS`)
     if (this._state != 'searching')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     this._counter.searching++
@@ -127,6 +140,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   leave(name: string, forceFlag = false) {
+    this._logger.info(`${name} LEAVES`)
     if (this._state != 'searching' && this._state != 'filled' && !forceFlag)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     let member = this.members.getByName(name)
@@ -138,6 +152,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   vote(name: string, map: string): boolean {
+    this._logger.info(`${name} VOTES FOR ${map}`)
     if (this._state != 'voting' || this._maps.size < 2)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
     if (!this._maps.has(map))
@@ -166,6 +181,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   becomeReady(name: string): boolean {
+    this._logger.info(`${name} READY`)
     for (let [type, command] of this._commands)
       if (command.becomeReady(name)) return true
     throw new TechnicalError('lobby member', TechnicalCause.NOT_EXIST)
@@ -297,10 +313,12 @@ export class Lobby implements Match.Lobby.Instance {
         somebodyWasKicked = true
       }
     }
-    if (!somebodyWasKicked)
+    if (!somebodyWasKicked) {
+      this._logger.info(`DOWNGRADE STATE TO SEARCH`)
       return new Promise((resolve) => {
         resolve(this.firstCommand.isReady && this.secondCommand.isReady)
       })
+    }
 
     return Promise.all(promises).then(() => {
       this._setLobbyStatusToSearching()
@@ -342,8 +360,10 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _checkTurn(name: string) {
+    this._logger.trace('CHECKING CURRENT VOTING TURN')
     let captain = this._getCaptainNameByTurn()
 
+    this._logger.trace(`CORRECT CAPTAIN: ${captain}; VOTED: ${name}`)
     if (captain != name)
       throw new TechnicalError('turn', TechnicalCause.INVALID)
   }
@@ -365,6 +385,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _joinWithTeam(member: Match.Member.Instance): Promise<boolean> {
+    this._logger.trace(`TEAM ${member.teamID} JOING`)
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
       member.teamID = undefined
@@ -379,10 +400,13 @@ export class Lobby implements Match.Lobby.Instance {
       promises.push(this._joinSolo(member))
 
     await Promise.all(promises)
+    this._logger.trace(`TEAM ${member.teamID} JOINED`)
+    this._logger.trace(`TEAM ${team.id} DATA: ${JSON.stringify(team)}`)
     return true
   }
 
   private async _joinSolo(member: Match.Member.Instance) {
+    this._logger.trace(`MEMBER ${member.name} JOING`)
     if (!(await this._controller.addMembers(member))) return false
     if (!(await this._joinCommand(member))) return false
 
@@ -390,6 +414,10 @@ export class Lobby implements Match.Lobby.Instance {
     this._counter.searching++
 
     this._joinNotify(member)
+
+    this._logger.trace(`MEMBER ${member.name} JOINED`)
+    this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
+
     return true
   }
 
@@ -397,6 +425,7 @@ export class Lobby implements Match.Lobby.Instance {
     member: Match.Member.Instance,
     forceFlag = false,
   ): Promise<boolean> {
+    this._logger.trace(`TEAM ${member.teamID} LEAVING`)
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
       member.teamID = undefined
@@ -414,10 +443,15 @@ export class Lobby implements Match.Lobby.Instance {
     for (let member of team.members.toArray)
       promises.push(this._leaveSolo(member))
     await Promise.all(promises)
+
+    this._logger.trace(`TEAM ${member.teamID} LEAVED`)
+    this._logger.trace(`TEAM ${team.id} DATA: ${JSON.stringify(team)}`)
+
     return true
   }
 
   private async _leaveSolo(member: Match.Member.Instance) {
+    this._logger.trace(`MEMBER ${member.name} LEAVING`)
     if (!(await this._controller.removeMembers(member))) return false
     if (!(await this._leaveCommand(member))) return false
 
@@ -426,12 +460,18 @@ export class Lobby implements Match.Lobby.Instance {
     this._state = 'searching'
 
     this._counter.searching--
+
     member.lobbyID = undefined
+
+    this._logger.trace(`MEMBER ${member.name} LEAVED`)
+    this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
+
     this._leaveNotify(member)
     return true
   }
 
   private _joinCommand(member: Match.Member.Instance) {
+    this._logger.trace(`MEMBER ${member.name} JOING COMMAND`)
     return this._commandWithSpace!.join(member.name)
       .then((status) => {
         if (!status) return false
@@ -445,6 +485,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _leaveCommand(member: Match.Member.InstanceData) {
+    this._logger.trace(`MEMBER ${member.name} LEAVING COMMAND`)
     return COMMANDS.get(member.commandID!)!
       .leave(member.name)
       .then((status) => {
@@ -460,6 +501,9 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _canAddTeam(team: Match.Member.Team.Instance) {
+    this._logger.trace(
+      `CHECKING SPACE FOR TEAM. MAX TEAM SIZE: ${this._maxTeamSize}; TEAM SIZE: ${team.size}. HAS SPACE FOR TEAM: ${this.hasSpace}`,
+    )
     if (this._maxTeamSize < team.size) return false
     if (!this.hasSpace(team.size)) return false
     return true
