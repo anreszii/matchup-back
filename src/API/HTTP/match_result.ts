@@ -13,6 +13,8 @@ import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
 import { StandOff_Lobbies } from '../Sockets'
 
 import { Logger } from '../../Utils/Logger'
+import { S3Storage } from '../../Classes/S3/S3Storage'
+const s3 = new S3Storage('ru-1')
 const logger = new Logger('HTTP', 'result/upload')
 
 const router = Router()
@@ -110,43 +112,36 @@ function parseRespone(
   })
 
   formResponse.on('end', async () => {
-    const document = parseResults(
-      chunks.join(' '),
-      lobby.lobbyID,
-      lobby.map as string,
-    )
-    let screen: string
-    return postToImgbb({
-      apiKey: process.env.IMGBB_KEY as string,
-      image: image.data.toString('base64'),
-      name: `${new Date().toDateString()}-${image.name}`,
-    })
-      .then((imgbbResponse) => {
-        screen = imgbbResponse.thumb.url
-      })
-      .catch((e) => {
-        logger.warning(e)
-      })
-      .finally(async () => {
-        document.screen = screen
-        logger.trace('SAVING MATCH SCREEN')
-        await document.save()
-        await MatchModerationRecordModel.createTask(document._id)
-        let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
-        if (objLobby) {
-          logger.trace(`DELETING LOBBY ${objLobby.id}`)
-          objLobby.markToDelete()
-        }
+    try {
+      const document = parseResults(
+        chunks.join(' '),
+        lobby.lobbyID,
+        lobby.map as string,
+      )
+      let screen = await s3.upload(image.data)
+      document.screen = screen
 
-        logger.trace(
-          `SERVER RESPONSE: ${
-            new DTO({ label: 'result upload', status: 'success' }).to.JSON
-          }`,
-        )
-        return expressResponse.json(
-          new DTO({ label: 'result upload', status: 'success' }).to.JSON,
-        )
-      })
+      logger.trace('SAVING MATCH SCREEN')
+      await document.save()
+
+      await MatchModerationRecordModel.createTask(document._id)
+      let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
+      if (objLobby) {
+        logger.trace(`DELETING LOBBY ${objLobby.id}`)
+        objLobby.markToDelete()
+      }
+
+      logger.trace(
+        `SERVER RESPONSE: ${
+          new DTO({ label: 'result upload', status: 'success' }).to.JSON
+        }`,
+      )
+      return expressResponse.json(
+        new DTO({ label: 'result upload', status: 'success' }).to.JSON,
+      )
+    } catch (e) {
+      if (e instanceof Error) logger.critical(`[ERROR ${e.name}]: ${e.message}`)
+    }
   })
 }
 

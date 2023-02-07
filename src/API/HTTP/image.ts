@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { validateToken } from '../../Token/index'
-import { postToImgbb } from '../../Utils/imgbb'
 
 import { Logger } from '../../Utils/Logger'
+import { S3Storage } from '../../Classes/S3/S3Storage'
 
+const s3 = new S3Storage('ru-1')
 const router = Router()
 router.post('/upload', validateToken, async (req, res, next) => {
   const logger = new Logger('HTTP', 'image/upload')
@@ -17,29 +18,7 @@ router.post('/upload', validateToken, async (req, res, next) => {
     if (!req.files) throw new TechnicalError('files', TechnicalCause.REQUIRED)
     if (!req.files.image || req.files.image instanceof Array)
       throw new TechnicalError('image', TechnicalCause.INVALID_FORMAT)
-    let image = req.files.image
-    postToImgbb({
-      apiKey: process.env.IMGBB_KEY as string,
-      image: image.data.toString('base64'),
-      name: `${new Date().toDateString()}-${image.name}`,
-    })
-      .then(
-        (response: {
-          thumb: { [key: string]: string }
-          delete_url: string
-        }) => {
-          logger.trace(
-            `
-            IMGBB RESPONSE: ${response}
-            SERVER RESPONSE: ${JSON.stringify({ display: response.thumb.url })}
-            `,
-          )
-          res.json({ display: response.thumb.url })
-        },
-      )
-      .catch((e: unknown) => {
-        next(e)
-      })
+    res.json({ display: await s3.upload(req.files.image.data) })
   } catch (e) {
     next(e)
   }

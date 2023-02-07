@@ -6,6 +6,7 @@
     "build": "tsc ; npx prettier --config ./.prettierrc.json -w ./"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.266.0",
     "@discordjs/rest": "^1.1.0",
     "cors": "^2.8.5",
     "discord.js": "^14.3.0",
