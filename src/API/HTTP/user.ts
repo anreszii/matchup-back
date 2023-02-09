@@ -26,7 +26,11 @@ router.put(
   async (req: Request, res: Response, next: NextFunction) => {
     const logger = new Logger('HTTP', 'user')
     logger.trace(
-      `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+      `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+        req.params,
+      )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(
+        req.files,
+      )}`,
     )
     try {
       let {
@@ -77,7 +81,9 @@ router.put(
 router.post('/login', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/login')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { username, password } = req.body
@@ -106,7 +112,9 @@ router.post('/login', async (req, res, next) => {
 router.post('/registration', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/registration')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { username, password, id, nickname, email, region, discord } = req.body
@@ -134,7 +142,9 @@ router.post('/registration', async (req, res, next) => {
 router.put('/recover', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/recover')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { email } = req.body
@@ -183,7 +193,9 @@ router.put('/recover', async (req, res, next) => {
 router.post('/add_mp', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/add_mp')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { name, mp, pass } = req.body
@@ -221,7 +233,9 @@ router.post('/add_mp', async (req, res, next) => {
 router.post('/set_status', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/set_status')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { status, pass, name } = req.body.status
@@ -250,7 +264,9 @@ router.post('/set_status', async (req, res, next) => {
 router.post('/extend_premium', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/extend_premium')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let { name, period: periodInMonth, pass } = req.body
@@ -280,7 +296,9 @@ router.post('/extend_premium', async (req, res, next) => {
 router.get('/premium/:name', async (req, res, next) => {
   const logger = new Logger('HTTP', 'user/premium/')
   logger.trace(
-    `[${req.ip}] METHOD: ${req.method} PARAMS: ${req.params}; BODY: ${req.body}; FILES: ${req.files}`,
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
   )
   try {
     let name = req.params.name
