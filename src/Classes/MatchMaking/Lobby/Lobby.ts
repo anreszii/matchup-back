@@ -467,6 +467,7 @@ export class Lobby implements Match.Lobby.Instance {
     this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
 
     this._leaveNotify(member)
+    if(this.members.count == 0) this.markToDelete()
     return true
   }
 
