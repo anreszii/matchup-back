@@ -6,7 +6,7 @@ export class ServiceInformation {
     this.id = uuid()
     this.createdAt = new Date()
   }
-  @prop({ required: true, unique: true })
+  @prop({ required: true })
   id!: string
   @prop({ required: true })
   createdAt!: Date
