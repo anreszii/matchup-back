@@ -17,15 +17,11 @@ export class LobbyManager implements Match.Manager.Instance {
   private _logger = new Logger('Lobby Manager')
   constructor(controller: Match.Controller) {
     this._controller = controller
-    //TODO автоудаление лобби, если там нет участников
     setInterval(
       function (this: LobbyManager) {
         this._logger.info('CLEANING GARBAGE')
-        for (let lobby of this._lobbyMap.values()) {
+        for (let lobby of this._lobbyMap.values())
           if (lobby.readyToDrop) this.drop(lobby)
-          if (lobby.state == 'searching' && lobby.members.count == 0)
-            lobby.markToDelete()
-        }
       }.bind(this),
       MINUTE_IN_MS * 5,
     )

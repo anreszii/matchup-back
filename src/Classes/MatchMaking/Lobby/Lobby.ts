@@ -313,16 +313,16 @@ export class Lobby implements Match.Lobby.Instance {
         somebodyWasKicked = true
       }
     }
-    if (!somebodyWasKicked) {
+    if (somebodyWasKicked) {
       this._logger.info(`DOWNGRADE STATE TO SEARCH`)
-      return new Promise((resolve) => {
-        resolve(this.firstCommand.isReady && this.secondCommand.isReady)
+      return Promise.all(promises).then(() => {
+        if (this.state != 'deleted') this._setLobbyStateToSearching()
+        return false
       })
     }
 
-    return Promise.all(promises).then(() => {
-      this._setLobbyStatusToSearching()
-      return false
+    return new Promise((resolve) => {
+      resolve(this.firstCommand.isReady && this.secondCommand.isReady)
     })
   }
 
@@ -342,7 +342,7 @@ export class Lobby implements Match.Lobby.Instance {
     this._counter = value
   }
 
-  private _setLobbyStatusToSearching() {
+  private _setLobbyStateToSearching() {
     for (let member of this.members.toArray) member.isReady = false
     this._state = 'searching'
   }
@@ -467,7 +467,7 @@ export class Lobby implements Match.Lobby.Instance {
     this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
 
     this._leaveNotify(member)
-    if(this.members.count == 0) this.markToDelete()
+    if (this.members.count == 0) this.markToDelete()
     return true
   }
 
