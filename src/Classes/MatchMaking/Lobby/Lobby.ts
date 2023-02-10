@@ -308,7 +308,7 @@ export class Lobby implements Match.Lobby.Instance {
     const promises = []
 
     for (let member of this.players) {
-      if (!member.isReady && passedTime > SECOND_IN_MS * 20) {
+      if (!member.flags.ready && passedTime > SECOND_IN_MS * 20) {
         promises.push(this.leave(member.name))
         somebodyWasKicked = true
       }
@@ -343,7 +343,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _setLobbyStateToSearching() {
-    for (let member of this.members.toArray) member.isReady = false
+    for (let member of this.members.toArray) member.flags.ready = false
     this._state = 'searching'
   }
 

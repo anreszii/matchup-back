@@ -28,7 +28,10 @@ class PlayersManager implements Match.Member.Manager {
       id,
       name,
       nick,
-      isReady: false,
+      flags: {
+        ready: false,
+        searching: false,
+      },
       GRI: user.GRI,
       guildName,
       discordNick,
@@ -65,7 +68,7 @@ class PlayersManager implements Match.Member.Manager {
     let member = this._players.getByName(name)
     if (!member) return false
 
-    member.isReady = true
+    member.flags.ready = true
     return true
   }
 
@@ -73,7 +76,7 @@ class PlayersManager implements Match.Member.Manager {
     let member = this._players.getByName(name)
     if (!member) return false
 
-    member.isReady = false
+    member.flags.ready = false
     return true
   }
 

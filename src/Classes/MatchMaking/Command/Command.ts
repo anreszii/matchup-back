@@ -65,7 +65,7 @@ export class Command implements Match.Lobby.Command.Instance {
     if (member.teamID) this._deleteTeamOfMember(member.teamID)
     this._checkGuildAfterLeave()
 
-    member.isReady = false
+    member.flags.ready = false
     member.commandID = undefined
     this._logger.trace(`MEMBER ${name} LEAVED COMMAND`)
     return this.members.deleteMember(name)
@@ -80,7 +80,7 @@ export class Command implements Match.Lobby.Command.Instance {
     let member = this.members.getByName(name)
     if (!member) return false
 
-    member.isReady = true
+    member.flags.ready = true
     return true
   }
 
@@ -174,7 +174,8 @@ export class Command implements Match.Lobby.Command.Instance {
   }
 
   get isReady(): boolean {
-    for (let member of this.members.toArray) if (!member.isReady) return false
+    for (let member of this.members.toArray)
+      if (!member.flags.ready) return false
     return true
   }
 

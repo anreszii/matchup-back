@@ -51,7 +51,7 @@ export class Team implements Match.Member.Team.Instance {
     this._checkGuildAfterLeave()
 
     if (!this.members.deleteMember(name)) return false
-    member.isReady = false
+    member.flags.ready = false
     member.teamID = undefined
     if (this._min == member) this._min = null
     if (this._max == member) this._max = null
@@ -63,7 +63,7 @@ export class Team implements Match.Member.Team.Instance {
     this._logger.info('MARKED TO DELETE')
     for (let member of this._members.toArray) {
       this.chat.leave(member.name)
-      member.isReady = false
+      member.flags.ready = false
       member.commandID = undefined
       member.teamID = undefined
     }

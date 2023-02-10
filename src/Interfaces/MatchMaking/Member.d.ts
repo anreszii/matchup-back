@@ -3,7 +3,10 @@ export interface IMatchMember extends IEntity<string> {
   id: string
   name: string
   nick: string
-  isReady: boolean
+  flags: {
+    ready: boolean
+    searching: boolean
+  }
   GRI: number
   discordNick: string
   commandID?: number //team id внутри лобби

@@ -158,11 +158,14 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
 
   Filters.byRegime(type)
 
-  let lobby = await Searcher.findLobby(Filters)
-  if (!lobby.region) lobby.region = region
-
-  await lobby.join(username)
-  return { lobbyID: lobby.id, chatID: lobby.chat!.id }
+  return Searcher.findLobby(Filters, member)
+    .then(async (lobby) => {
+      await lobby.join(username)
+      return { lobbyID: lobby.id, chatID: lobby.chat!.id }
+    })
+    .catch((e) => {
+      throw e
+    })
 }
 CONTROLLERS.set('find_lobby', find_lobby)
 
