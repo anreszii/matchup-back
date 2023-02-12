@@ -9,6 +9,7 @@ import { dtoParser } from '../../../Classes/DTO/Parser/Parser'
 import { WebSocketValidatior } from '../../../validation/websocket'
 import { ChatStore } from '../../../Classes/Chat/Store'
 import { Logger } from '../../../Utils/Logger'
+import { validateVersion } from '../../../validation/version'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
@@ -30,11 +31,14 @@ export async function authorize(escort: IDataEscort) {
   logger.trace(`[REQUETS] DATA: ${JSON.stringify(escort.used)}`)
   try {
     let response: DTO
-    const request = dtoParser.from.Object(escort.used)
-    let token = validatePacket(request)
-
     let socketID = escort.get('socket_id') as string
-    let socket = WS_SERVER.sockets.get(socketID)!
+    const request = dtoParser.from.Object(escort.used)
+    if (!validateVersion(request.content.version)) {
+      response = new DTO({ label: request.label, complete: false })
+      return clientServer.control(socketID).emit('authorize', response.to.JSON)
+    }
+    const token = validatePacket(request)
+    const socket = WS_SERVER.sockets.get(socketID)!
 
     socket.role = token.role
     socket.username = token.username
@@ -42,7 +46,7 @@ export async function authorize(escort: IDataEscort) {
     wsValidator.authorizeSocket(socketID)
 
     clientServer.Aliases.set(socket.username, socket.id)
-    response = new DTO({ label: request.label, status: 'success' })
+    response = new DTO({ label: request.label, complete: true })
     await ChatStore.joinChats(socket.username)
     return clientServer.control(socketID).emit('authorize', response.to.JSON)
   } catch (e) {
@@ -57,7 +61,7 @@ export async function authorize(escort: IDataEscort) {
     else error = e.DTO
 
     error.label = request.label
-    clientServer.control(socketID).emit(`dark-side`, error.to.JSON)
+    clientServer.control(socketID).emit(`authorize`, error.to.JSON)
   }
 }
 clientServer.on('authorize', authorize)
