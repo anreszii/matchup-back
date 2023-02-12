@@ -78,6 +78,9 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   markToDelete() {
+    if (this.state != 'started') this._counter.searching -= this.members.count
+    else this._counter.playing -= this.members.count
+
     this._state = 'deleted'
     this.delete()
     this._controller.stop()
@@ -132,7 +135,6 @@ export class Lobby implements Match.Lobby.Instance {
     this._logger.info(`${name} JOINS`)
     if (this._state != 'searching')
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
-    this._counter.searching++
     return PLAYERS.get(name).then((member) => {
       if (member.teamID) return this._joinWithTeam(member)
       else return this._joinSolo(member)
