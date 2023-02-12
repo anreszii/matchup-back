@@ -24,7 +24,7 @@ export class Profile {
   balance!: number
   @prop({
     default:
-      'https://i.ibb.co/znw3YQ5/Sun-Jan-08-2023-954-D9-F45-309-A-4477-88-A8-7-B3546-D2341-E-png.png',
+      'https://s3.timeweb.com/20dedb32-20f03057-47ef-48f3-993e-e68518aa77ec/defaultavi.png',
   })
   avatar?: string
   @prop({ required: true, default: new Relations(), _id: false })
