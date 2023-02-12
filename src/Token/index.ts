@@ -36,7 +36,7 @@ export function validatePacket(dto: DTO) {
   try {
     return jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload
   } catch (e) {
-    throw new TechnicalError('token', TechnicalCause.INVALID_FORMAT)
+    throw new TechnicalError('token', TechnicalCause.INVALID)
   }
 }
 
