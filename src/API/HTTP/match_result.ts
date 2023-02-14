@@ -8,7 +8,6 @@ import FormData = require('form-data')
 import { IncomingMessage } from 'http'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
 import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
-import { postToImgbb } from '../../Utils/imgbb'
 import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
 import { StandOff_Lobbies } from '../Sockets'
 
@@ -27,9 +26,9 @@ router.post(
         expressRequest.method
       } PARAMS: ${JSON.stringify(
         expressRequest.params,
-      )}; BODY: ${JSON.stringify(expressRequest.body)}; FILES: ${JSON.stringify(
-        expressRequest.files,
-      )}`,
+      )}; BODY: ${JSON.stringify(expressRequest.body)}; FILES IS UNDEFINED: ${
+        expressRequest.files == undefined
+      }`,
     )
     try {
       if (!expressRequest.files)
@@ -141,6 +140,7 @@ function parseRespone(
       )
     } catch (e) {
       if (e instanceof Error) logger.critical(`[ERROR ${e.name}]: ${e.message}`)
+      expressResponse.sendStatus(500)
     }
   })
 }

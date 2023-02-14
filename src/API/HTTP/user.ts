@@ -28,9 +28,9 @@ router.put(
     logger.trace(
       `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
         req.params,
-      )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(
-        req.files,
-      )}`,
+      )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+        req.files == undefined
+      }`,
     )
     try {
       let {
@@ -83,7 +83,9 @@ router.post('/login', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { username, password } = req.body
@@ -114,7 +116,9 @@ router.post('/registration', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { username, password, id, nickname, email, region, discord } = req.body
@@ -144,7 +148,9 @@ router.put('/recover', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { email } = req.body
@@ -195,7 +201,9 @@ router.post('/add_mp', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { name, mp, pass } = req.body
@@ -235,7 +243,9 @@ router.post('/set_status', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { status, pass, name } = req.body.status
@@ -266,7 +276,9 @@ router.post('/extend_premium', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let { name, period: periodInMonth, pass } = req.body
@@ -298,7 +310,9 @@ router.get('/premium/:name', async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     let name = req.params.name

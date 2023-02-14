@@ -68,8 +68,12 @@ export class LobbyManager implements Match.Manager.Instance {
   }
 
   drop(lobby: string | Match.Lobby.Instance): boolean {
-    this._logger.info(`DROPPED LOBBY: ${JSON.stringify(lobby)}`)
-    if (typeof lobby == 'string') return this._lobbyMap.delete(lobby)
+    if (typeof lobby == 'string') {
+      this._logger.info(`DROPPED LOBBY#${lobby}`)
+      return this._lobbyMap.delete(lobby)
+    }
+
+    this._logger.info(`DROPPED LOBBY#${lobby.id}`)
     return this._lobbyMap.delete(lobby.id)
   }
 

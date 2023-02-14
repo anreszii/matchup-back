@@ -44,7 +44,7 @@ export class Logger implements ILogger {
               this._element
             }::DEBUG]: `
           : `[${process.hrtime.bigint()}] [${this._module}::DEBUG]: `
-      console.log(debugMessage)
+      console.log(debugMessage + content)
     }
 
     this._logger.trace(content)

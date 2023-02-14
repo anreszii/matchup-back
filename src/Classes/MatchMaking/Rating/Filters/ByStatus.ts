@@ -6,9 +6,7 @@ export class StateFilter implements Rating.SearchEngine.Filter {
   isValid(lobby: Match.Lobby.Instance) {
     const filterResult = lobby.state == 'searching'
     this._logger.trace(
-      `LOBBY: ${JSON.stringify(
-        lobby,
-      )}; RESULT: ${filterResult}; REQUIRED STATE: searching`,
+      `LOBBY STATE: ${lobby.state}; RESULT: ${filterResult}; REQUIRED STATE: searching`,
     )
     return filterResult
   }

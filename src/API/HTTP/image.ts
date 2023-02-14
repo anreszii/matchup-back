@@ -12,7 +12,9 @@ router.post('/upload', validateToken, async (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   try {
     if (!req.files) throw new TechnicalError('files', TechnicalCause.REQUIRED)

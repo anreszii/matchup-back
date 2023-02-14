@@ -26,7 +26,7 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
       .find()
       .then((foundedLobby) => {
         if (foundedLobby) {
-          this._logger.info(`LOBBY FOUNDED: ${JSON.stringify(foundedLobby)}`)
+          this._logger.info(`LOBBY FOUNDED: ${foundedLobby.id}`)
           this._logger.trace(
             `FOUNDED LOBBY DATA: ${JSON.stringify(foundedLobby)}`,
           )
@@ -46,7 +46,8 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
             `[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`,
           )
         throw e
-      }).finally(() => {
+      })
+      .finally(() => {
         this._stopSearchingForMember(member)
       })
 

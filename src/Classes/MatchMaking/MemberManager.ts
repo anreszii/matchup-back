@@ -4,8 +4,11 @@ import { v4 as uuid } from 'uuid'
 import { MemberList } from './MemberList'
 import { TechnicalCause, TechnicalError } from '../../error'
 import { SECOND_IN_MS } from '../../configs/time_constants'
+import { Logger } from '../../Utils/Logger'
 
 class PlayersManager implements Match.Member.Manager {
+  //TODO заменить массив на мапу
+  private _logger = new Logger('Player Manager')
   private _players: MemberList = new MemberList()
   construcror() {
     setInterval(this._syncMembers.bind(this), SECOND_IN_MS * 30)
@@ -40,6 +43,7 @@ class PlayersManager implements Match.Member.Manager {
     } as Match.Member.Instance
 
     this._players.addMember(member as Match.Member.Instance)
+    this._logger.trace(`spawned member: ${JSON.stringify(member)}`)
     return member
   }
 
@@ -49,8 +53,10 @@ class PlayersManager implements Match.Member.Manager {
    */
   async get(entityID: string): Promise<Match.Member.Instance> {
     for (let member of this._players.toArray)
-      if (member.id == entityID || member.name == entityID)
+      if (member.id == entityID || member.name == entityID) {
+        this._logger.trace(`getted member: ${JSON.stringify(member)}`)
         return member as Match.Member.Instance
+      }
     return this.spawn(entityID)
   }
 
@@ -78,6 +84,16 @@ class PlayersManager implements Match.Member.Manager {
 
     member.flags.ready = false
     return true
+  }
+
+  //TODO переписать на мапу
+  isOnline(names: string[]): Map<string, boolean> {
+    const playerStatesMap: Map<string, boolean> = new Map()
+    for (let name of names) playerStatesMap.set(name, false)
+
+    for (let player of this._players.values())
+      if (names.includes(player.name)) playerStatesMap.set(player.name, true)
+    return playerStatesMap
   }
 
   /**
