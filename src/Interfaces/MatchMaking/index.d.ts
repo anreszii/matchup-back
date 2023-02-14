@@ -104,6 +104,7 @@ export declare namespace Match {
     interface Manager extends IManager<Member.Instance, string> {
       becomeReady(name: string): boolean
       becomeUnready(name: string): boolean
+      isOnline(name: string[]): Map<string, boolean>
     }
     interface Instance extends IMatchMember {
       notify(content: string): Promise<boolean>
