@@ -3,7 +3,6 @@ import type { IChat, Match, Rating } from '../../../Interfaces/index'
 import { COMMANDS } from '../Command/Manager'
 import { PLAYERS } from '../MemberManager'
 
-import { MemberList } from '../MemberList'
 import { getMedian, getRandom } from '../../../Utils/math'
 
 import { DiscordRoleManager } from '../../Discord/RoleManager'
@@ -26,7 +25,6 @@ export class Lobby implements Match.Lobby.Instance {
   private _game!: Match.Manager.supportedGames
   private _stagesTimers: Map<Match.Lobby.State, Date> = new Map()
   private _timers: Map<string, Date> = new Map()
-  private _members: MemberList = new MemberList()
   private _commands: Map<
     Match.Lobby.Command.Types,
     Match.Lobby.Command.Instance
@@ -78,8 +76,8 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   markToDelete() {
-    if (this.state != 'started') this._counter.searching -= this.members.count
-    else this._counter.playing -= this.members.count
+    if (this.state == 'searching') this._counter.searching -= this.membersCount
+    else this._counter.playing -= this.membersCount
 
     this._state = 'deleted'
     this.delete()
@@ -145,7 +143,10 @@ export class Lobby implements Match.Lobby.Instance {
     this._logger.info(`${name} LEAVES`)
     if (this._state != 'searching' && this._state != 'filled' && !forceFlag)
       throw new TechnicalError('lobby status', TechnicalCause.INVALID)
-    let member = this.members.getByName(name)
+    let member = this.members.find((value) => {
+      this._logger.debug(`searching name: ${name}. member: ${value.name}`)
+      return value.name == name
+    })
     if (!member || member.lobbyID != this.id)
       throw new TechnicalError('member', TechnicalCause.INVALID)
 
@@ -253,10 +254,6 @@ export class Lobby implements Match.Lobby.Instance {
     return this._game
   }
 
-  get members() {
-    return this._members
-  }
-
   get type() {
     return this._type
   }
@@ -296,8 +293,25 @@ export class Lobby implements Match.Lobby.Instance {
     return [...this.firstCommand.players, ...this.secondCommand.players]
   }
 
-  get playersCount() {
+  get members(): Match.Member.Instance[] {
+    return [
+      ...this.spectators.players,
+      ...this.neutrals.players,
+      ...this.players,
+    ]
+  }
+
+  get playersCount(): number {
     return this.firstCommand.playersCount + this.secondCommand.playersCount
+  }
+
+  get membersCount(): number {
+    return (
+      this.firstCommand.playersCount +
+      this.secondCommand.playersCount +
+      this.spectators.playersCount +
+      this.neutrals.playersCount
+    )
   }
 
   get isReady(): Promise<boolean> {
@@ -345,7 +359,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private _setLobbyStateToSearching() {
-    for (let member of this.members.toArray) member.flags.ready = false
+    for (let member of this.members) member.flags.ready = false
     this._state = 'searching'
   }
 
@@ -413,13 +427,13 @@ export class Lobby implements Match.Lobby.Instance {
     if (!(await this._joinCommand(member))) return false
 
     this.chat.join(member.name)
-    this._counter.searching++
 
     this._joinNotify(member)
 
     this._logger.trace(`MEMBER ${member.name} JOINED`)
     this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
 
+    this._counter.searching++
     return true
   }
 
@@ -461,15 +475,14 @@ export class Lobby implements Match.Lobby.Instance {
     this._stagesTimers = new Map()
     this._state = 'searching'
 
-    this._counter.searching--
-
     member.lobbyID = undefined
 
     this._logger.trace(`MEMBER ${member.name} LEAVED`)
     this._logger.trace(`MEMBER ${member.name} DATA: ${JSON.stringify(member)}`)
 
     this._leaveNotify(member)
-    if (this.members.count == 0) this.markToDelete()
+    if (this.membersCount == 0) this.markToDelete()
+    this._counter.searching--
     return true
   }
 
@@ -478,7 +491,6 @@ export class Lobby implements Match.Lobby.Instance {
     return this._commandWithSpace!.join(member.name)
       .then((status) => {
         if (!status) return false
-        if (!this.members.addMember(member)) return false
         member.lobbyID = this.id
         return true
       })
@@ -493,7 +505,6 @@ export class Lobby implements Match.Lobby.Instance {
       .leave(member.name)
       .then((status) => {
         if (!status) return false
-        if (!this.members.deleteMember(member.name)) return false
         member.lobbyID = undefined
 
         return true
@@ -517,17 +528,14 @@ export class Lobby implements Match.Lobby.Instance {
       this._state == 'searching' &&
       this.playersCount == this._maxCommandSize * 2
     ) {
-      for (let member of this.members.toArray)
-        member.notify('Ваша игра найдена')
-
-      let members = this._members.membersCount
-      this._counter.searching -= members
-      this._counter.playing += members
+      for (let member of this.members) member.notify('Ваша игра найдена')
 
       this._stagesTimers.set('filled', new Date())
       this._state = 'filled'
     }
     if (this._state == 'filled' && (await this.isReady)) {
+      this._counter.searching -= this.membersCount
+      this._counter.playing += this.membersCount
       this._timers.set('turn_start', new Date())
       this._state = 'voting'
     }
@@ -576,7 +584,7 @@ export class Lobby implements Match.Lobby.Instance {
     }
 
     const promises = []
-    for (let member of this.members.toArray)
+    for (let member of this.members)
       promises.push(this._connectMemberToDiscordChannel(member))
 
     const result = await Promise.all(promises)
@@ -625,7 +633,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (!this._discord) return false
 
     const promises = []
-    for (let member of this.members.toArray)
+    for (let member of this.members)
       promises.push(this._deleteMemberFromDiscordChannel(member))
 
     const result = await Promise.all(promises)

@@ -10,6 +10,7 @@ import { WebSocketValidatior } from '../../../validation/websocket'
 import { ChatStore } from '../../../Classes/Chat/Store'
 import { Logger } from '../../../Utils/Logger'
 import { validateVersion } from '../../../validation/version'
+import { PLAYERS } from '../../../Classes/MatchMaking/MemberManager'
 
 let wsValidator = new WebSocketValidatior(WS_SERVER)
 
@@ -48,6 +49,7 @@ export async function authorize(escort: IDataEscort) {
     clientServer.Aliases.set(socket.username, socket.id)
     response = new DTO({ label: request.label, complete: true })
     await ChatStore.joinChats(socket.username)
+    await PLAYERS.get(token.username)
     return clientServer.control(socketID).emit('authorize', response.to.JSON)
   } catch (e) {
     if (e instanceof Error)

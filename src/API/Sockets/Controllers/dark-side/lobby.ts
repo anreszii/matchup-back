@@ -58,7 +58,7 @@ setInterval(function () {
                   .then(async () => {
                     if (lobby.type != 'rating') lobby.markToDelete()
                     const members: CachedMember[] = []
-                    for (let member of lobby.members.toArray)
+                    for (let member of lobby.members)
                       members.push({
                         username: member.name,
                         nickname: member.nick,
@@ -544,7 +544,7 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  for (let member of lobby.members.toArray) {
+  for (let member of lobby.members) {
     clientServer.control(clientServer.Aliases.get(member.name)!).emit(
       'sync_lobby',
       dtoParser.from.Object({
