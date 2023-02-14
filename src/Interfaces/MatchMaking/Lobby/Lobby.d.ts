@@ -9,7 +9,6 @@ export declare interface ILobby extends IEntity<string> {
   get state(): Match.Lobby.State
   get game(): Match.Manager.supportedGames
   get type(): Match.Lobby.Type
-  get members(): Match.Member.List
 
   get chat(): IChat.Controller
   set chat(instance: IChat.Controller)
@@ -25,8 +24,11 @@ export declare interface ILobby extends IEntity<string> {
   get neutrals(): Match.Lobby.Command.Instance
   get spectators(): Match.Lobby.Command.Instance
 
-  get players(): Match.Member.InstanceData[]
+  get players(): Match.Member.Instance[]
+  get members(): Match.Member.Instance[]
+
   get playersCount(): number
+  get membersCount(): number
 
   start(): Promise<boolean>
   markToDelete(): boolean
