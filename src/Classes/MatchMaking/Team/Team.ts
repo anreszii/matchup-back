@@ -5,15 +5,15 @@ import { CLIENT_CHATS } from '../../Chat/Manager'
 import { MemberList } from '../MemberList'
 import { PLAYERS } from '../MemberManager'
 
-export class Team implements Match.Member.Team.Instance {
+export class Team implements Match.Player.Team.Instance {
   private _members: MemberList = new MemberList()
   private _captain!: string
   private _chat!: IChat.Controller
   private _maxTeamSize = 5
   private _keyGuild?: string
   private _deleted = false
-  private _min: Match.Member.Instance | null = null
-  private _max: Match.Member.Instance | null = null
+  private _min: Match.Player.Instance | null = null
+  private _max: Match.Player.Instance | null = null
   private _logger: Logger
 
   constructor(private _id: number) {
@@ -72,7 +72,7 @@ export class Team implements Match.Member.Team.Instance {
     return true
   }
 
-  isCaptain(member: string | Match.Member.Instance): boolean {
+  isCaptain(member: string | Match.Player.Instance): boolean {
     let name = typeof member == 'string' ? member : member.name
     return name == this._captain
   }
@@ -95,7 +95,7 @@ export class Team implements Match.Member.Team.Instance {
     return Boolean(this._keyGuild)
   }
 
-  get members(): Match.Member.List {
+  get members(): Match.Player.List {
     return this._members
   }
 
@@ -124,7 +124,7 @@ export class Team implements Match.Member.Team.Instance {
     return this._max!.GRI - this._min!.GRI
   }
 
-  private _checkGuildAfterJoin(member: Match.Member.Instance) {
+  private _checkGuildAfterJoin(member: Match.Player.Instance) {
     if (this.members.count == 0) {
       this._keyGuild = member.guildName
       return

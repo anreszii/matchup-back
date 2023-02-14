@@ -259,7 +259,7 @@ export class DiscordClient {
     user.roles.add(role)
   }
 
-  async joinDiscordLobby(guild: Guild, member: Match.Member.Instance) {
+  async joinDiscordLobby(guild: Guild, member: Match.Player.Instance) {
     const parsedMemberData = parseLobbyAndCommandFromMember(member)
     if (!parsedMemberData) return false
     this._logger.info(`${member.name} JOINS DISCORD LOBBY`)
@@ -290,7 +290,7 @@ export class DiscordClient {
     return true
   }
 
-  async leaveDiscordLobby(guild: Guild, member: Match.Member.Instance) {
+  async leaveDiscordLobby(guild: Guild, member: Match.Player.Instance) {
     return this.getMemberByNickanme(guild, member.discordNick).then((user) => {
       if (!user) return false
 
@@ -360,7 +360,7 @@ export class DiscordClient {
   }
 }
 
-function parseLobbyAndCommandFromMember(member: Match.Member.Instance) {
+function parseLobbyAndCommandFromMember(member: Match.Player.Instance) {
   if (!member.commandID || !member.lobbyID) return null
   const command = COMMANDS.get(member.commandID)
   if (!command) return null

@@ -38,7 +38,7 @@ class CommandManager implements Match.Lobby.Command.Manager {
   ): Promise<boolean> {
     let fromCommand: Match.Lobby.Command.Instance | undefined
     let toCommand: Match.Lobby.Command.Instance | undefined
-    let team: Match.Member.Team.Instance | undefined
+    let team: Match.Player.Team.Instance | undefined
 
     if (!PLAYERS.has(name)) return false
     let member = await PLAYERS.get(name)

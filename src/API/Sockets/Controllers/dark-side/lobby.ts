@@ -614,7 +614,7 @@ function isCorrectRegion(
 }
 
 function createFilterForTeamSearch(
-  team: Match.Member.Team.Instance,
+  team: Match.Player.Team.Instance,
   region: Rating.SearchEngine.SUPPORTED_REGIONS,
 ) {
   const Filters = Searcher.Filters
@@ -627,7 +627,7 @@ function createFilterForTeamSearch(
 }
 
 function createFiltersForSoloSearch(
-  member: Match.Member.Instance,
+  member: Match.Player.Instance,
   region: Rating.SearchEngine.SUPPORTED_REGIONS,
 ) {
   const Filters = Searcher.Filters

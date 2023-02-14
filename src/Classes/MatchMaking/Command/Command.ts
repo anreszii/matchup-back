@@ -46,9 +46,9 @@ export class Command implements Match.Lobby.Command.Instance {
     this.chat.join(name)
     this._checkGuildAfterJoin(member)
 
-    if (!this._captain) this._captain = member.name
-    if (member.teamID) this._addTeamOfMember(member.teamID)
-    member.commandID = this.id
+    if (!this._captain) this._captain = member.data.name
+    if (member.data.teamID) this._addTeamOfMember(member.data.teamID)
+    member.data.commandID = this.id
     this._logger.trace(`MEMBER ${name} JOINED COMMAND`)
     return true
   }
@@ -71,7 +71,7 @@ export class Command implements Match.Lobby.Command.Instance {
     return this.members.deleteMember(name)
   }
 
-  isCaptain(member: string | Match.Member.Instance): boolean {
+  isCaptain(member: string | Match.Player.Instance): boolean {
     let name = typeof member == 'string' ? member : member.name
     return name == this._captain
   }
@@ -88,7 +88,7 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._maxSize - this.playersCount >= size
   }
 
-  has(entity: Match.Member.Instance | string): boolean {
+  has(entity: Match.Player.Instance | string): boolean {
     if (typeof entity == 'string') return this.members.hasMember(entity)
     else return this.members.hasMember(entity.name)
   }
@@ -164,7 +164,7 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._maxSize - (this.teamPlayersCount + this.soloPlayersCount)
   }
 
-  get members(): Match.Member.List {
+  get members(): Match.Player.List {
     return this._members
   }
 
@@ -234,7 +234,7 @@ export class Command implements Match.Lobby.Command.Instance {
     return count
   }
 
-  private _checkGuildAfterJoin(member: Match.Member.Instance) {
+  private _checkGuildAfterJoin(member: Match.Player.Instance) {
     if (this.members.count == 0) {
       this._keyGuild = member.guildName
       return

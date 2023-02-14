@@ -12,6 +12,6 @@ export interface Group<T> extends IEntity<T> {
   get GRI(): number
   get size(): number
 
-  get members(): Match.Member.List
+  get members(): Match.Player.List
   get isGuild(): boolean
 }

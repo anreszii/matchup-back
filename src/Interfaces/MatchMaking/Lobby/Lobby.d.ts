@@ -24,8 +24,8 @@ export declare interface ILobby extends IEntity<string> {
   get neutrals(): Match.Lobby.Command.Instance
   get spectators(): Match.Lobby.Command.Instance
 
-  get players(): Match.Member.Instance[]
-  get members(): Match.Member.Instance[]
+  get players(): Match.Player.Instance[]
+  get members(): Match.Player.Instance[]
 
   get playersCount(): number
   get membersCount(): number

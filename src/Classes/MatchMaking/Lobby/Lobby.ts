@@ -293,7 +293,7 @@ export class Lobby implements Match.Lobby.Instance {
     return [...this.firstCommand.players, ...this.secondCommand.players]
   }
 
-  get members(): Match.Member.Instance[] {
+  get members(): Match.Player.Instance[] {
     return [
       ...this.spectators.players,
       ...this.neutrals.players,
@@ -400,7 +400,7 @@ export class Lobby implements Match.Lobby.Instance {
     if (this.secondCommand.hasSpaceFor(1)) return this.secondCommand
   }
 
-  private async _joinWithTeam(member: Match.Member.Instance): Promise<boolean> {
+  private async _joinWithTeam(member: Match.Player.Instance): Promise<boolean> {
     this._logger.trace(`TEAM ${member.teamID} JOING`)
     let team = TEAMS.findById(member.teamID!)
     if (!team) {
@@ -421,7 +421,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _joinSolo(member: Match.Member.Instance) {
+  private async _joinSolo(member: Match.Player.Instance) {
     this._logger.trace(`MEMBER ${member.name} JOING`)
     if (!(await this._controller.addMembers(member))) return false
     if (!(await this._joinCommand(member))) return false
@@ -438,7 +438,7 @@ export class Lobby implements Match.Lobby.Instance {
   }
 
   private async _leaveWithTeam(
-    member: Match.Member.Instance,
+    member: Match.Player.Instance,
     forceFlag = false,
   ): Promise<boolean> {
     this._logger.trace(`TEAM ${member.teamID} LEAVING`)
@@ -466,7 +466,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _leaveSolo(member: Match.Member.Instance) {
+  private async _leaveSolo(member: Match.Player.Instance) {
     this._logger.trace(`MEMBER ${member.name} LEAVING`)
     if (!(await this._controller.removeMembers(member))) return false
     if (!(await this._leaveCommand(member))) return false
@@ -486,7 +486,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private _joinCommand(member: Match.Member.Instance) {
+  private _joinCommand(member: Match.Player.Instance) {
     this._logger.trace(`MEMBER ${member.name} JOING COMMAND`)
     return this._commandWithSpace!.join(member.name)
       .then((status) => {
@@ -499,7 +499,7 @@ export class Lobby implements Match.Lobby.Instance {
       })
   }
 
-  private _leaveCommand(member: Match.Member.InstanceData) {
+  private _leaveCommand(member: Match.Player.InstanceData) {
     this._logger.trace(`MEMBER ${member.name} LEAVING COMMAND`)
     return COMMANDS.get(member.commandID!)!
       .leave(member.name)
@@ -514,7 +514,7 @@ export class Lobby implements Match.Lobby.Instance {
       })
   }
 
-  private _canAddTeam(team: Match.Member.Team.Instance) {
+  private _canAddTeam(team: Match.Player.Team.Instance) {
     this._logger.trace(
       `CHECKING SPACE FOR TEAM. MAX TEAM SIZE: ${this._maxTeamSize}; TEAM SIZE: ${team.size}. HAS SPACE FOR TEAM: ${this.hasSpace}`,
     )
@@ -561,7 +561,7 @@ export class Lobby implements Match.Lobby.Instance {
       this._stagesTimers.set('preparing', new Date())
   }
 
-  private _joinNotify(member: Match.Member.Instance) {
+  private _joinNotify(member: Match.Player.Instance) {
     const dto = new DTO({ label: 'join', id: this.id, chat: this.chat.id })
     if (clientServer.Aliases.isSet(member.name))
       clientServer
@@ -569,7 +569,7 @@ export class Lobby implements Match.Lobby.Instance {
         .emit('lobby', dto.to.JSON)
   }
 
-  private _leaveNotify(member: Match.Member.Instance) {
+  private _leaveNotify(member: Match.Player.Instance) {
     const dto = new DTO({ label: 'leave', id: this.id })
     if (clientServer.Aliases.isSet(member.name))
       clientServer
@@ -593,7 +593,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _connectMemberToDiscordChannel(member: Match.Member.Instance) {
+  private async _connectMemberToDiscordChannel(member: Match.Player.Instance) {
     if (!this._discord) return false
     let { client, guild } = this._discord
     return client.joinDiscordLobby(guild, member)
@@ -642,7 +642,7 @@ export class Lobby implements Match.Lobby.Instance {
     return true
   }
 
-  private async _deleteMemberFromDiscordChannel(member: Match.Member.Instance) {
+  private async _deleteMemberFromDiscordChannel(member: Match.Player.Instance) {
     if (!this._discord) return false
     let { client, guild } = this._discord
 

@@ -5,8 +5,8 @@ import { PLAYERS } from '../MemberManager'
 import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { Logger } from '../../../Utils/Logger'
 
-class TeamManager implements Match.Member.Team.Manager {
-  private _teams: OneTypeArray<Match.Member.Team.Instance> = new OneTypeArray()
+class TeamManager implements Match.Player.Team.Manager {
+  private _teams: OneTypeArray<Match.Player.Team.Instance> = new OneTypeArray()
   private _logger = new Logger('Team Manager')
 
   constructor() {
@@ -20,7 +20,7 @@ class TeamManager implements Match.Member.Team.Manager {
     )
   }
 
-  public spawn(): Match.Member.Team.Instance {
+  public spawn(): Match.Player.Team.Instance {
     let team = new Team(this._teams.freeSpace + 1)
 
     this._teams.addOne(team)
@@ -36,7 +36,7 @@ class TeamManager implements Match.Member.Team.Manager {
     return Boolean(this._teams.delete(team))
   }
 
-  public get(teamID: number): Match.Member.Team.Instance | undefined {
+  public get(teamID: number): Match.Player.Team.Instance | undefined {
     return this._teams.valueOf(teamID - 1)
   }
 
@@ -52,11 +52,11 @@ class TeamManager implements Match.Member.Team.Manager {
     return this.findById(user.teamID)
   }
 
-  findById(id: number): Match.Member.Team.Instance | undefined {
+  findById(id: number): Match.Player.Team.Instance | undefined {
     return this.get(id)
   }
 
-  public get toArray(): Match.Member.Team.Instance[] {
+  public get toArray(): Match.Player.Team.Instance[] {
     return this._teams.toArray
   }
 

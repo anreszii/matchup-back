@@ -207,22 +207,9 @@ export class User {
   async notify(this: DocumentType<User>, content: string) {
     return this._getNotificationQueue()
       .then(async (notifications) => {
-        notifications
-          .push(content)
-          .then((notify) => {
-            if (clientServer.Aliases.isSet(this.profile.username)) {
-              const dto = new DTO({
-                label: 'notify',
-                content: { id: notify.info.id, content },
-              })
-              clientServer
-                .control(clientServer.Aliases.get(this.profile.username)!)
-                .emit('notify', dto.to.JSON)
-            }
-          })
-          .catch((e) => {
-            throw e
-          })
+        notifications.push(content).catch((e) => {
+          console.error(e)
+        })
 
         return true
       })

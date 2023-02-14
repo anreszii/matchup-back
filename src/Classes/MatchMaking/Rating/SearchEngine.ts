@@ -11,7 +11,7 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
 
   findLobby(
     filters: Rating.SearchEngine.Filters,
-    member: Match.Member.Instance,
+    member: Match.Player.Instance,
   ): Promise<Match.Lobby.Instance> {
     if (member.lobbyID) {
       if (this._manager.has(member.lobbyID))
@@ -58,7 +58,7 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
     return new Filters()
   }
 
-  private _startSearchingForMember(member: Match.Member.Instance) {
+  private _startSearchingForMember(member: Match.Player.Instance) {
     if (member.flags.searching)
       throw new TechnicalError(
         'member search flag',
@@ -71,7 +71,7 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
     for (let member of team.members.toArray) member.flags.searching = true
   }
 
-  private _stopSearchingForMember(member: Match.Member.Instance) {
+  private _stopSearchingForMember(member: Match.Player.Instance) {
     member.flags.searching = false
     if (!member.teamID) return
     let team = TEAMS.findById(member.teamID)

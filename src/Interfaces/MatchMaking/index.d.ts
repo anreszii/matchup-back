@@ -4,7 +4,7 @@ import type { Group } from './Group'
 import type { ILobby } from './Lobby/Lobby'
 import type { MatchController } from './Controller'
 
-import type { IMatchMember } from './Member'
+import type { IMatchPlayer } from './Member'
 import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
@@ -72,10 +72,10 @@ export declare namespace Match {
         get IDs(): number[]
       }
       interface Instance extends Group<number> {
-        isCaptain(member: string | Member.Instance): boolean
+        isCaptain(member: string | Player.Instance): boolean
         move(name: string, command: Instance | Types | number): Promise<boolean>
-        has(entity: Match.Member.Instance | string): boolean
-        get(name: string): Member.Instance | null
+        has(entity: Match.Player.Instance | string): boolean
+        get(name: string): Player.Instance | null
 
         get lobbyID(): string
         get type(): Types
@@ -84,7 +84,7 @@ export declare namespace Match {
         get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
-        get players(): Member.Instance[]
+        get players(): Player.Instance[]
 
         get playersCount(): number
         get teamPlayersCount(): number
@@ -100,18 +100,16 @@ export declare namespace Match {
     }
   }
 
-  namespace Member {
-    interface Manager extends IManager<Member.Instance, string> {
+  namespace Player {
+    interface Manager extends IManager<Player.Instance, string> {
       becomeReady(name: string): boolean
       becomeUnready(name: string): boolean
       isOnline(name: string[]): Map<string, boolean>
     }
-    interface Instance extends IMatchMember {
+    interface Instance extends IMatchPlayer {
       notify(content: string): Promise<boolean>
       isPremium(): Promise<boolean>
     }
-
-    interface InstanceData extends Omit<Instance, 'readyToDrop' | 'delete'> {}
 
     namespace Team {
       interface Manager extends IManager<Team.Instance, number> {
@@ -121,7 +119,7 @@ export declare namespace Match {
         get IDs(): number[]
       }
       interface Instance extends Group<number> {
-        isCaptain(member: string | Member.Instance): boolean
+        isCaptain(member: string | Player.Instance): boolean
         set captainName(value: string)
         get captainName(): string
 
@@ -129,20 +127,20 @@ export declare namespace Match {
       }
     }
 
-    interface List extends OneTypeArray<Member.Instance> {
-      isMember(entity: unknown): entity is Member.Instance
+    interface List extends OneTypeArray<Player.Instance> {
+      isMember(entity: unknown): entity is Player.Instance
 
       hasMember(name: string): boolean
 
-      addMember(member: Member.Instance): boolean
+      addMember(member: Player.Instance): boolean
 
       deleteMember(name: string): boolean
 
-      getByName(name: string): Member.Instance | null
+      getByName(name: string): Player.Instance | null
 
       get count(): number
 
-      get members(): Member.Instance[]
+      get members(): Player.Instance[]
       get membersCount(): number
     }
     interface Statistic extends IStatistic {}

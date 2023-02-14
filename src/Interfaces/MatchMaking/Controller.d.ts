@@ -7,12 +7,12 @@ export declare interface MatchController {
   stop(): Promise<boolean>
 
   addMembers(
-    ...members: Array<Match.Member.Instance | string>
+    ...members: Array<Match.Player.Instance | string>
   ): Promise<boolean>
   removeMembers(
-    ...members: Array<Match.Member.Instance | string>
+    ...members: Array<Match.Player.Instance | string>
   ): Promise<boolean>
-  updateMember(member: Partial<Match.Member.Instance>): Promise<boolean>
+  updateMember(member: Partial<Match.Player.Instance>): Promise<boolean>
 
   get gameName(): Match.Manager.supportedGames
 }

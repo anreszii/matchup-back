@@ -6,7 +6,7 @@ export const enum lobbyStatus {
   FULL = 'fullfilled',
 }
 
-export const UNDEFINED_MEMBER: Match.Member.Instance = {
+export const UNDEFINED_MEMBER: Match.Player.Instance = {
   id: 'undefined',
   name: 'undefined',
   flags: {
@@ -14,6 +14,6 @@ export const UNDEFINED_MEMBER: Match.Member.Instance = {
     searching: false,
   },
   GRI: 0,
-} as Match.Member.Instance
+} as Match.Player.Instance
 
 export const MAX_TEAM_MEMBER = 5
