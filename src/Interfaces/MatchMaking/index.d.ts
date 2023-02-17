@@ -4,7 +4,7 @@ import type { Group } from './Group'
 import type { ILobby } from './Lobby/Lobby'
 import type { MatchController } from './Controller'
 
-import type { IMatchPlayer } from './Member'
+import type { IMatchPlayer, PlayerData } from './Player'
 import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
@@ -18,30 +18,7 @@ export declare namespace Match {
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
-    interface Instance extends ILobby {
-      vote(name: string, map: string): boolean
-      move(
-        name: string,
-        command: Command.Instance | Command.Types | number,
-      ): Promise<boolean>
-      becomeReady(name: string): boolean
-      get commands(): Map<Command.Types, Command.Instance>
-
-      set counter(value: Counter)
-      get isReady(): Promise<boolean>
-
-      get maps(): string[]
-      get votingCaptain(): string
-      get isVotingStageEnd(): boolean
-      get map(): string | undefined
-      get readyToStart(): boolean
-      get startedAt(): Date | undefined
-
-      setGameId(name: string, id: string): boolean
-
-      get owner(): string | undefined
-      get gameID(): string | undefined
-    }
+    interface Instance extends ILobby {}
 
     type Counter = {
       searching: number
@@ -101,15 +78,10 @@ export declare namespace Match {
   }
 
   namespace Player {
-    interface Manager extends IManager<Player.Instance, string> {
-      becomeReady(name: string): boolean
-      becomeUnready(name: string): boolean
-      isOnline(name: string[]): Map<string, boolean>
-    }
-    interface Instance extends IMatchPlayer {
-      notify(content: string): Promise<boolean>
-      isPremium(): Promise<boolean>
-    }
+    interface Manager extends IManager<Player.Instance, string> {}
+    interface Instance extends IMatchPlayer {}
+
+    interface Data extends PlayerData {}
 
     namespace Team {
       interface Manager extends IManager<Team.Instance, number> {

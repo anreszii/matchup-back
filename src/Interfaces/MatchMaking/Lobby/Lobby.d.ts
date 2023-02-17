@@ -1,9 +1,21 @@
 import type { Match } from '../index'
 import type { IEntity, IChat, Rating } from '../../index'
+//TODO разделить на лобби + игра
 export declare interface ILobby extends IEntity<string> {
   join(name: string): Promise<boolean>
   leave(name: string): Promise<boolean>
   updateStatus(): Promise<void>
+  vote(name: string, map: string): boolean
+  move(
+    name: string,
+    command: Command.Instance | Command.Types | number,
+  ): Promise<boolean>
+  start(): Promise<boolean>
+  markToDelete(): boolean
+
+  canAddTeam(id: number): boolean
+  setGameId(name: string, id: string): boolean
+  hasSpace(memberCount: number): boolean
 
   get id(): string
   get state(): Match.Lobby.State
@@ -30,10 +42,18 @@ export declare interface ILobby extends IEntity<string> {
   get playersCount(): number
   get membersCount(): number
 
-  start(): Promise<boolean>
-  markToDelete(): boolean
+  get commands(): Map<Command.Types, Command.Instance>
 
-  canAddTeam(id: number): boolean
+  set counter(value: Counter)
+  get isReady(): Promise<boolean>
 
-  hasSpace(memberCount: number): boolean
+  get maps(): string[]
+  get votingCaptain(): string
+  get isVotingStageEnd(): boolean
+  get map(): string | undefined
+  get readyToStart(): boolean
+  get startedAt(): Date | undefined
+
+  get owner(): string | undefined
+  get gameID(): string | undefined
 }

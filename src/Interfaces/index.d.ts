@@ -8,3 +8,7 @@ export declare type USER_ROLE = 'default' | 'admin'
 export interface Loadable {
   load(): Promise<void>
 }
+
+export interface StateMachine<STATES> {
+  transition(signal: string, ...data: unknown[])
+}
