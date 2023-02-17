@@ -11,9 +11,7 @@ import type { Match } from '../../Interfaces/index'
 import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
 import { StateManager } from './StateManager'
-import { Command } from '../MatchMaking/Command/Command'
 import { COMMANDS } from '../MatchMaking/Command/Manager'
-import { StandOff_Lobbies } from '../../API/Sockets'
 import { Logger } from '../../Utils/Logger'
 
 type PlayerCommand = Exclude<
