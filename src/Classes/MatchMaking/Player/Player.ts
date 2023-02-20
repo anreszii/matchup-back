@@ -5,7 +5,12 @@ import {
   PlayerSignals,
   PlayerStates,
 } from '../../../Interfaces/MatchMaking/Player'
-import { User, UserModel } from '../../../Models'
+import {
+  NotificationModel,
+  NotificationQueue,
+  User,
+  UserModel,
+} from '../../../Models'
 import { Logger } from '../../../Utils/Logger'
 import { DTO } from '../../DTO/DTO'
 import { TEAMS } from '../Team/Manager'
@@ -23,6 +28,7 @@ export class Player implements Match.Player.Instance {
   private _logger = new Logger('Player', 'Instance')
   private _state!: PlayerStates
   private _timers: Map<PlayerStates, Date> = new Map()
+  private _notifications?: DocumentType<NotificationQueue>
 
   constructor(public name: string) {
     this.event(PlayerSignals.init)
@@ -30,6 +36,17 @@ export class Player implements Match.Player.Instance {
       .then((document) => {
         if (!document)
           throw new TechnicalError('user document', TechnicalCause.NOT_EXIST)
+
+        NotificationModel.getForUser(document)
+          .then((queue) => {
+            if (!queue) return
+            this._notifications = queue
+          })
+          .catch((e: Error) => {
+            this._logger.warning(
+              `[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`,
+            )
+          })
 
         let discordNick = document.profile.discord_nickname
         if (!discordNick) discordNick = document.profile.username
@@ -50,6 +67,7 @@ export class Player implements Match.Player.Instance {
             searching: false,
           },
         }
+
         this.event(PlayerSignals.be_online)
       })
       .catch((e: Error) => {
@@ -161,6 +179,21 @@ export class Player implements Match.Player.Instance {
         .emit(event, content.to.JSON)
   }
 
+  notify(content: string): void {
+    this._logger.trace(`creating notify. content: ${content}`)
+    if (!this._notifications) return
+    this.send(
+      'notify',
+      new DTO({
+        label: 'notify',
+        content: content,
+      }),
+    )
+    this._notifications.push(content).catch((e: Error) => {
+      this._logger.warning(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
+    })
+  }
+
   update(): Promise<boolean> {
     this._logger.trace(`Updating data. OLD: ${JSON.stringify(this.data)}`)
     return UserModel.findById(this.id)
@@ -176,27 +209,6 @@ export class Player implements Match.Player.Instance {
       .catch((e: Error) => {
         this._logger.fatal(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)
         this.event(PlayerSignals.delete)
-        return false
-      })
-  }
-
-  notify(content: string): Promise<boolean> {
-    this._logger.trace(`creating notify. content: ${content}`)
-    return UserModel.findByName(this.data.name)
-      .then((user) => {
-        return user.notify(content).then((notify) => {
-          clientServer.control(clientServer.Aliases.get(this.data.name)!).emit(
-            'notify',
-            new DTO({
-              label: 'notify',
-              content: { id: notify.info.id, content },
-            }).to.JSON,
-          )
-          return true
-        })
-      })
-      .catch((e) => {
-        this._logger.fatal(e)
         return false
       })
   }

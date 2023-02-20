@@ -444,6 +444,7 @@ export class Lobby implements Match.Lobby.Instance {
     this._logger.debug(`MEMBER DATA: ${JSON.stringify(player)}`)
 
     this._counter.searching++
+    this.updateState()
     return true
   }
 
@@ -476,9 +477,9 @@ export class Lobby implements Match.Lobby.Instance {
       `MEMBER ${player.data.name} DATA: ${JSON.stringify(player)}`,
     )
 
-    this.updateState()
-    if (this.membersCount == 0) this.markToDelete()
     this._counter.searching--
+    if (this.membersCount == 0) this.markToDelete()
+    this.updateState()
     return true
   }
 
