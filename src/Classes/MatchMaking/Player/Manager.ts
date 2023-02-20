@@ -14,6 +14,7 @@ export class PlayerManager implements Match.Player.Manager {
   }
 
   async spawn(name: Match.Player.Name): Promise<Match.Player.Instance> {
+    if (this.has(name)) return this.get(name)!
     try {
       const player = new Player(name)
       await player.waitForState(PlayerStates.online)
