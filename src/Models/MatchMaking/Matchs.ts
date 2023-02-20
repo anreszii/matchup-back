@@ -1,6 +1,6 @@
+import { Match as IMatch } from '../../Interfaces'
 import { prop, ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import { MemberRecord } from './Member'
-import { Match as IMatch } from '../../Interfaces'
 import { MapScore } from './MapScore'
 import { v4 as uuid } from 'uuid'
 import { getRandom } from '../../Utils/math'

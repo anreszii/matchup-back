@@ -1,14 +1,12 @@
 import type { Match, IChat } from '../../../Interfaces'
+import { Name } from '../../../Interfaces/MatchMaking/Player'
 import { Logger } from '../../../Utils/Logger'
 import { getMedian } from '../../../Utils/math'
-import { CLIENT_CHATS } from '../../Chat/Manager'
-import { MemberList } from '../MemberList'
-import { PLAYERS } from '../MemberManager'
+import { PLAYERS } from '../Player/Manager'
 
 export class Team implements Match.Player.Team.Instance {
-  private _members: MemberList = new MemberList()
+  private _players: Map<Name, Match.Player.Instance> = new Map()
   private _captain!: string
-  private _chat!: IChat.Controller
   private _maxTeamSize = 5
   private _keyGuild?: string
   private _deleted = false
@@ -16,64 +14,62 @@ export class Team implements Match.Player.Team.Instance {
   private _max: Match.Player.Instance | null = null
   private _logger: Logger
 
-  constructor(private _id: number) {
+  constructor(
+    private _id: Match.Player.Team.ID,
+    private _chat: IChat.Controller,
+  ) {
     this._logger = new Logger(`TEAM#${_id}`)
   }
 
-  async join(name: string): Promise<boolean> {
-    await this._checkChat()
-    if (this.members.count >= 5) return false
+  join(name: string): boolean {
+    if (this.players.size >= 5) return false
 
     this._logger.info(`${name} JOINS`)
 
-    let member = await PLAYERS.get(name)
-    if (!this.members.addMember(member)) return false
+    let player = PLAYERS.get(name)
+    if (!player) return false
+    if (!this._players.set(player.data.name, player)) return false
 
-    await this.chat.join(name)
-    this._checkGuildAfterJoin(member)
+    this.chat.join(name)
+    this._checkGuildAfterJoin(player.data)
 
-    if (!this._captain) this._captain = member.name
-    member.teamID = this.id
+    if (!this._captain) this._captain = player.data.name
+    player.data.teamID = this.id
     this._updateRatingRecords()
     return true
   }
 
-  async leave(name: string): Promise<boolean> {
-    if (this.members.count == 0) return false
-    await this._checkChat()
+  leave(name: string): boolean {
+    if (this.players.size == 0) return false
 
     this._logger.info(`${name} LEAVES`)
 
-    let member = this.members.getByName(name)
-    if (!member) return false
+    let player = this._players.get(name)
+    if (!player) return false
 
-    await this.chat.leave(name)
+    this.chat.leave(name)
     this._checkGuildAfterLeave()
 
-    if (!this.members.deleteMember(name)) return false
-    member.flags.ready = false
-    member.teamID = undefined
-    if (this._min == member) this._min = null
-    if (this._max == member) this._max = null
+    if (!this.players.delete(name)) return false
+    player.data.flags.ready = false
+    player.data.teamID = undefined
+    if (this._min == player) this._min = null
+    if (this._max == player) this._max = null
     this._updateRatingRecords()
+    if (this._players.size == 0) return this.delete()
     return true
   }
 
-  async delete(): Promise<true> {
+  delete(): boolean {
     this._logger.info('MARKED TO DELETE')
-    for (let member of this._members.toArray) {
-      this.chat.leave(member.name)
-      member.flags.ready = false
-      member.commandID = undefined
-      member.teamID = undefined
-    }
     this.chat.delete()
+    for (let player of this._players.values()) player.data.teamID = undefined
     this._deleted = true
     return true
   }
 
   isCaptain(member: string | Match.Player.Instance): boolean {
-    let name = typeof member == 'string' ? member : member.name
+    let name = typeof member == 'string' ? member : member.data.name
     return name == this._captain
   }
 
@@ -87,7 +83,7 @@ export class Team implements Match.Player.Team.Instance {
 
   get GRI(): number {
     const GRIArray: number[] = []
-    for (let member of this._members.toArray) GRIArray.push(member.GRI)
+    for (let player of this._players.values()) GRIArray.push(player.data.GRI)
     return getMedian(...GRIArray)
   }
 
@@ -95,12 +91,19 @@ export class Team implements Match.Player.Team.Instance {
     return Boolean(this._keyGuild)
   }
 
-  get members(): Match.Player.List {
-    return this._members
+  get players() {
+    return this._players
   }
 
   get size(): number {
-    return this._members.count
+    return this._players.size
+  }
+
+  get playersData(): Match.Player.Data[] {
+    const playersData = []
+    for (let player of this.players.values()) playersData.push(player.data)
+
+    return playersData
   }
 
   set captainName(name: string) {
@@ -121,39 +124,32 @@ export class Team implements Match.Player.Team.Instance {
 
   get maximumRatingSpread(): number {
     if (!this._min || !this._max) return 0
-    return this._max!.GRI - this._min!.GRI
+    return this._max!.data.GRI - this._min!.data.GRI
   }
 
-  private _checkGuildAfterJoin(member: Match.Player.Instance) {
-    if (this.members.count == 0) {
-      this._keyGuild = member.guildName
+  private _checkGuildAfterJoin(playerData: Match.Player.Data) {
+    if (this.size == 0) {
+      this._keyGuild = playerData.guild
       return
     }
-    if (this._keyGuild != member.guildName) this._keyGuild = undefined
+    if (this._keyGuild != playerData.guild) this._keyGuild = undefined
   }
 
   private _checkGuildAfterLeave() {
-    let members = this.members.toArray
-    this._keyGuild = members[0].guildName
-    for (let i = 1; i < members.length; i++)
-      if (members[i].guildName != this._keyGuild)
+    let players = Array.from(this.players.values())
+    this._keyGuild = players[0].data.guild
+    for (let i = 1; i < players.length; i++)
+      if (players[i].data.guild != this._keyGuild)
         return (this._keyGuild = undefined)
   }
 
   private _updateRatingRecords() {
     let min, max
-    for (let member of this.members.toArray) {
+    for (let member of this.players.values()) {
       if (!min) min = member
       if (!max) max = member
-      if (member.GRI < min.GRI) this._min = member
-      if (member.GRI > max.GRI) this._max = member
+      if (member.data.GRI < min.data.GRI) this._min = member
+      if (member.data.GRI > max.data.GRI) this._max = member
     }
-  }
-
-  private async _checkChat() {
-    if (this._chat) return
-    this._chat = await CLIENT_CHATS.spawn('team', `team#${this._id}`)
-
-    for (let member of this._members.values()) this._chat.join(member.name)
   }
 }

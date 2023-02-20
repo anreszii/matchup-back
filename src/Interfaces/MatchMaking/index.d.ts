@@ -4,7 +4,7 @@ import type { Group } from './Group'
 import type { ILobby } from './Lobby/Lobby'
 import type { MatchController } from './Controller'
 
-import type { IMatchPlayer, PlayerData } from './Player'
+import type { IMatchPlayer, Name, PlayerData } from './Player'
 import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
@@ -18,6 +18,15 @@ export declare namespace Match {
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
+    type ID = string
+    const enum States {
+      deleted = 0,
+      searching = 1,
+      filled = 2,
+      voting = 3,
+      preparing = 4,
+      started = 5,
+    }
     interface Instance extends ILobby {}
 
     type Counter = {
@@ -27,32 +36,20 @@ export declare namespace Match {
 
     type Type = 'training' | 'arcade' | 'rating'
 
-    type State =
-      | 'searching'
-      | 'filled'
-      | 'voting'
-      | 'preparing'
-      | 'started'
-      | 'deleted'
-
     namespace Command {
+      type ID = string
       type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'
-      interface Manager extends IManager<Command.Instance, number> {
-        findByUserName(username: string): Promise<Command.Instance | undefined>
-        findById(id: number): Command.Instance | undefined
-        move(
-          name: string,
-          from: Instance | number,
-          to: Instance | number,
-        ): Promise<boolean>
+      interface Manager extends IManager<Command.Instance, ID> {
+        findByUserName(username: string): Command.Instance | undefined
+        findById(id: ID): Command.Instance | undefined
+        move(name: string, to: IDr): boolean
         get toArray(): Command.Instance[]
-        get IDs(): number[]
+        get IDs(): ID[]
       }
-      interface Instance extends Group<number> {
+      interface Instance extends Group<ID> {
         isCaptain(member: string | Player.Instance): boolean
-        move(name: string, command: Instance | Types | number): Promise<boolean>
         has(entity: Match.Player.Instance | string): boolean
-        get(name: string): Player.Instance | null
+        get(name: string): Player.Instance | undefined
 
         get lobbyID(): string
         get type(): Types
@@ -61,7 +58,7 @@ export declare namespace Match {
         get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
-        get players(): Player.Instance[]
+        get players(): Map<Name, Player.Instance>
 
         get playersCount(): number
         get teamPlayersCount(): number
@@ -78,19 +75,25 @@ export declare namespace Match {
   }
 
   namespace Player {
-    interface Manager extends IManager<Player.Instance, string> {}
+    type ID = string
+    type Name = string
+    interface Manager extends IManager<Player.Instance, string> {
+      isOnline(names: string[]): Map<string, boolean>
+    }
     interface Instance extends IMatchPlayer {}
 
     interface Data extends PlayerData {}
 
     namespace Team {
-      interface Manager extends IManager<Team.Instance, number> {
-        findByUserName(username: string): Promise<Team.Instance | undefined>
-        findById(id: number): Team.Instance | undefined
+      type ID = string
+
+      interface Manager extends IManager<Team.Instance, ID> {
+        findByUserName(username: string): Team.Instance | undefined
+        findById(id: ID): Team.Instance | undefined
         get toArray(): Team.Instance[]
-        get IDs(): number[]
+        get IDs(): ID[]
       }
-      interface Instance extends Group<number> {
+      interface Instance extends Group<ID> {
         isCaptain(member: string | Player.Instance): boolean
         set captainName(value: string)
         get captainName(): string
@@ -117,8 +120,6 @@ export declare namespace Match {
     }
     interface Statistic extends IStatistic {}
   }
-
-  interface Controller extends MatchController {}
 
   const enum Result {
     LOSE = 0,

@@ -9,6 +9,7 @@ export interface Loadable {
   load(): Promise<void>
 }
 
-export interface StateMachine<STATES> {
-  transition(signal: string, ...data: unknown[])
+export interface StateMachine<SIGNALS, STATES> {
+  event(signal: SIGNALS, data?: { [key: string]: unknown })
+  waitForState(state: STATES): Promise<void>
 }

@@ -11,11 +11,11 @@ import {
   TechnicalError,
 } from '../../error'
 import { validatePasswordFormat } from '../../validation/password'
-import { StandOff_Lobbies } from '../Sockets/Controllers/dark-side/lobby'
 import { Mail, SMTP } from '../../Utils/smtp'
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { DTO } from '../../Classes/DTO/DTO'
 import { Logger } from '../../Utils/Logger'
+import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 require('dotenv').config()
 
 let router = Router()

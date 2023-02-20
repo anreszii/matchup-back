@@ -12,7 +12,7 @@ export declare namespace Rating {
       byRegion(region: Rating.SearchEngine.SUPPORTED_REGIONS): Filters
       byRegime(type: Match.Lobby.Type): Filters
       byGRI(GRI: number): Filters
-      byTeam(id: number): Filters
+      byTeam(id: Match.Player.Team.ID): Filters
       byGuild(): Filters
 
       use(lobby: Match.Lobby.Instance): { [key: string]: number }

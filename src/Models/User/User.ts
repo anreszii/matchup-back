@@ -1,4 +1,5 @@
 import type { USER_ROLE } from '../../Interfaces'
+import { Match } from '../MatchMaking/Matchs'
 
 import {
   prop,
@@ -15,11 +16,11 @@ import { Rating } from '../MatchMaking/Rating'
 import {
   MatchListModel,
   NotificationModel,
+  Notify,
   TaskListModel,
   UserModel,
 } from '../'
 
-import { Match } from '../MatchMaking/Matchs'
 import { Guild } from '../Guild/Guild'
 
 import { generatePassword } from '../../Utils/passwordGenerator'
@@ -28,11 +29,8 @@ import { TechnicalCause, TechnicalError } from '../../error'
 import { RelationRecord } from './Relations'
 import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
-import { ImageModel } from '../Image'
 import { PERIODS, Premium } from './Premium'
 import { NotificationQueue } from './Notify/Queue'
-import { clientServer } from '../../API/Sockets/clientSocketServer'
-import { DTO } from '../../Classes/DTO/DTO'
 import { isValidObjectId, Types } from 'mongoose'
 
 class Prefixes {
@@ -204,14 +202,10 @@ export class User {
     return true
   }
 
-  async notify(this: DocumentType<User>, content: string) {
+  async notify(this: DocumentType<User>, content: string): Promise<Notify> {
     return this._getNotificationQueue()
       .then(async (notifications) => {
-        notifications.push(content).catch((e) => {
-          console.error(e)
-        })
-
-        return true
+        return notifications.push(content)
       })
       .catch((e) => {
         throw e
@@ -460,7 +454,7 @@ export class User {
   private async _getTestRelations(
     this: DocumentType<User>,
     needFriendsCount: number = 2,
-  ) {
+  ): Promise<void> {
     let users = await UserModel.getTestData()
     let friendsCount = 0
     for (let i = 0; i < users.length || friendsCount < needFriendsCount; i++) {

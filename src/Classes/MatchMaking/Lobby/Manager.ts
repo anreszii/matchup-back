@@ -1,11 +1,12 @@
-import type { Match } from '../../../Interfaces'
+import { Match } from '../../../Interfaces'
 
 import { v4 as uuid } from 'uuid'
 import { Lobby } from './Lobby'
-import { TechnicalCause, TechnicalError } from '../../../error'
-import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { CLIENT_CHATS } from '../../Chat/Manager'
+import { MINUTE_IN_MS } from '../../../configs/time_constants'
 import { Logger } from '../../../Utils/Logger'
+import { COMMANDS } from '../Command/Manager'
+import { MAX_COMMAND_SIZE } from '../../../configs/Lobby'
 
 export class LobbyManager implements Match.Manager.Instance {
   private static _counter: Match.Lobby.Counter = {
@@ -13,10 +14,8 @@ export class LobbyManager implements Match.Manager.Instance {
     playing: 0,
   }
   private _lobbyMap: Map<string, Match.Lobby.Instance> = new Map()
-  private _controller: Match.Controller
   private _logger = new Logger('Lobby Manager')
-  constructor(controller: Match.Controller) {
-    this._controller = controller
+  constructor() {
     setInterval(
       function (this: LobbyManager) {
         this._logger.info('CLEANING GARBAGE')
@@ -31,17 +30,29 @@ export class LobbyManager implements Match.Manager.Instance {
     type: Match.Lobby.Type = 'rating',
   ): Promise<Match.Lobby.Instance> {
     const ID = LobbyManager._createID()
-    let status = await this._controller.create()
-    if (!status)
-      throw new TechnicalError('lobby', TechnicalCause.CAN_NOT_CREATE)
 
-    let lobby = new Lobby(
-      ID,
-      type,
-      5,
-      this._controller,
-      await CLIENT_CHATS.spawn('lobby', `lobby#${ID}`),
-    )
+    const commands: Map<
+      Match.Lobby.Command.Types,
+      Match.Lobby.Command.Instance
+    > = new Map()
+    const promises = await Promise.all([
+      COMMANDS.spawn(ID, 'spectators', MAX_COMMAND_SIZE),
+      COMMANDS.spawn(ID, 'neutrals', MAX_COMMAND_SIZE * 3),
+      COMMANDS.spawn(ID, 'command1', MAX_COMMAND_SIZE),
+      COMMANDS.spawn(ID, 'command2', MAX_COMMAND_SIZE),
+      CLIENT_CHATS.spawn('lobby', `lobby#${ID}`),
+    ]).catch((e: Error) => {
+      this._logger.critical(
+        `[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`,
+      )
+      throw e
+    })
+    commands.set('spectators', promises[0])
+    commands.set('neutrals', promises[1])
+    commands.set('command1', promises[2])
+    commands.set('command2', promises[3])
+
+    let lobby = new Lobby(ID, type, promises[4], commands)
     lobby.counter = LobbyManager._counter
 
     this._lobbyMap.set(ID, lobby)
@@ -86,14 +97,13 @@ export class LobbyManager implements Match.Manager.Instance {
   }
 
   private _findFreeLobby() {
-    for (let lobby of this._lobbyMap.values()) {
-      if (lobby.state == 'searching' && lobby.game == this._controller.gameName)
-        return lobby
-      if (!lobby.state) this.drop(lobby)
-    }
+    for (let lobby of this._lobbyMap.values())
+      if (lobby.state == Match.Lobby.States.searching) return lobby
   }
 
   private static _createID() {
     return uuid()
   }
 }
+
+export const StandOff_Lobbies = new LobbyManager()

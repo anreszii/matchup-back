@@ -7,12 +7,13 @@ import { parseResults } from '../../Utils/resultParser'
 import FormData = require('form-data')
 import { IncomingMessage } from 'http'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
-import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
+import { PLAYERS } from '../../Classes/MatchMaking/Player/Manager'
 import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
-import { StandOff_Lobbies } from '../Sockets'
+import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 
 import { Logger } from '../../Utils/Logger'
 import { S3Storage } from '../../Classes/S3/S3Storage'
+import { Match } from '../../Interfaces'
 const s3 = new S3Storage('ru-1')
 const logger = new Logger('HTTP', 'result/upload')
 
@@ -41,19 +42,19 @@ router.post(
 
       const { payload } = expressRequest.body
       let username = payload.username as string
-      let member = await PLAYERS.get(username)
-      if (!member || !member.lobbyID)
+      const player = PLAYERS.get(username)
+      if (!player || !player.data.lobbyID)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-      const lobbyObject = StandOff_Lobbies.get(member.lobbyID)
+      const lobbyObject = StandOff_Lobbies.get(player.data.lobbyID)
       if (!lobbyObject) {
-        member.lobbyID = undefined
+        player.data.lobbyID = undefined
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
-      if (lobbyObject.state != 'started')
+      if (lobbyObject.state != Match.Lobby.States.started)
         throw new TechnicalError('lobby status', TechnicalCause.INVALID)
 
-      let lobby = await CachedLobbies.get(member.lobbyID)
+      let lobby = await CachedLobbies.get(player.data.lobbyID)
       if (!lobby)
         throw new TechnicalError('lobby cache', TechnicalCause.NOT_EXIST)
 

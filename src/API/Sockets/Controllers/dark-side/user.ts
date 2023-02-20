@@ -1,7 +1,6 @@
 import { WebSocket } from 'uWebSockets.js'
 import { CONTROLLERS } from '../..'
-import { DTO } from '../../../../Classes/DTO/DTO'
-import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
+import { PLAYERS } from '../../../../Classes/MatchMaking/Player/Manager'
 import { TechnicalCause, TechnicalError } from '../../../../error'
 
 export async function is_online(socket: WebSocket, params: unknown[]) {

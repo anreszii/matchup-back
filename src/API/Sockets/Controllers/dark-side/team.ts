@@ -5,7 +5,8 @@ import { CONTROLLERS } from '../../Handlers/dark-side'
 import { clientServer } from '../..'
 import { UserModel } from '../../../../Models'
 import { DTO } from '../../../../Classes/DTO/DTO'
-import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
+import { PLAYERS } from '../../../../Classes/MatchMaking/Player/Manager'
+import { PlayerSignals } from '../../../../Interfaces/MatchMaking/Player'
 
 /**
  * Обработчик для создания временной команды.</br>
@@ -34,21 +35,27 @@ import { PLAYERS } from '../../../../Classes/MatchMaking/MemberManager'
  */
 export async function create_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
-  let member = await PLAYERS.get(username)
+  let player = PLAYERS.get(username)
+  if (!player) player = await PLAYERS.spawn(username)
 
-  if (typeof member.teamID == 'number') {
-    if (!TEAMS.findById(member.teamID)) {
-      member.teamID = undefined
+  if (typeof player.data.teamID == 'number') {
+    if (!TEAMS.findById(player.data.teamID)) {
+      player.data.teamID = undefined
       throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
     }
   }
 
-  let team = TEAMS.spawn()
-  await team.join(username)
-  return {
-    teamID: team.id,
-    chatID: team.chat.id,
-  }
+  return TEAMS.spawn()
+    .then((team) => {
+      team.join(username)
+      return {
+        teamID: team.id,
+        chatID: team.chat.id,
+      }
+    })
+    .catch((e) => {
+      throw e
+    })
 }
 CONTROLLERS.set('create_team', create_team)
 
@@ -74,11 +81,12 @@ CONTROLLERS.set('create_team', create_team)
  */
 export async function join_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
-  let member = await PLAYERS.get(username)
+  let player = PLAYERS.get(username)
+  if (!player) throw new TechnicalError('player', TechnicalCause.NOT_EXIST)
 
-  if (member.teamID) {
-    if (!TEAMS.findById(member.teamID)) {
-      member.teamID = undefined
+  if (player.data.teamID) {
+    if (!TEAMS.findById(player.data.teamID)) {
+      player.event(PlayerSignals.corrupt)
       throw new TechnicalError('team', TechnicalCause.ALREADY_EXIST)
     }
   }
@@ -88,16 +96,16 @@ export async function join_team(socket: WebSocket, params: unknown[]) {
   if (typeof teamID != 'string')
     throw new TechnicalError('teamID', TechnicalCause.INVALID_FORMAT)
 
-  let team = TEAMS.findById(Number(teamID))
+  let team = TEAMS.findById(teamID)
   if (!team) throw new TechnicalError('teamID', TechnicalCause.NOT_EXIST)
 
   if (!(await team.join(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_ADD)
 
   const dto = new DTO({ name: username, label: 'join_team' })
-  for (let member of team.members.toArray)
+  for (let member of team.players.values())
     clientServer
-      .control(clientServer.Aliases.get(member.name)!)
+      .control(clientServer.Aliases.get(member.data.name)!)
       .emit('team_join', dto.to.JSON)
   return team.chat.id
 }
@@ -112,22 +120,24 @@ CONTROLLERS.set('join_team', join_team)
  */
 export async function leave_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
-  let member = await PLAYERS.get(username)
+  let player = PLAYERS.get(username)
+  if (!player) throw new TechnicalError('player', TechnicalCause.NOT_EXIST)
 
-  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (!player.data.teamID)
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
 
-  let team = TEAMS.findById(member.teamID)
+  let team = TEAMS.findById(player.data.teamID)
   if (!team) {
-    member.teamID = undefined
+    player.event(PlayerSignals.corrupt)
     throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
   }
   if (!(await team.leave(username)))
     throw new TechnicalError('team member', TechnicalCause.CAN_NOT_DELETE)
 
   const dto = new DTO({ name: username, label: 'leave_team' })
-  for (let member of team.members.toArray)
+  for (let member of team.players.values())
     clientServer
-      .control(clientServer.Aliases.get(member.name)!)
+      .control(clientServer.Aliases.get(member.data.name)!)
       .emit('leave_team', dto.to.JSON)
 
   return true
@@ -150,19 +160,22 @@ CONTROLLERS.set('leave_team', leave_team)
  */
 export async function check_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
-  let member = await PLAYERS.get(username)
+  let player = PLAYERS.get(username)
+  if (!player) throw new TechnicalError('player', TechnicalCause.NOT_EXIST)
 
-  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  if (!player.data.teamID)
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
 
-  let team = TEAMS.findById(member.teamID)
+  let team = TEAMS.findById(player.data.teamID)
   if (!team) {
-    member.teamID = undefined
+    player.event(PlayerSignals.corrupt)
+
     throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
   }
 
   return {
     id: team.id,
-    members: team.members.toArray,
+    members: team.playersData,
     captain: team.captainName,
     GRI: team.GRI,
   }
@@ -192,12 +205,15 @@ CONTROLLERS.set('check_team', check_team)
  */
 export async function invite_to_team(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
-  let member = await PLAYERS.get(username)
+  let player = PLAYERS.get(username)
+  if (!player) throw new TechnicalError('player', TechnicalCause.NOT_EXIST)
 
-  if (!member.teamID) throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
-  let team = TEAMS.get(member.teamID)
+  if (!player.data.teamID)
+    throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
+  let team = TEAMS.get(player.data.teamID)
   if (!team) {
-    member.teamID = undefined
+    player.event(PlayerSignals.corrupt)
+
     throw new TechnicalError('team', TechnicalCause.NOT_EXIST)
   }
 

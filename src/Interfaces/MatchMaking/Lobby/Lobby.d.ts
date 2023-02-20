@@ -2,28 +2,23 @@ import type { Match } from '../index'
 import type { IEntity, IChat, Rating } from '../../index'
 //TODO разделить на лобби + игра
 export declare interface ILobby extends IEntity<string> {
-  join(name: string): Promise<boolean>
-  leave(name: string): Promise<boolean>
-  updateStatus(): Promise<void>
+  join(name: string): boolean
+  leave(name: string): boolean
+  updateState(): void
   vote(name: string, map: string): boolean
-  move(
-    name: string,
-    command: Command.Instance | Command.Types | number,
-  ): Promise<boolean>
-  start(): Promise<boolean>
+  move(name: string, command: Command.Types): boolean
+  start(): boolean
   markToDelete(): boolean
 
-  canAddTeam(id: number): boolean
+  canAddTeam(id: Match.Player.Team.ID): boolean
   setGameId(name: string, id: string): boolean
   hasSpace(memberCount: number): boolean
 
   get id(): string
-  get state(): Match.Lobby.State
-  get game(): Match.Manager.supportedGames
+  get state(): Match.Lobby.States
   get type(): Match.Lobby.Type
 
   get chat(): IChat.Controller
-  set chat(instance: IChat.Controller)
 
   get region(): Rating.SearchEngine.SUPPORTED_REGIONS
   set region(region: Rating.SearchEngine.SUPPORTED_REGIONS)
@@ -36,8 +31,10 @@ export declare interface ILobby extends IEntity<string> {
   get neutrals(): Match.Lobby.Command.Instance
   get spectators(): Match.Lobby.Command.Instance
 
-  get players(): Match.Player.Instance[]
-  get players(): Match.Player.Instance[]
+  get players(): Map<string, Match.Player.Instance>
+  get members(): Map<string, Match.Player.Instance>
+  get playersData(): Match.Player.Data[]
+  get membersData(): Match.Player.Data[]
 
   get playersCount(): number
   get membersCount(): number
@@ -45,7 +42,7 @@ export declare interface ILobby extends IEntity<string> {
   get commands(): Map<Command.Types, Command.Instance>
 
   set counter(value: Counter)
-  get isReady(): Promise<boolean>
+  get isReady(): boolean
 
   get maps(): string[]
   get votingCaptain(): string

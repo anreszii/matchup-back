@@ -1,4 +1,8 @@
 import type { Rating, Match } from '../../../Interfaces'
+import {
+  PlayerSignals,
+  PlayerStates,
+} from '../../../Interfaces/MatchMaking/Player'
 import { Logger } from '../../../Utils/Logger'
 import { TechnicalCause, TechnicalError } from '../../../error'
 import { TEAMS } from '../Team/Manager'
@@ -11,18 +15,14 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
 
   findLobby(
     filters: Rating.SearchEngine.Filters,
-    member: Match.Player.Instance,
+    player: Match.Player.Instance,
   ): Promise<Match.Lobby.Instance> {
-    if (member.lobbyID) {
-      if (this._manager.has(member.lobbyID))
-        return new Promise((resolve) =>
-          resolve(this._manager.get(member.lobbyID!) as Match.Lobby.Instance),
-        )
-    }
-    this._startSearchingForMember(member)
+    if (player.state >= PlayerStates.waiting)
+      throw new TechnicalError('lobby', TechnicalCause.ALREADY_EXIST)
+    this._startSearchingForPlayer(player)
     this._logger.trace(`STARTED. FILTERS: ${JSON.stringify(filters)}`)
     let finder = new Finder(this._manager.lobbies, filters)
-    const lobby = finder
+    return finder
       .find()
       .then((foundedLobby) => {
         if (foundedLobby) {
@@ -47,35 +47,21 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
           )
         throw e
       })
-      .finally(() => {
-        this._stopSearchingForMember(member)
-      })
-
-    return lobby
   }
 
   get Filters(): Rating.SearchEngine.Filters {
     return new Filters()
   }
 
-  private _startSearchingForMember(member: Match.Player.Instance) {
-    if (member.flags.searching)
+  private _startSearchingForPlayer(player: Match.Player.Instance) {
+    if (player.state >= PlayerStates.searching)
       throw new TechnicalError(
         'member search flag',
         TechnicalCause.ALREADY_EXIST,
       )
-    member.flags.searching = true
-    if (!member.teamID) return
-    let team = TEAMS.findById(member.teamID)
-    if (!team) return (member.teamID = undefined)
-    for (let member of team.members.toArray) member.flags.searching = true
-  }
-
-  private _stopSearchingForMember(member: Match.Player.Instance) {
-    member.flags.searching = false
-    if (!member.teamID) return
-    let team = TEAMS.findById(member.teamID)
-    if (!team) return (member.teamID = undefined)
-    for (let member of team.members.toArray) member.flags.searching = false
+    if (!player.data.teamID) return player.event(PlayerSignals.search)
+    let team = TEAMS.findById(player.data.teamID)
+    if (!team) return player.event(PlayerSignals.corrupt)
+    for (let player of team.players.values()) player.event(PlayerSignals.search)
   }
 }

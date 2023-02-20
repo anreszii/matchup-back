@@ -42,7 +42,14 @@ export function inRange(
   range: number,
 ): boolean {
   if (!toCheck && !standart) return true
-  if (typeof toCheck != 'number' || typeof standart != 'number') return false
+  if (
+    typeof toCheck != 'number' ||
+    typeof standart != 'number' ||
+    Object.is(NaN, toCheck) ||
+    Object.is(NaN, standart) ||
+    Object.is(NaN, range)
+  )
+    return false
   return standart - range <= toCheck && toCheck <= standart + range
 }
 

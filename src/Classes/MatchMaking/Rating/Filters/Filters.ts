@@ -29,7 +29,7 @@ export class Filters implements Rating.SearchEngine.Filters {
     return this
   }
 
-  byTeam(id: number) {
+  byTeam(id: Match.Player.Team.ID) {
     let filter = new TeamFilter()
     filter.id = id
 

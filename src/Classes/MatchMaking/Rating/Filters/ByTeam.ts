@@ -4,7 +4,7 @@ import { TEAMS } from '../../Team/Manager'
 
 export class TeamFilter implements Rating.SearchEngine.Filter {
   private _logger = new Logger('Search Engine', 'Team Filter')
-  private _ID!: number
+  private _ID!: Match.Player.Team.ID
   constructor() {}
 
   isValid(lobby: Match.Lobby.Instance) {
@@ -17,7 +17,7 @@ export class TeamFilter implements Rating.SearchEngine.Filter {
     return filterResult
   }
 
-  set id(value: number) {
+  set id(value: Match.Player.Team.ID) {
     if (TEAMS.get(value)) this._ID = value
   }
 

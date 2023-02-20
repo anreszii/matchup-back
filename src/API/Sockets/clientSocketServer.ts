@@ -8,15 +8,17 @@
  * @packageDocumentation
  */
 
-import { IDataEscort } from 'gamesocket.io'
-import { WS_SERVER } from '../../app'
-import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
-import { Logger } from '../../Utils/Logger'
+import type { IDataEscort } from 'gamesocket.io'
 
+import { Logger } from '../../Utils/Logger'
 const logger = new Logger('Web Socket Server', 'Close listener')
-export let clientServer = WS_SERVER.of(process.env.CLIENT_NAMESPACE!)
+import { WS_SERVER } from '../../app'
+export const clientServer = WS_SERVER.of(process.env.CLIENT_NAMESPACE!)
+
+import { PLAYERS } from '../../Classes/MatchMaking/Player/Manager'
+import { PlayerSignals } from '../../Interfaces/MatchMaking/Player'
+
 clientServer.on('close', async (escort: IDataEscort) => {
-  const { StandOff_Lobbies } = require('.')
   let socket = escort.get('socket') as { [key: string]: any }
   logger.info(
     `[SOCKET ${socket.id}] LEAVED. CODE: ${escort.get(
@@ -24,12 +26,13 @@ clientServer.on('close', async (escort: IDataEscort) => {
     )}. MESSAGE: ${escort.get('message')}`,
   )
   if (typeof socket.username == 'string') {
-    let player = await PLAYERS.get(socket.username)
-    if (!player.lobbyID) return
+    const socketAliases = clientServer.Aliases.get(socket.username)!
+    clientServer.Aliases.delete(socket.username, socket.id)
+    if (socketAliases.length == 0) clientServer.Aliases.remove(socket.username)
 
-    let lobby = StandOff_Lobbies.get(player.lobbyID)
-    if (!lobby) return (player.lobbyID = undefined)
+    if (!PLAYERS.has(socket.username)) return
+    const player = PLAYERS.get(socket.username)!
 
-    if (lobby.state == 'searching') await lobby.leave(player.name)
+    if (socketAliases.length == 0) return player.event(PlayerSignals.delete)
   }
 })

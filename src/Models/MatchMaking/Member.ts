@@ -1,5 +1,5 @@
-import { prop, Ref } from '@typegoose/typegoose'
-import { Match } from '../../Interfaces'
+import type { Match } from '../../Interfaces'
+import { prop } from '@typegoose/typegoose'
 import { Statistic } from './Statistic'
 
 export class MemberRecord {

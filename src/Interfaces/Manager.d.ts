@@ -14,5 +14,5 @@ export declare interface IEntity<ID> {
   set id(newID: ID)
 
   get readyToDrop(): boolean
-  delete(): Promise<true>
+  delete(): Promise<boolean> | boolean
 }
