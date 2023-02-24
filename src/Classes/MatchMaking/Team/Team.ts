@@ -28,13 +28,13 @@ export class Team implements Match.Player.Team.Instance {
 
     let player = PLAYERS.get(name)
     if (!player) return false
-    if (!this._players.set(player.data.name, player)) return false
+    if (!this._players.set(player.PublicData.name, player)) return false
 
     this.chat.join(name)
-    this._checkGuildAfterJoin(player.data)
+    this._checkGuildAfterJoin(player.PublicData)
 
-    if (!this._captain) this._captain = player.data.name
-    player.data.teamID = this.id
+    if (!this._captain) this._captain = player.PublicData.name
+    player.PublicData.teamID = this.id
     this._updateRatingRecords()
     return true
   }
@@ -51,8 +51,8 @@ export class Team implements Match.Player.Team.Instance {
     this._checkGuildAfterLeave()
 
     if (!this.players.delete(name)) return false
-    player.data.flags.ready = false
-    player.data.teamID = undefined
+    player.PublicData.flags.ready = false
+    player.PublicData.teamID = undefined
     if (this._min == player) this._min = null
     if (this._max == player) this._max = null
     this._updateRatingRecords()
@@ -63,13 +63,14 @@ export class Team implements Match.Player.Team.Instance {
   delete(): boolean {
     this._logger.info('MARKED TO DELETE')
     this.chat.delete()
-    for (let player of this._players.values()) player.data.teamID = undefined
+    for (let player of this._players.values())
+      player.PublicData.teamID = undefined
     this._deleted = true
     return true
   }
 
   isCaptain(member: string | Match.Player.Instance): boolean {
-    let name = typeof member == 'string' ? member : member.data.name
+    let name = typeof member == 'string' ? member : member.PublicData.name
     return name == this._captain
   }
 
@@ -83,7 +84,8 @@ export class Team implements Match.Player.Team.Instance {
 
   get GRI(): number {
     const GRIArray: number[] = []
-    for (let player of this._players.values()) GRIArray.push(player.data.GRI)
+    for (let player of this._players.values())
+      GRIArray.push(player.PublicData.GRI)
     return getMedian(...GRIArray)
   }
 
@@ -101,7 +103,8 @@ export class Team implements Match.Player.Team.Instance {
 
   get playersData(): Match.Player.Data[] {
     const playersData = []
-    for (let player of this.players.values()) playersData.push(player.data)
+    for (let player of this.players.values())
+      playersData.push(player.PublicData)
 
     return playersData
   }
@@ -124,7 +127,7 @@ export class Team implements Match.Player.Team.Instance {
 
   get maximumRatingSpread(): number {
     if (!this._min || !this._max) return 0
-    return this._max!.data.GRI - this._min!.data.GRI
+    return this._max!.PublicData.GRI - this._min!.PublicData.GRI
   }
 
   private _checkGuildAfterJoin(playerData: Match.Player.Data) {
@@ -137,9 +140,9 @@ export class Team implements Match.Player.Team.Instance {
 
   private _checkGuildAfterLeave() {
     let players = Array.from(this.players.values())
-    this._keyGuild = players[0].data.guild
+    this._keyGuild = players[0].PublicData.guild
     for (let i = 1; i < players.length; i++)
-      if (players[i].data.guild != this._keyGuild)
+      if (players[i].PublicData.guild != this._keyGuild)
         return (this._keyGuild = undefined)
   }
 
@@ -148,8 +151,8 @@ export class Team implements Match.Player.Team.Instance {
     for (let member of this.players.values()) {
       if (!min) min = member
       if (!max) max = member
-      if (member.data.GRI < min.data.GRI) this._min = member
-      if (member.data.GRI > max.data.GRI) this._max = member
+      if (member.PublicData.GRI < min.PublicData.GRI) this._min = member
+      if (member.PublicData.GRI > max.PublicData.GRI) this._max = member
     }
   }
 }

@@ -6,8 +6,8 @@ export type ID = string
 export interface IMatchPlayer
   extends IEntity<ID>,
     StateMachine<PlayerSignals, PlayerStates> {
-  state: PlayerStates
-  data: PlayerData
+  get state(): PlayerStates
+  get PublicData(): PlayerData
 
   update(): Promise<boolean>
   send(event: string, content: DTO.Object): void
@@ -31,6 +31,12 @@ export interface PlayerData extends Object {
     searching: boolean
     ready: boolean
   }
+}
+
+export type PrivatePlayerData = {
+  uid: Match.Player.ID
+  state: PlayerStates
+  fetchedFromDB: Match.Player.Data
 }
 
 export const enum PlayerSignals {

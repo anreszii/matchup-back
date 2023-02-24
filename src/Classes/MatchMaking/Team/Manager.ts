@@ -51,8 +51,8 @@ class TeamManager implements Match.Player.Team.Manager {
     let player = PLAYERS.get(name)
     if (!player) return
 
-    if (!player.data.teamID) return
-    return this.findById(player.data.teamID)
+    if (!player.PublicData.teamID) return
+    return this.findById(player.PublicData.teamID)
   }
 
   findById(ID: Match.Player.Team.ID): Match.Player.Team.Instance | undefined {

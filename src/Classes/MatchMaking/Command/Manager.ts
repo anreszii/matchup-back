@@ -49,21 +49,22 @@ class CommandManager implements Match.Lobby.Command.Manager {
 
     if (!PLAYERS.has(name)) return false
     const player = PLAYERS.get(name)!
-    if (!player.data.commandID || player.data.commandID == to) return false
-    if (player.data.teamID) team = TEAMS.get(player.data.teamID)
+    if (!player.PublicData.commandID || player.PublicData.commandID == to)
+      return false
+    if (player.PublicData.teamID) team = TEAMS.get(player.PublicData.teamID)
     if (!team) {
-      player.data.teamID = undefined
+      player.PublicData.teamID = undefined
       return false
     }
-    if (team.captainName != player.data.name) return false
+    if (team.captainName != player.PublicData.name) return false
 
-    fromCommand = this.get(player.data.commandID)
+    fromCommand = this.get(player.PublicData.commandID)
     toCommand = this.get(to)
 
     if (!fromCommand || !toCommand) return false
     if (fromCommand.lobbyID != toCommand.lobbyID) return false
 
-    const lobby = StandOff_Lobbies.get(player.data.lobbyID!)!
+    const lobby = StandOff_Lobbies.get(player.PublicData.lobbyID!)!
     if (lobby.type == 'rating') return false
 
     if (fromCommand.isOneTeam || toCommand.isOneTeam) return false
@@ -92,8 +93,8 @@ class CommandManager implements Match.Lobby.Command.Manager {
     if (!PLAYERS.has(name)) return
     const player = PLAYERS.get(name)!
 
-    if (!player.data.commandID) return
-    return this.findById(player.data.commandID)
+    if (!player.PublicData.commandID) return
+    return this.findById(player.PublicData.commandID)
   }
 
   findById(id: Match.Lobby.Command.ID) {

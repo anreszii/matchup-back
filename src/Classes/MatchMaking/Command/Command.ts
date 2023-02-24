@@ -29,7 +29,8 @@ export class Command implements Match.Lobby.Command.Instance {
 
   delete(): boolean {
     this._logger.trace('DELETING COMMAND')
-    for (let player of this._players.values()) this.leave(player.data.name)
+    for (let player of this._players.values())
+      this.leave(player.PublicData.name)
     this.chat.delete()
     this._deleted = true
     return true
@@ -41,14 +42,15 @@ export class Command implements Match.Lobby.Command.Instance {
 
     let player = PLAYERS.get(playerName)
     if (!player) return false
-    if (!this._players.set(player?.data.name, player)) return false
+    if (!this._players.set(player?.PublicData.name, player)) return false
 
     this.chat.join(playerName)
-    this._checkGuildAfterJoin(player.data)
+    this._checkGuildAfterJoin(player.PublicData)
 
-    if (!this._captain) this._captain = player.data.name
-    if (player.data.teamID) this._addTeamOfMember(player.data.teamID)
-    player.data.commandID = this.type
+    if (!this._captain) this._captain = player.PublicData.name
+    if (player.PublicData.teamID)
+      this._addTeamOfMember(player.PublicData.teamID)
+    player.PublicData.commandID = this.type
     this._logger.trace(`MEMBER ${playerName} JOINED COMMAND`)
     return true
   }
@@ -61,17 +63,18 @@ export class Command implements Match.Lobby.Command.Instance {
     if (!player) return false
 
     this.chat.leave(playerName)
-    if (player.data.teamID) this._deleteTeamOfMember(player.data.teamID)
+    if (player.PublicData.teamID)
+      this._deleteTeamOfMember(player.PublicData.teamID)
     this._checkGuildAfterLeave()
 
-    player.data.flags.ready = false
-    player.data.commandID = undefined
+    player.PublicData.flags.ready = false
+    player.PublicData.commandID = undefined
     this._logger.trace(`MEMBER ${playerName} LEAVED COMMAND`)
     return this.players.delete(playerName)
   }
 
   isCaptain(member: string | Match.Player.Instance): boolean {
-    let name = typeof member == 'string' ? member : member.data.name
+    let name = typeof member == 'string' ? member : member.PublicData.name
     return name == this._captain
   }
 
@@ -79,7 +82,7 @@ export class Command implements Match.Lobby.Command.Instance {
     const player = this.players.get(name)
     if (!player) return false
 
-    player.data.flags.ready = true
+    player.PublicData.flags.ready = true
     return true
   }
 
@@ -89,7 +92,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
   has(entity: Match.Player.Instance | string): boolean {
     if (typeof entity == 'string') return this.players.has(entity)
-    else return this.players.has(entity.data.name)
+    else return this.players.has(entity.PublicData.name)
   }
 
   get(name: string) {
@@ -115,7 +118,8 @@ export class Command implements Match.Lobby.Command.Instance {
   /** Средний рейтинг среди всех участников команды */
   get GRI(): number {
     const GRIArray: number[] = []
-    for (let player of this._players.values()) GRIArray.push(player.data.GRI)
+    for (let player of this._players.values())
+      GRIArray.push(player.PublicData.GRI)
     return getMedian(...GRIArray)
   }
 
@@ -128,9 +132,9 @@ export class Command implements Match.Lobby.Command.Instance {
     let teamID: Match.Player.Team.ID | undefined
     let players = Array.from(this._players.values())
     for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
-      if (!teamID) teamID = players[playerIndex].data.teamID
+      if (!teamID) teamID = players[playerIndex].PublicData.teamID
       if (!teamID && playerIndex == 0) return false
-      if (teamID != players[playerIndex].data.teamID) return false
+      if (teamID != players[playerIndex].PublicData.teamID) return false
     }
 
     return true
@@ -151,7 +155,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get isReady(): boolean {
     for (let member of this._players.values())
-      if (!member.data.flags.ready) return false
+      if (!member.PublicData.flags.ready) return false
     return true
   }
 
@@ -177,7 +181,8 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get playersData(): Match.Player.Data[] {
     const playersData = []
-    for (let player of this.players.values()) playersData.push(player.data)
+    for (let player of this.players.values())
+      playersData.push(player.PublicData)
 
     return playersData
   }
@@ -212,7 +217,7 @@ export class Command implements Match.Lobby.Command.Instance {
     let count = 0
 
     for (let player of team.players.values())
-      if (player.data.commandID == this.id) count++
+      if (player.PublicData.commandID == this.id) count++
 
     return count
   }
@@ -227,9 +232,9 @@ export class Command implements Match.Lobby.Command.Instance {
 
   private _checkGuildAfterLeave() {
     let players = Array.from(this._players.values())
-    this._keyGuild = players[0].data.guild
+    this._keyGuild = players[0].PublicData.guild
     for (let i = 1; i < players.length; i++)
-      if (players[i].data.guild != this._keyGuild)
+      if (players[i].PublicData.guild != this._keyGuild)
         return (this._keyGuild = undefined)
   }
 }

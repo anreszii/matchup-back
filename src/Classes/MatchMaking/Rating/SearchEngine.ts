@@ -59,8 +59,8 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
         'member search flag',
         TechnicalCause.ALREADY_EXIST,
       )
-    if (!player.data.teamID) return player.event(PlayerSignals.search)
-    let team = TEAMS.findById(player.data.teamID)
+    if (!player.PublicData.teamID) return player.event(PlayerSignals.search)
+    let team = TEAMS.findById(player.PublicData.teamID)
     if (!team) return player.event(PlayerSignals.corrupt)
     for (let player of team.players.values()) player.event(PlayerSignals.search)
   }

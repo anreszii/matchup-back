@@ -20,7 +20,7 @@ export class PlayerManager implements Match.Player.Manager {
       await player.waitForState(PlayerStates.online)
 
       this._players.set(player.id, player)
-      this._nameAndIdMap.set(player.data.name, player.id)
+      this._nameAndIdMap.set(player.PublicData.name, player.id)
 
       return player
     } catch (e) {
@@ -51,7 +51,7 @@ export class PlayerManager implements Match.Player.Manager {
     const player = this.get(entity)!
 
     this._players.delete(player.id)
-    this._nameAndIdMap.delete(player.data.name)
+    this._nameAndIdMap.delete(player.PublicData.name)
     return true
   }
 

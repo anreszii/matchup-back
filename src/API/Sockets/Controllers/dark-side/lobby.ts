@@ -54,8 +54,8 @@ setInterval(function () {
               const members: CachedMember[] = []
               for (let member of lobby.members.values())
                 members.push({
-                  username: member.data.name,
-                  nickname: member.data.nick,
+                  username: member.PublicData.name,
+                  nickname: member.PublicData.nick,
                 })
               CachedLobbies.set(
                 lobby.id,
@@ -119,19 +119,24 @@ export async function find_lobby(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
   if (!player) player = await PLAYERS.spawn(username)
-  if (player.data.lobbyID)
+  if (player.PublicData.lobbyID) {
+    if (!StandOff_Lobbies.has(player.PublicData.lobbyID))
+      player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.ALREADY_EXIST)
+  }
 
   let region = params[0]
   if (typeof region != 'string' || !isCorrectRegion(region))
     throw new TechnicalError('region', TechnicalCause.INVALID_FORMAT)
 
-  let team = player.data.teamID ? TEAMS.get(player.data.teamID) : undefined
+  let team = player.PublicData.teamID
+    ? TEAMS.get(player.PublicData.teamID)
+    : undefined
   if (team) {
     if (team.captainName != username)
       throw new TechnicalError('team captain', TechnicalCause.REQUIRED)
     Filters = createFilterForTeamSearch(team, region)
-  } else Filters = createFiltersForSoloSearch(player.data, region)
+  } else Filters = createFiltersForSoloSearch(player.PublicData, region)
 
   let type = params[1]
   if (!isCorrectType(type))
@@ -166,10 +171,10 @@ export async function leave_lobby(socket: WebSocket, params: unknown[]) {
   const username = socket.username as string
   const player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  const lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  const lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -189,10 +194,10 @@ export async function ready(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  if (!StandOff_Lobbies.has(player.data.lobbyID)) {
+  if (!StandOff_Lobbies.has(player.PublicData.lobbyID)) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
@@ -218,10 +223,10 @@ export async function vote(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -243,10 +248,10 @@ export async function get_maps(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -271,10 +276,10 @@ export async function change_command(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
 
@@ -297,10 +302,10 @@ export async function get_captain(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
@@ -323,10 +328,10 @@ export async function get_owner(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -346,10 +351,10 @@ export async function get_game_id(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -370,10 +375,10 @@ export async function set_game_id(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -399,10 +404,10 @@ export async function force_stop_lobby(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('command', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -445,10 +450,10 @@ export async function invite_to_lobby(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.INVALID)
@@ -525,10 +530,10 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
   let username = socket.username as string
   let player = PLAYERS.get(username)
 
-  if (!player || !player.data.lobbyID)
+  if (!player || !player.PublicData.lobbyID)
     throw new TechnicalError('lobby', TechnicalCause.REQUIRED)
 
-  let lobby = StandOff_Lobbies.get(player.data.lobbyID)
+  let lobby = StandOff_Lobbies.get(player.PublicData.lobbyID)
   if (!lobby) {
     player.event(PlayerSignals.corrupt)
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)

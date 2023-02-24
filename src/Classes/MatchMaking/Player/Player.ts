@@ -2,8 +2,10 @@ import { Match } from '../../../Interfaces'
 import type { DocumentType } from '@typegoose/typegoose'
 import { clientServer } from '../../../API/Sockets'
 import {
+  PlayerData,
   PlayerSignals,
   PlayerStates,
+  PrivatePlayerData,
 } from '../../../Interfaces/MatchMaking/Player'
 import {
   NotificationModel,
@@ -21,12 +23,11 @@ import { TechnicalCause, TechnicalError } from '../../../error'
 import { sleep } from '../../../Utils/sleep'
 
 //TODO добавить логику в transition
-export class Player implements Match.Player.Instance {
-  public id!: Match.Player.ID
-  public data!: Match.Player.Data
+//TODO добавить сборку мусора по timestamp
 
+export class Player implements Match.Player.Instance {
   private _logger = new Logger('Player', 'Instance')
-  private _state!: PlayerStates
+  private _data!: PrivatePlayerData
   private _timers: Map<PlayerStates, Date> = new Map()
   private _notifications?: DocumentType<NotificationQueue>
 
@@ -53,8 +54,8 @@ export class Player implements Match.Player.Instance {
         let nick = document.profile.nickname
         if (!nick) nick = 'undefined'
 
-        this.id = String(document._id)
-        this.data = {
+        this._data.uid = String(document._id)
+        this._data.fetchedFromDB = {
           id: String(document._id),
           name: document.profile.username,
           nick,
@@ -84,6 +85,7 @@ export class Player implements Match.Player.Instance {
         this.delete()
         break
       case PlayerSignals.init:
+        this._data = {} as unknown as PrivatePlayerData
         this._setState(PlayerStates.init)
         break
       case PlayerSignals.be_idle:
@@ -108,7 +110,7 @@ export class Player implements Match.Player.Instance {
           return
         if (this.state >= PlayerStates.waiting) return
         this._setState(PlayerStates.waiting)
-        this.data.lobbyID = data.lobby
+        this.PublicData.lobbyID = data.lobby
         this.send(
           'lobby',
           new DTO({ label: 'join', id: data.lobby, chat: data.chat }),
@@ -116,17 +118,20 @@ export class Player implements Match.Player.Instance {
         break
       case PlayerSignals.leave_lobby:
         if (this.state <= PlayerStates.searching) return
-        this.send('lobby', new DTO({ label: 'leave', id: this.data.lobbyID }))
-        this.data.lobbyID = undefined
+        this.send(
+          'lobby',
+          new DTO({ label: 'leave', id: this.PublicData.lobbyID }),
+        )
+        this.PublicData.lobbyID = undefined
         this._setState(PlayerStates.online)
         break
       case PlayerSignals.be_ready:
         this._setState(PlayerStates.ready)
-        this.data.flags.ready = true
+        this.PublicData.flags.ready = true
         break
       case PlayerSignals.be_unready:
         this._setState(PlayerStates.searching)
-        this.data.flags.ready = false
+        this.PublicData.flags.ready = false
         break
       case PlayerSignals.vote:
         this._setState(PlayerStates.voting)
@@ -138,7 +143,7 @@ export class Player implements Match.Player.Instance {
         this._setState(PlayerStates.playing)
         break
       case PlayerSignals.corrupt:
-        const currentData = this.data
+        const currentData = this.PublicData
         if (currentData.lobbyID) {
           StandOff_Lobbies.get(currentData.lobbyID)?.delete()
           currentData.lobbyID = undefined
@@ -159,24 +164,14 @@ export class Player implements Match.Player.Instance {
     }
   }
 
-  async waitForState(state: PlayerStates): Promise<void> {
-    while (this.state != state) await sleep(5)
-  }
-
   delete(): boolean {
     if (this.state > PlayerStates.searching)
-      StandOff_Lobbies.get(this.data.lobbyID!)?.markToDelete()
+      StandOff_Lobbies.get(this.PublicData.lobbyID!)?.markToDelete()
 
-    if (this.data.teamID) TEAMS.get(this.data.teamID)?.leave(this.data.name)
+    if (this.PublicData.teamID)
+      TEAMS.get(this.PublicData.teamID)?.leave(this.PublicData.name)
     this._setState(PlayerStates.deleted)
     return true
-  }
-
-  send(event: string, content: DTO): void {
-    if (clientServer.Aliases.isSet(this.data.name))
-      clientServer
-        .control(clientServer.Aliases.get(this.data.name)!)
-        .emit(event, content.to.JSON)
   }
 
   notify(content: string): void {
@@ -194,8 +189,19 @@ export class Player implements Match.Player.Instance {
     })
   }
 
+  send(event: string, content: DTO): void {
+    if (clientServer.Aliases.isSet(this.PublicData.name))
+      clientServer
+        .control(clientServer.Aliases.get(this.PublicData.name)!)
+        .emit(event, content.to.JSON)
+  }
+
+  async waitForState(state: PlayerStates): Promise<void> {
+    while (this.state != state) await sleep(5)
+  }
+
   update(): Promise<boolean> {
-    this._logger.trace(`Updating data. OLD: ${JSON.stringify(this.data)}`)
+    this._logger.trace(`Updating data. OLD: ${JSON.stringify(this._data)}`)
     return UserModel.findById(this.id)
       .then((document) => {
         if (!document) {
@@ -203,7 +209,7 @@ export class Player implements Match.Player.Instance {
           return false
         }
         this._getDataFromDocument(document as unknown as DocumentType<User>)
-        this._logger.trace(`Updating data. NEW: ${JSON.stringify(this.data)}`)
+        this._logger.trace(`Updating data. NEW: ${JSON.stringify(this._data)}`)
         return true
       })
       .catch((e: Error) => {
@@ -225,8 +231,16 @@ export class Player implements Match.Player.Instance {
       })
   }
 
+  get id(): Match.Player.ID {
+    return this._data.uid
+  }
+
   get state(): PlayerStates {
-    return this._state
+    return this._data.state
+  }
+
+  get PublicData(): PlayerData {
+    return this._data.fetchedFromDB
   }
 
   get readyToDrop(): boolean {
@@ -235,17 +249,17 @@ export class Player implements Match.Player.Instance {
   }
 
   private _getDataFromDocument(document: DocumentType<User>) {
-    this.data.nick = document.profile.nickname
-    this.data.GRI = document.GRI
-    this.data.prefix = document.prefix
-    this.data.discordNick = document.profile.discord_nickname
+    this.PublicData.nick = document.profile.nickname
+    this.PublicData.GRI = document.GRI
+    this.PublicData.prefix = document.prefix
+    this.PublicData.discordNick = document.profile.discord_nickname
       ? document.profile.discord_nickname
       : document.profile.username
-    this.data.guild =
+    this.PublicData.guild =
       document.guild == undefined ? undefined : `${document.guild}`
   }
 
   private _setState(state: PlayerStates) {
-    this._state = state
+    this._data.state = state
   }
 }

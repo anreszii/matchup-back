@@ -14,6 +14,7 @@ import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 import { Logger } from '../../Utils/Logger'
 import { S3Storage } from '../../Classes/S3/S3Storage'
 import { Match } from '../../Interfaces'
+import { PlayerSignals } from '../../Interfaces/MatchMaking/Player'
 const s3 = new S3Storage('ru-1')
 const logger = new Logger('HTTP', 'result/upload')
 
@@ -43,18 +44,18 @@ router.post(
       const { payload } = expressRequest.body
       let username = payload.username as string
       const player = PLAYERS.get(username)
-      if (!player || !player.data.lobbyID)
+      if (!player || !player.PublicData.lobbyID)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-      const lobbyObject = StandOff_Lobbies.get(player.data.lobbyID)
+      const lobbyObject = StandOff_Lobbies.get(player.PublicData.lobbyID)
       if (!lobbyObject) {
-        player.data.lobbyID = undefined
+        player.event(PlayerSignals.corrupt)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
       if (lobbyObject.state != Match.Lobby.States.started)
         throw new TechnicalError('lobby status', TechnicalCause.INVALID)
 
-      let lobby = await CachedLobbies.get(player.data.lobbyID)
+      let lobby = await CachedLobbies.get(player.PublicData.lobbyID)
       if (!lobby)
         throw new TechnicalError('lobby cache', TechnicalCause.NOT_EXIST)
 

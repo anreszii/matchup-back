@@ -348,9 +348,10 @@ export class User {
     return true
   }
 
-  isPremium(this: DocumentType<User>) {
+  isPremium(this: DocumentType<User>): Promise<boolean> {
     let result = this._checkPremium()
-    if (typeof result == 'boolean') return this.premium.isPremium
+    if (typeof result == 'boolean')
+      return Promise.resolve(this.premium.isPremium)
 
     return result.then(() => this.premium.isPremium)
   }
