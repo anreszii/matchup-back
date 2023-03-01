@@ -13,7 +13,7 @@ export class GRIFilter implements Rating.SearchEngine.Filter {
       getRounded(lobby.GRI, 100),
       DEFAULT_MPR_SPREAD,
     )
-    this._logger.trace(
+    this._logger.debug(
       `LOBBY: ${lobby.GRI}; REQUIRED GRI: ${this._GRI}; RESULT: ${filterResult};`,
     )
     return filterResult

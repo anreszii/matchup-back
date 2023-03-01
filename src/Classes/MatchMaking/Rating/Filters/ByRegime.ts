@@ -8,7 +8,7 @@ export class RegimeFilter implements Rating.SearchEngine.Filter {
 
   isValid(lobby: Match.Lobby.Instance) {
     const filterResult = lobby.type == this._type
-    this._logger.trace(
+    this._logger.debug(
       `LOBBY REGIME: ${lobby.type}; RESULT: ${filterResult}; REQUIRED REGIME: ${this._type}`,
     )
     return filterResult

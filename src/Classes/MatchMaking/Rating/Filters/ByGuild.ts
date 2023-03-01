@@ -7,7 +7,7 @@ export class GuildFilter implements Rating.SearchEngine.Filter {
 
   isValid(lobby: Match.Lobby.Instance) {
     const filterResult = lobby.isForGuild
-    this._logger.trace(`LOBBY: ${lobby.isForGuild}; RESULT: ${filterResult}`)
+    this._logger.debug(`LOBBY: ${lobby.isForGuild}; RESULT: ${filterResult}`)
     return filterResult
   }
 

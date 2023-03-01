@@ -479,7 +479,7 @@ export class Lobby implements Match.Lobby.Instance {
     for (let player of team.players.values()) this._leaveSolo(player)
 
     this._logger.trace(`TEAM ${player.PublicData.teamID} LEAVED`)
-    this._logger.trace(`TEAM ${team.id} DATA: ${JSON.stringify(team)}`)
+    this._logger.debug(`TEAM ${team.id} DATA: ${JSON.stringify(team)}`)
 
     return true
   }
@@ -494,7 +494,7 @@ export class Lobby implements Match.Lobby.Instance {
     player.event(PlayerSignals.leave_lobby)
 
     this._logger.trace(`MEMBER ${player.PublicData.name} LEAVED`)
-    this._logger.trace(
+    this._logger.debug(
       `MEMBER ${player.PublicData.name} DATA: ${JSON.stringify(player)}`,
     )
 

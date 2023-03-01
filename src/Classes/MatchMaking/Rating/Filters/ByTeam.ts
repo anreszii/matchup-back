@@ -9,7 +9,7 @@ export class TeamFilter implements Rating.SearchEngine.Filter {
 
   isValid(lobby: Match.Lobby.Instance) {
     const filterResult = lobby.canAddTeam(this._ID)
-    this._logger.trace(
+    this._logger.debug(
       `LOBBY CAN CONTAIN TEAM: ${lobby.canAddTeam(
         this._ID,
       )}; RESULT: ${filterResult}; TEAM ID: ${this._ID}`,
