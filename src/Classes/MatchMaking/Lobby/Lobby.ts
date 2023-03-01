@@ -23,6 +23,7 @@ import {
 export class Lobby implements Match.Lobby.Instance {
   public region!: Rating.SearchEngine.SUPPORTED_REGIONS
   private _counter!: Match.Lobby.Counter
+  private _availableLobbyTypesCounters!: Match.Lobby.AvailableLobbyTypesCounter
   private _logger!: Logger
   private _stateTimers: Map<Match.Lobby.States, Date> = new Map()
   private _timers: Map<string, Date> = new Map()
@@ -62,6 +63,7 @@ export class Lobby implements Match.Lobby.Instance {
   markToDelete() {
     this._cashedState = this._state
     this._state = Match.Lobby.States.deleted
+    this._availableLobbyTypesCounters[this.type]--
 
     this._logger.trace('MEMBERS LEAVING')
     for (let player of this.players.values()) this.leave(player.PublicData.name)
@@ -390,6 +392,10 @@ export class Lobby implements Match.Lobby.Instance {
 
   set counter(value: Match.Lobby.Counter) {
     this._counter = value
+  }
+
+  set typeCounters(value: Match.Lobby.AvailableLobbyTypesCounter) {
+    this._availableLobbyTypesCounters = value
   }
 
   private _setLobbyStateToSearching() {

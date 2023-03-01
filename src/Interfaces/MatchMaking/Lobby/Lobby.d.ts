@@ -1,5 +1,6 @@
 import type { Match } from '../index'
 import type { IEntity, IChat, Rating } from '../../index'
+import { Lobby } from '../../../Classes/MatchMaking/Lobby/Lobby'
 //TODO разделить на лобби + игра
 export declare interface ILobby extends IEntity<string> {
   join(name: string): boolean
@@ -42,6 +43,7 @@ export declare interface ILobby extends IEntity<string> {
   get commands(): Map<Command.Types, Command.Instance>
 
   set counter(value: Counter)
+  set typeCounters(value: Match.Lobby.AvailableLobbyTypesCounter)
   get isReady(): boolean
 
   get maps(): string[]

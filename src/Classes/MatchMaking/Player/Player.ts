@@ -98,6 +98,7 @@ export class Player implements Match.Player.Instance {
         break
       case PlayerSignals.be_online:
         this._setState(PlayerStates.online)
+        this.event(PlayerSignals.be_unready)
         break
       case PlayerSignals.search:
         this._setState(PlayerStates.searching)
@@ -124,6 +125,8 @@ export class Player implements Match.Player.Instance {
           new DTO({ label: 'leave', id: this.PublicData.lobbyID }),
         )
         this.PublicData.lobbyID = undefined
+        this.PublicData.flags.ready = false
+        this.event(PlayerSignals.be_unready)
         this._setState(PlayerStates.online)
         break
       case PlayerSignals.be_ready:
@@ -133,7 +136,6 @@ export class Player implements Match.Player.Instance {
         this.PublicData.isReady = true
         break
       case PlayerSignals.be_unready:
-        this._setState(PlayerStates.searching)
         this.PublicData.flags.ready = false
         this.PublicData.isReady = false
         break
@@ -159,10 +161,6 @@ export class Player implements Match.Player.Instance {
         if (currentData.commandID) {
           COMMANDS.get(currentData.commandID)?.leave(currentData.name)
           currentData.commandID = undefined
-        }
-        currentData.flags = {
-          ready: false,
-          searching: false,
         }
         this.event(PlayerSignals.be_online)
     }

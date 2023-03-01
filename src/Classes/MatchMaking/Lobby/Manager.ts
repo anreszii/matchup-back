@@ -13,6 +13,12 @@ export class LobbyManager implements Match.Manager.Instance {
     searching: 0,
     playing: 0,
   }
+  private static _availableLobbyTypesCounter: Match.Lobby.AvailableLobbyTypesCounter =
+    {
+      rating: 0,
+      training: 0,
+      arcade: 0,
+    }
   private _lobbyMap: Map<string, Match.Lobby.Instance> = new Map()
   private _logger = new Logger('Lobby Manager')
   constructor() {
@@ -52,8 +58,11 @@ export class LobbyManager implements Match.Manager.Instance {
     commands.set('command1', promises[2])
     commands.set('command2', promises[3])
 
-    let lobby = new Lobby(ID, type, promises[4], commands)
+    const lobby = new Lobby(ID, type, promises[4], commands)
     lobby.counter = LobbyManager._counter
+    lobby.typeCounters = LobbyManager._availableLobbyTypesCounter
+
+    LobbyManager._availableLobbyTypesCounter[type]++
 
     this._lobbyMap.set(ID, lobby)
     this._logger.info(`SPAWNED LOBBY#${lobby.id}`)
@@ -94,6 +103,10 @@ export class LobbyManager implements Match.Manager.Instance {
 
   get counter(): Match.Lobby.Counter {
     return LobbyManager._counter
+  }
+
+  get availableLobbyTypeCounters(): Match.Lobby.AvailableLobbyTypesCounter {
+    return LobbyManager._availableLobbyTypesCounter
   }
 
   private _findFreeLobby() {

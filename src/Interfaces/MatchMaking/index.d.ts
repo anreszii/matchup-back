@@ -13,6 +13,7 @@ export declare namespace Match {
   namespace Manager {
     interface Instance extends IManager<Match.Lobby.Instance, string> {
       get lobbies(): Array<Match.Lobby.Instance>
+      get availableLobbyTypeCounters(): Lobby.AvailableLobbyTypesCounter
       get counter(): Lobby.Counter
     }
     type supportedGames = 'StandOff2'
@@ -28,6 +29,10 @@ export declare namespace Match {
       started = 5,
     }
     interface Instance extends ILobby {}
+
+    type AvailableLobbyTypesCounter = {
+      [key in Lobby.Type]: number
+    }
 
     type Counter = {
       searching: number

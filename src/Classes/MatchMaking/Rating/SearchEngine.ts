@@ -5,6 +5,7 @@ import {
 } from '../../../Interfaces/MatchMaking/Player'
 import { Logger } from '../../../Utils/Logger'
 import { TechnicalCause, TechnicalError } from '../../../error'
+import { LobbyManager } from '../Lobby/Manager'
 import { TEAMS } from '../Team/Manager'
 import { Filters } from './Filters/Filters'
 import { Finder } from './Finder'
@@ -21,7 +22,11 @@ export class SearchEngine implements Rating.SearchEngine.Instance {
       throw new TechnicalError('lobby', TechnicalCause.ALREADY_EXIST)
     this._startSearchingForPlayer(player)
     this._logger.trace(`STARTED. FILTERS: ${JSON.stringify(filters)}`)
-    let finder = new Finder(this._manager.lobbies, filters)
+    let finder = new Finder(
+      this._manager.lobbies,
+      filters,
+      this._manager.availableLobbyTypeCounters,
+    )
     return finder
       .find()
       .then((foundedLobby) => {
