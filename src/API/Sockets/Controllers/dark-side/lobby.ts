@@ -539,8 +539,8 @@ export async function sync_lobby(socket: WebSocket, params: unknown[]) {
     throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
   }
 
-  sendSyncIventToLobby(lobby)
-  return true
+  // sendSyncIventToLobby(lobby)
+  return { state: lobby.state, players: lobby.membersData }
 }
 CONTROLLERS.set('sync_lobby', sync_lobby)
 
