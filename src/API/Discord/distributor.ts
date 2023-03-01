@@ -4,11 +4,9 @@ import type { Guild } from 'discord.js'
 import { Logger } from '../../Utils/Logger'
 const logger = new Logger('Discord', 'Distributor')
 
-export function distribute(manager: StateManager, guild: Guild | string) {
+export function distribute(manager: StateManager, guild: Guild) {
   logger.trace(
-    `DISTRIBUTING. MANAGER: ${JSON.stringify(manager)}, GUILD: ${JSON.stringify(
-      guild,
-    )}`,
+    `DISTRIBUTING. MANAGER: ${manager.channelName} GUILD: ${guild.name}`,
   )
   let memberCommand = manager.memberCommand
   if (!memberCommand) return (manager.channel = null)

@@ -7,12 +7,15 @@ import { parseResults } from '../../Utils/resultParser'
 import FormData = require('form-data')
 import { IncomingMessage } from 'http'
 import { MatchModerationRecordModel } from '../../Models/Moderation/ModerateMatchs'
-import { PLAYERS } from '../../Classes/MatchMaking/MemberManager'
-import { postToImgbb } from '../../Utils/imgbb'
+import { PLAYERS } from '../../Classes/MatchMaking/Player/Manager'
 import { CachedLobbies, LobbyCache } from '../../Classes/MatchMaking/LobbyCache'
-import { StandOff_Lobbies } from '../Sockets'
+import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 
 import { Logger } from '../../Utils/Logger'
+import { S3Storage } from '../../Classes/S3/S3Storage'
+import { Match } from '../../Interfaces'
+import { PlayerSignals } from '../../Interfaces/MatchMaking/Player'
+const s3 = new S3Storage('ru-1')
 const logger = new Logger('HTTP', 'result/upload')
 
 const router = Router()
@@ -25,9 +28,9 @@ router.post(
         expressRequest.method
       } PARAMS: ${JSON.stringify(
         expressRequest.params,
-      )}; BODY: ${JSON.stringify(expressRequest.body)}; FILES: ${JSON.stringify(
-        expressRequest.files,
-      )}`,
+      )}; BODY: ${JSON.stringify(expressRequest.body)}; FILES IS UNDEFINED: ${
+        expressRequest.files == undefined
+      }`,
     )
     try {
       if (!expressRequest.files)
@@ -40,19 +43,19 @@ router.post(
 
       const { payload } = expressRequest.body
       let username = payload.username as string
-      let member = await PLAYERS.get(username)
-      if (!member || !member.lobbyID)
+      const player = PLAYERS.get(username)
+      if (!player || !player.PublicData.lobbyID)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
 
-      const lobbyObject = StandOff_Lobbies.get(member.lobbyID)
+      const lobbyObject = StandOff_Lobbies.get(player.PublicData.lobbyID)
       if (!lobbyObject) {
-        member.lobbyID = undefined
+        player.event(PlayerSignals.corrupt)
         throw new TechnicalError('lobby', TechnicalCause.NOT_EXIST)
       }
-      if (lobbyObject.state != 'started')
+      if (lobbyObject.state != Match.Lobby.States.started)
         throw new TechnicalError('lobby status', TechnicalCause.INVALID)
 
-      let lobby = await CachedLobbies.get(member.lobbyID)
+      let lobby = await CachedLobbies.get(player.PublicData.lobbyID)
       if (!lobby)
         throw new TechnicalError('lobby cache', TechnicalCause.NOT_EXIST)
 
@@ -110,43 +113,37 @@ function parseRespone(
   })
 
   formResponse.on('end', async () => {
-    const document = parseResults(
-      chunks.join(' '),
-      lobby.lobbyID,
-      lobby.map as string,
-    )
-    let screen: string
-    return postToImgbb({
-      apiKey: process.env.IMGBB_KEY as string,
-      image: image.data.toString('base64'),
-      name: `${new Date().toDateString()}-${image.name}`,
-    })
-      .then((imgbbResponse) => {
-        screen = imgbbResponse.thumb.url
-      })
-      .catch((e) => {
-        logger.warning(e)
-      })
-      .finally(async () => {
-        document.screen = screen
-        logger.trace('SAVING MATCH SCREEN')
-        await document.save()
-        await MatchModerationRecordModel.createTask(document._id)
-        let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
-        if (objLobby) {
-          logger.trace(`DELETING LOBBY ${objLobby.id}`)
-          objLobby.markToDelete()
-        }
+    try {
+      const document = parseResults(
+        chunks.join(' '),
+        lobby.lobbyID,
+        lobby.map as string,
+      )
+      let screen = await s3.upload(image.data)
+      document.screen = screen
 
-        logger.trace(
-          `SERVER RESPONSE: ${
-            new DTO({ label: 'result upload', status: 'success' }).to.JSON
-          }`,
-        )
-        return expressResponse.json(
-          new DTO({ label: 'result upload', status: 'success' }).to.JSON,
-        )
-      })
+      logger.trace('SAVING MATCH SCREEN')
+      await document.save()
+
+      await MatchModerationRecordModel.createTask(document._id)
+      let objLobby = StandOff_Lobbies.get(lobby.lobbyID)
+      if (objLobby) {
+        logger.trace(`DELETING LOBBY ${objLobby.id}`)
+        objLobby.markToDelete()
+      }
+
+      logger.trace(
+        `SERVER RESPONSE: ${
+          new DTO({ label: 'result upload', status: 'success' }).to.JSON
+        }`,
+      )
+      return expressResponse.json(
+        new DTO({ label: 'result upload', status: 'success' }).to.JSON,
+      )
+    } catch (e) {
+      if (e instanceof Error) logger.critical(`[ERROR ${e.name}]: ${e.message}`)
+      expressResponse.sendStatus(500)
+    }
   })
 }
 

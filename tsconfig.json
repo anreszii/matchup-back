@@ -16,7 +16,9 @@
     "declarationMap": true,
     /* Type Checking */
     "strict": true /* Enable all strict type-checking options. */,
-    "watch": false
+    "watch": false,
+    "skipLibCheck": true,
+    "incremental": true
   },
 
   "include": ["src/**/*", "types", "jest.config.js"],

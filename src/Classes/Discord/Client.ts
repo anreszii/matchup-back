@@ -11,9 +11,7 @@ import type { Match } from '../../Interfaces/index'
 import { DiscordChannelManager } from './ChannelManager'
 import { DiscordRoleManager } from './RoleManager'
 import { StateManager } from './StateManager'
-import { Command } from '../MatchMaking/Command/Command'
 import { COMMANDS } from '../MatchMaking/Command/Manager'
-import { StandOff_Lobbies } from '../../API/Sockets'
 import { Logger } from '../../Utils/Logger'
 
 type PlayerCommand = Exclude<
@@ -259,10 +257,10 @@ export class DiscordClient {
     user.roles.add(role)
   }
 
-  async joinDiscordLobby(guild: Guild, member: Match.Member.Instance) {
-    const parsedMemberData = parseLobbyAndCommandFromMember(member)
+  async joinDiscordLobby(guild: Guild, playerData: Match.Player.Data) {
+    const parsedMemberData = parseLobbyAndCommandFromMember(playerData)
     if (!parsedMemberData) return false
-    this._logger.info(`${member.name} JOINS DISCORD LOBBY`)
+    this._logger.info(`${playerData.name} JOINS DISCORD LOBBY`)
     let commandRole = await DiscordRoleManager.findRoleByName(
       guild,
       parsedMemberData.command,
@@ -279,9 +277,9 @@ export class DiscordClient {
         parsedMemberData.id,
       )
 
-    this.addRolesToMember(guild, member.discordNick, teamRole, commandRole)
+    this.addRolesToMember(guild, playerData.discordNick, teamRole, commandRole)
       .then(() => {
-        this.addUserToTeamVoiceChannel(member.discordNick)?.catch((e) => {
+        this.addUserToTeamVoiceChannel(playerData.discordNick)?.catch((e) => {
           console.error(e)
           return
         })
@@ -290,21 +288,24 @@ export class DiscordClient {
     return true
   }
 
-  async leaveDiscordLobby(guild: Guild, member: Match.Member.Instance) {
-    return this.getMemberByNickanme(guild, member.discordNick).then((user) => {
-      if (!user) return false
+  async leaveDiscordLobby(guild: Guild, playerData: Match.Player.Data) {
+    return this.getMemberByNickanme(guild, playerData.discordNick).then(
+      (user) => {
+        if (!user) return false
 
-      this._logger.info(`${member.name} LEAVES DISCORD LOBBY`)
-      let promises = []
-      for (let [_, role] of user.roles.cache)
-        if (role.name.startsWith('mm_')) promises.push(user.roles.remove(role))
+        this._logger.info(`${playerData.name} LEAVES DISCORD LOBBY`)
+        let promises = []
+        for (let [_, role] of user.roles.cache)
+          if (role.name.startsWith('mm_'))
+            promises.push(user.roles.remove(role))
 
-      Promise.all(promises).then(() => {
-        user.voice.setChannel(null)
-      })
+        Promise.all(promises).then(() => {
+          user.voice.setChannel(null)
+        })
 
-      return true
-    })
+        return true
+      },
+    )
   }
 
   get guilds() {
@@ -360,9 +361,9 @@ export class DiscordClient {
   }
 }
 
-function parseLobbyAndCommandFromMember(member: Match.Member.Instance) {
-  if (!member.commandID || !member.lobbyID) return null
-  const command = COMMANDS.get(member.commandID)
+function parseLobbyAndCommandFromMember(playerData: Match.Player.Data) {
+  if (!playerData.commandID || !playerData.lobbyID) return null
+  const command = COMMANDS.get(playerData.commandID)
   if (!command) return null
   let discordCommandRoleName: 'mm_command1' | 'mm_command2'
   switch (command.type) {
@@ -378,6 +379,6 @@ function parseLobbyAndCommandFromMember(member: Match.Member.Instance) {
 
   return {
     command: discordCommandRoleName,
-    id: member.lobbyID,
+    id: playerData.lobbyID,
   }
 }

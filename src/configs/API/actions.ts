@@ -29,12 +29,11 @@ export type API_ACTION_LIST =
   | 'chat_join'
   | 'chat_leave'
   | 'chat_load_history'
-  /* IMAGE */
-  | 'load_image'
-  | 'upload_image'
   /* USER */
-  | 'add_relation'
-  | 'drop_relation'
+  | 'is_online'
+  | 'become_online'
+  | 'become_offline'
+  | 'notify'
 
 export const API_ACTIONS: Map<API_ACTION_LIST, number> = new Map()
 API_ACTIONS.set('get_lobby_count', 0)
@@ -63,10 +62,10 @@ API_ACTIONS.set('chat_message', 0)
 API_ACTIONS.set('chat_join', 0)
 API_ACTIONS.set('chat_leave', 0)
 API_ACTIONS.set('chat_load_history', 0)
-API_ACTIONS.set('add_relation', 0)
-API_ACTIONS.set('drop_relation', 0)
-API_ACTIONS.set('load_image', 0)
-API_ACTIONS.set('upload_image', 0)
+API_ACTIONS.set('is_online', 0)
+API_ACTIONS.set('become_online', 0)
+API_ACTIONS.set('become_offline', 0)
+API_ACTIONS.set('notify', 0)
 
 export function isValidAPIAction(action: string): action is API_ACTION_LIST {
   return API_ACTIONS.has(action as API_ACTION_LIST)

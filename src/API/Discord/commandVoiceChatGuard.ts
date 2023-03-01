@@ -3,7 +3,7 @@ import { Logger } from '../../Utils/Logger'
 const logger = new Logger('Discord', 'Voice Guard')
 
 export function guardCommandVoice(manager: StateManager) {
-  logger.trace(`PROTECTING. MANAGER: ${JSON.stringify(manager)}`)
+  logger.trace(`PROTECTING. MANAGER: ${manager.channelName}`)
   let channelCommand = manager.channelCommand
   let memberCommand = manager.memberCommand
   if (!memberCommand) {

@@ -4,7 +4,7 @@ import type { Group } from './Group'
 import type { ILobby } from './Lobby/Lobby'
 import type { MatchController } from './Controller'
 
-import type { IMatchMember } from './Member'
+import type { IMatchPlayer, Name, PlayerData } from './Player'
 import type { IStatistic } from './Statistic'
 
 import type { OneTypeArray } from '../../Classes/OneTypeArray'
@@ -13,34 +13,25 @@ export declare namespace Match {
   namespace Manager {
     interface Instance extends IManager<Match.Lobby.Instance, string> {
       get lobbies(): Array<Match.Lobby.Instance>
+      get availableLobbyTypeCounters(): Lobby.AvailableLobbyTypesCounter
       get counter(): Lobby.Counter
     }
     type supportedGames = 'StandOff2'
   }
   namespace Lobby {
-    interface Instance extends ILobby {
-      vote(name: string, map: string): boolean
-      move(
-        name: string,
-        command: Command.Instance | Command.Types | number,
-      ): Promise<boolean>
-      becomeReady(name: string): boolean
-      get commands(): Map<Command.Types, Command.Instance>
+    type ID = string
+    const enum States {
+      deleted = 0,
+      searching = 1,
+      filled = 2,
+      voting = 3,
+      preparing = 4,
+      started = 5,
+    }
+    interface Instance extends ILobby {}
 
-      set counter(value: Counter)
-      get isReady(): Promise<boolean>
-
-      get maps(): string[]
-      get votingCaptain(): string
-      get isVotingStageEnd(): boolean
-      get map(): string | undefined
-      get readyToStart(): boolean
-      get startedAt(): Date | undefined
-
-      setGameId(name: string, id: string): boolean
-
-      get owner(): string | undefined
-      get gameID(): string | undefined
+    type AvailableLobbyTypesCounter = {
+      [key in Lobby.Type]: number
     }
 
     type Counter = {
@@ -50,32 +41,20 @@ export declare namespace Match {
 
     type Type = 'training' | 'arcade' | 'rating'
 
-    type State =
-      | 'searching'
-      | 'filled'
-      | 'voting'
-      | 'preparing'
-      | 'started'
-      | 'deleted'
-
     namespace Command {
+      type ID = string
       type Types = 'spectators' | 'neutrals' | 'command1' | 'command2'
-      interface Manager extends IManager<Command.Instance, number> {
-        findByUserName(username: string): Promise<Command.Instance | undefined>
-        findById(id: number): Command.Instance | undefined
-        move(
-          name: string,
-          from: Instance | number,
-          to: Instance | number,
-        ): Promise<boolean>
+      interface Manager extends IManager<Command.Instance, ID> {
+        findByUserName(username: string): Command.Instance | undefined
+        findById(id: ID): Command.Instance | undefined
+        move(name: string, to: IDr): boolean
         get toArray(): Command.Instance[]
-        get IDs(): number[]
+        get IDs(): ID[]
       }
-      interface Instance extends Group<number> {
-        isCaptain(member: string | Member.Instance): boolean
-        move(name: string, command: Instance | Types | number): Promise<boolean>
-        has(entity: Match.Member.Instance | string): boolean
-        get(name: string): Member.Instance | null
+      interface Instance extends Group<ID> {
+        isCaptain(member: string | Player.Instance): boolean
+        has(entity: Match.Player.Instance | string): boolean
+        get(name: string): Player.Instance | undefined
 
         get lobbyID(): string
         get type(): Types
@@ -84,7 +63,7 @@ export declare namespace Match {
         get isOneTeam(): boolean
         get maxTeamSizeToJoin(): number
 
-        get players(): Member.Instance[]
+        get players(): Map<Name, Player.Instance>
 
         get playersCount(): number
         get teamPlayersCount(): number
@@ -94,33 +73,32 @@ export declare namespace Match {
         set captain(value: string)
         get captain(): string
 
-        becomeReady(name: string): boolean
         get isReady(): boolean
       }
     }
   }
 
-  namespace Member {
-    interface Manager extends IManager<Member.Instance, string> {
-      becomeReady(name: string): boolean
-      becomeUnready(name: string): boolean
+  namespace Player {
+    type ID = string
+    type Name = string
+    interface Manager extends IManager<Player.Instance, string> {
+      isOnline(names: string[]): Map<string, boolean>
     }
-    interface Instance extends IMatchMember {
-      notify(content: string): Promise<boolean>
-      isPremium(): Promise<boolean>
-    }
+    interface Instance extends IMatchPlayer {}
 
-    interface InstanceData extends Omit<Instance, 'readyToDrop' | 'delete'> {}
+    interface Data extends PlayerData {}
 
     namespace Team {
-      interface Manager extends IManager<Team.Instance, number> {
-        findByUserName(username: string): Promise<Team.Instance | undefined>
-        findById(id: number): Team.Instance | undefined
+      type ID = string
+
+      interface Manager extends IManager<Team.Instance, ID> {
+        findByUserName(username: string): Team.Instance | undefined
+        findById(id: ID): Team.Instance | undefined
         get toArray(): Team.Instance[]
-        get IDs(): number[]
+        get IDs(): ID[]
       }
-      interface Instance extends Group<number> {
-        isCaptain(member: string | Member.Instance): boolean
+      interface Instance extends Group<ID> {
+        isCaptain(member: string | Player.Instance): boolean
         set captainName(value: string)
         get captainName(): string
 
@@ -128,26 +106,24 @@ export declare namespace Match {
       }
     }
 
-    interface List extends OneTypeArray<Member.Instance> {
-      isMember(entity: unknown): entity is Member.Instance
+    interface List extends OneTypeArray<Player.Instance> {
+      isMember(entity: unknown): entity is Player.Instance
 
       hasMember(name: string): boolean
 
-      addMember(member: Member.Instance): boolean
+      addMember(member: Player.Instance): boolean
 
       deleteMember(name: string): boolean
 
-      getByName(name: string): Member.Instance | null
+      getByName(name: string): Player.Instance | null
 
       get count(): number
 
-      get members(): Member.Instance[]
+      get members(): Player.Instance[]
       get membersCount(): number
     }
     interface Statistic extends IStatistic {}
   }
-
-  interface Controller extends MatchController {}
 
   const enum Result {
     LOSE = 0,

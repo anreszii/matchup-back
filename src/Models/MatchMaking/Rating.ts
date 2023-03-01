@@ -23,7 +23,7 @@ export class Rating {
   DC!: number //Draw Counter
 
   public integrate(
-    statistic: Match.Member.Statistic,
+    statistic: Match.Player.Statistic,
     resultOfMatch: Match.Result,
   ) {
     const previousValue = this.GRI

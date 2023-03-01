@@ -28,6 +28,8 @@ export const DISCORD_ROBOT = new DiscordClient(process.env.DISCORD_BOT_TOKEN!)
 import mongoose from 'mongoose'
 import { Logger } from './Utils/Logger'
 const mongoLogger = new Logger('mongodb')
+const mainLogger = new Logger('main')
+
 mongoose.connect(
   `mongodb+srv://Perception:${process.env.MONGO_PASS}@testcluster.vbwobca.mongodb.net/?retryWrites=true&w=majority`,
   (error) => {
@@ -35,14 +37,17 @@ mongoose.connect(
       return mongoLogger.fatal(
         `[ERROR ${error.name}]: ${error.message}; STACK: ${error.stack}`,
       )
-    console.log('Connected to database')
+    mongoLogger.info('Connected to database')
   },
 )
 require('./Models')
+mongoLogger.info('Models initialized')
 require('./API/Sockets')
+mainLogger.info('WebSocket API initialized')
 require('./API/Discord')
+mainLogger.info('Discord bot initialized')
 app.use(require('./API/HTTP'))
-
+mainLogger.info('HTTP API initialized')
 app.use(function (_: any, _1: any, next: any) {
   var err = new Error('Not Found')
   next(err)
@@ -58,10 +63,12 @@ const certificate = fs.readFileSync(`${__dirname}/fullchain.pem`)
 require('https')
   .createServer({ key: privateKey, cert: certificate }, app)
   .listen(Number(process.env.HTTP_PORT), () => {
-    console.log(`Example app listening on port ${process.env.HTTP_PORT}`)
+    mainLogger.info(`HTTP SERVER INITIALIZED ON ${process.env.HTTP_PORT}`)
   })
 
 WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
   if (ls)
-    console.log(`listening websockets on port ${process.env.WEB_SOCKET_PORT}`)
+    mainLogger.info(
+      `WEBSOCKET SERVER INITIALIZED ON ${process.env.WEB_SOCKET_PORT}`,
+    )
 })

@@ -9,9 +9,9 @@ import { TechnicalCause, TechnicalError } from '../../error'
 import { MatchListModel } from '../index'
 import { Match } from '../MatchMaking/Matchs'
 import { ServiceInformation } from '../ServiceInformation'
-import { StandOff_Lobbies } from '../../API/Sockets'
 import { MINUTE_IN_MS } from '../../configs/time_constants'
 import { Logger } from '../../Utils/Logger'
+import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 
 const logger = new Logger('Mongo', 'Match Moderation')
 

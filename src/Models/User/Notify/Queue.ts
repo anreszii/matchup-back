@@ -17,7 +17,7 @@ export class NotificationQueue {
   static async getForUser(
     this: ReturnModelType<typeof NotificationQueue>,
     user: User | Types.ObjectId | string,
-  ) {
+  ): Promise<DocumentType<NotificationQueue>> {
     let userDocument: DocumentType<User> | null
     if (typeof user == 'string')
       userDocument = await UserModel.findByName(user)!

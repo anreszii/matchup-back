@@ -1,4 +1,5 @@
 import type { USER_ROLE } from '../../Interfaces'
+import { Match } from '../MatchMaking/Matchs'
 
 import {
   prop,
@@ -12,14 +13,8 @@ import { Profile } from './Profile'
 import { Credentials } from './Credentials'
 import { Rating } from '../MatchMaking/Rating'
 
-import {
-  MatchListModel,
-  NotificationModel,
-  TaskListModel,
-  UserModel,
-} from '../'
+import { MatchListModel, TaskListModel, UserModel } from '../'
 
-import { Match } from '../MatchMaking/Matchs'
 import { Guild } from '../Guild/Guild'
 
 import { generatePassword } from '../../Utils/passwordGenerator'
@@ -28,12 +23,9 @@ import { TechnicalCause, TechnicalError } from '../../error'
 import { RelationRecord } from './Relations'
 import { generateHash } from '../../Utils/hashGenerator'
 import { getRandom } from '../../Utils/math'
-import { ImageModel } from '../Image'
 import { PERIODS, Premium } from './Premium'
-import { NotificationQueue } from './Notify/Queue'
-import { clientServer } from '../../API/Sockets/clientSocketServer'
-import { DTO } from '../../Classes/DTO/DTO'
 import { isValidObjectId, Types } from 'mongoose'
+import { PLAYERS } from '../../Classes/MatchMaking/Player/Manager'
 
 class Prefixes {
   @prop({ required: true })
@@ -153,7 +145,9 @@ export class User {
     return Promise.all(promises) as unknown as Promise<DocumentType<User>[]>
   }
 
-  static async getTestData(this: ReturnModelType<typeof User>) {
+  static async getTestData(
+    this: ReturnModelType<typeof User>,
+  ): Promise<DocumentType<User>[]> {
     return this.find({
       'profile.username': { $regex: 'test_' },
       'credentials.email': { $regex: 'test_' },
@@ -204,31 +198,8 @@ export class User {
     return true
   }
 
-  async notify(this: DocumentType<User>, content: string) {
-    return this._getNotificationQueue()
-      .then(async (notifications) => {
-        notifications
-          .push(content)
-          .then((notify) => {
-            if (clientServer.Aliases.isSet(this.profile.username)) {
-              const dto = new DTO({
-                label: 'notify',
-                content: { id: notify.info.id, content },
-              })
-              clientServer
-                .control(clientServer.Aliases.get(this.profile.username)!)
-                .emit('notify', dto.to.JSON)
-            }
-          })
-          .catch((e) => {
-            throw e
-          })
-
-        return true
-      })
-      .catch((e) => {
-        throw e
-      })
+  notify(this: DocumentType<User>, content: string): void {
+    return PLAYERS.get(this.profile.username)?.notify(content)
   }
 
   /* RELATIONS */
@@ -298,7 +269,7 @@ export class User {
   async addRelation(this: DocumentType<User>, id: Types.ObjectId | string) {
     if (!id) throw new TechnicalError('id', TechnicalCause.REQUIRED)
 
-    let user
+    let user: DocumentType<User> | null
     if (!isValidObjectId(id)) user = await UserModel.findByName(id as string)
     else user = await UserModel.findById(id)
 
@@ -310,7 +281,10 @@ export class User {
 
     if (!this.hasSubscriber(user._id)) {
       user.addSubscriber(this._id)
-      await user.save()
+      return user
+        .save()
+        .then(() => true)
+        .catch((e: Error) => {})
       return true
     }
     this.deleteSubscriber(user._id)
@@ -327,7 +301,7 @@ export class User {
   async dropRelation(this: DocumentType<User>, id: Types.ObjectId | string) {
     if (!id) throw new TechnicalError('id', TechnicalCause.REQUIRED)
 
-    let user
+    let user: DocumentType<User> | null
     if (!isValidObjectId(id)) user = await UserModel.findByName(id as string)
     else user = await UserModel.findById(id)
 
@@ -374,9 +348,10 @@ export class User {
     return true
   }
 
-  isPremium(this: DocumentType<User>) {
+  isPremium(this: DocumentType<User>): Promise<boolean> {
     let result = this._checkPremium()
-    if (typeof result == 'boolean') return this.premium.isPremium
+    if (typeof result == 'boolean')
+      return Promise.resolve(this.premium.isPremium)
 
     return result.then(() => this.premium.isPremium)
   }
@@ -473,7 +448,7 @@ export class User {
   private async _getTestRelations(
     this: DocumentType<User>,
     needFriendsCount: number = 2,
-  ) {
+  ): Promise<void> {
     let users = await UserModel.getTestData()
     let friendsCount = 0
     for (let i = 0; i < users.length || friendsCount < needFriendsCount; i++) {
@@ -482,12 +457,6 @@ export class User {
       if (Math.random() > 0.5) await users[i].addRelation(this._id)
       friendsCount++
     }
-  }
-
-  private async _getNotificationQueue(
-    this: DocumentType<User>,
-  ): Promise<DocumentType<NotificationQueue>> {
-    return NotificationModel.getForUser(this)
   }
 
   private _checkPremium(this: DocumentType<User>) {

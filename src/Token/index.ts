@@ -1,7 +1,7 @@
 import { DTO } from '../Classes/DTO/DTO'
 
 import jwt = require('jsonwebtoken')
-import { JWT_SECRET, JWT_OPTIONS } from '../configs/jwt_token'
+import { JWT_OPTIONS } from '../configs/jwt_token'
 import { TechnicalCause, TechnicalError } from '../error'
 
 import { NextFunction, Request } from 'express'
@@ -11,7 +11,10 @@ export function validateToken(req: Request, _: unknown, next: NextFunction) {
   if (!token) next(new TechnicalError('token', TechnicalCause.REQUIRED))
 
   try {
-    let dataFromToken = jwt.verify(token as string, JWT_SECRET)
+    let dataFromToken = jwt.verify(
+      token as string,
+      process.env.JWT_SECRET as string,
+    )
     req.body.payload = dataFromToken
     return next()
   } catch (e) {
@@ -30,7 +33,11 @@ export function validatePacket(dto: DTO) {
   if (typeof token != 'string')
     throw new TechnicalError('token', TechnicalCause.INVALID_FORMAT)
 
-  return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload
+  } catch (e) {
+    throw new TechnicalError('token', TechnicalCause.INVALID)
+  }
 }
 
 function getTokenFromRequest(req: Request) {
@@ -53,5 +60,5 @@ function hasToken(req: Request) {
 }
 
 export function generateToken(payload: Object) {
-  return jwt.sign(payload, JWT_SECRET, JWT_OPTIONS)
+  return jwt.sign(payload, process.env.JWT_SECRET as string, JWT_OPTIONS)
 }

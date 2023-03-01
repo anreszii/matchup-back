@@ -1,14 +1,12 @@
-import type { Match, Rating } from '../../../../Interfaces/index'
+import { Match, Rating } from '../../../../Interfaces/index'
 import { Logger } from '../../../../Utils/Logger'
 
 export class StateFilter implements Rating.SearchEngine.Filter {
   private _logger = new Logger('Search Engine', 'State Filter')
   isValid(lobby: Match.Lobby.Instance) {
-    const filterResult = lobby.state == 'searching'
+    const filterResult = lobby.state == Match.Lobby.States.searching
     this._logger.trace(
-      `LOBBY: ${JSON.stringify(
-        lobby,
-      )}; RESULT: ${filterResult}; REQUIRED STATE: searching`,
+      `LOBBY STATE: ${lobby.state}; RESULT: ${filterResult}; REQUIRED STATE: ${Match.Lobby.States.searching}`,
     )
     return filterResult
   }

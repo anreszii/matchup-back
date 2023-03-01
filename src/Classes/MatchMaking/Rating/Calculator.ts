@@ -41,13 +41,13 @@ export class RatingCalculator implements Rating.Calculator.Instance {
   public calculateMatchResult(result: Match.Result) {
     switch (result) {
       case Match.Result.WIN:
-        this._RI += 3
+        this._RI += 10
         break
       case Match.Result.LOSE:
-        this._RI -= 3
+        this._RI -= 10
         break
       case Match.Result.DRAW:
-        this._RI += 1
+        this._RI -= 5
         break
     }
     return this

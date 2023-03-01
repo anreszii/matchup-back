@@ -7,11 +7,10 @@ export class RegionFilter implements Rating.SearchEngine.Filter {
   constructor() {}
 
   isValid(lobby: Match.Lobby.Instance) {
+    if (!lobby.region) lobby.region = this._region
     const filterResult = lobby.region == this._region
-    this._logger.trace(
-      `LOBBY: ${JSON.stringify(
-        lobby,
-      )}; RESULT: ${filterResult}; REQUIRED REGION: ${this._region}`,
+    this._logger.debug(
+      `LOBBY REGION: ${lobby.region}; RESULT: ${filterResult}; REQUIRED REGION: ${this._region}`,
     )
     return filterResult
   }

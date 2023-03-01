@@ -1,119 +1,93 @@
 import type { Match, IChat } from '../../../Interfaces/index'
 import { getMedian } from '../../../Utils/math'
 
-import { MemberList } from '../MemberList'
-import { PLAYERS } from '../MemberManager'
-import { COMMANDS } from './Manager'
+import { PLAYERS } from '../Player/Manager'
 import { TEAMS } from '../Team/Manager'
-import { StandOff_Lobbies } from '../../../API/Sockets/Controllers/dark-side/lobby'
-import { CLIENT_CHATS } from '../../Chat/Manager'
 import { Logger } from '../../../Utils/Logger'
+import { Name, PlayerStates } from '../../../Interfaces/MatchMaking/Player'
 
 export class Command implements Match.Lobby.Command.Instance {
-  private _members: MemberList = new MemberList()
-  private _chat!: IChat.Controller
+  private _players: Map<Name, Match.Player.Instance> = new Map()
   private _captain!: string
-  private _teamIDs: Set<number> = new Set()
+  private _teamIDs: Set<Match.Player.Team.ID> = new Set()
   private _keyGuild?: string
-  private _deleted = false
+  private _deleted: boolean = false
   private _logger: Logger
 
   constructor(
-    private _commandID: number,
-    private _lobbyID: string,
+    private _commandID: Match.Lobby.Command.ID,
+    private _lobbyID: Match.Lobby.ID,
     private _commandType: Match.Lobby.Command.Types,
     private _maxSize: number = 5,
+    private _chat: IChat.Controller,
   ) {
-    this._logger = new Logger(`LOBBY#${_lobbyID}`, `COMMAND-${_commandID}`)
+    this._logger = new Logger(
+      `Command`,
+      `LOBBY#${_lobbyID}-COMMAND#${_commandID}`,
+    )
   }
 
-  async delete(): Promise<true> {
+  delete(): boolean {
     this._logger.trace('DELETING COMMAND')
-    for (let member of this._members.toArray) this.leave(member.name)
-    this.chat?.delete()
+    for (let player of this._players.values())
+      this.leave(player.PublicData.name)
+    this.chat.delete()
     this._deleted = true
     return true
   }
 
-  async join(name: string): Promise<boolean> {
-    this._logger.trace(`MEMBER ${name} JOINING COMMAND`)
-    await this._checkChat()
-    if (this.members.count >= 5) return false
+  join(playerName: string): boolean {
+    this._logger.trace(`MEMBER ${playerName} JOINING COMMAND`)
+    if (this.playersCount >= 5) return false
 
-    let member = await PLAYERS.get(name)
-    if (!this.members.addMember(member)) return false
+    let player = PLAYERS.get(playerName)
+    if (!player) return false
+    if (!this._players.set(player?.PublicData.name, player)) return false
 
-    this.chat.join(name)
-    this._checkGuildAfterJoin(member)
+    this.chat.join(playerName)
+    this._checkGuildAfterJoin(player.PublicData)
 
-    if (!this._captain) this._captain = member.name
-    if (member.teamID) this._addTeamOfMember(member.teamID)
-    member.commandID = this.id
-    this._logger.trace(`MEMBER ${name} JOINED COMMAND`)
+    if (!this._captain) this._captain = player.PublicData.name
+    if (player.PublicData.teamID)
+      this._addTeamOfMember(player.PublicData.teamID)
+    player.PublicData.commandID = this.type
+    this._logger.trace(`MEMBER ${playerName} JOINED COMMAND`)
     return true
   }
 
-  async leave(name: string): Promise<boolean> {
-    this._logger.trace(`MEMBER ${name} LEAVING COMMAND`)
-    if (this.members.count == 0) return false
-    await this._checkChat()
+  leave(playerName: string): boolean {
+    this._logger.trace(`MEMBER ${playerName} LEAVING COMMAND`)
+    if (this.playersCount == 0) return false
 
-    let member = this.members.getByName(name)
-    if (!member) return false
+    let player = this._players.get(playerName)
+    if (!player) return false
 
-    this.chat.leave(name)
-    if (member.teamID) this._deleteTeamOfMember(member.teamID)
+    this.chat.leave(playerName)
+    if (player.PublicData.teamID)
+      this._deleteTeamOfMember(player.PublicData.teamID)
     this._checkGuildAfterLeave()
 
-    member.isReady = false
-    member.commandID = undefined
-    this._logger.trace(`MEMBER ${name} LEAVED COMMAND`)
-    return this.members.deleteMember(name)
+    player.PublicData.commandID = undefined
+    this._logger.trace(`MEMBER ${playerName} LEAVED COMMAND`)
+    return this.players.delete(playerName)
   }
 
-  isCaptain(member: string | Match.Member.Instance): boolean {
-    let name = typeof member == 'string' ? member : member.name
+  isCaptain(member: string | Match.Player.Instance): boolean {
+    let name = typeof member == 'string' ? member : member.PublicData.name
     return name == this._captain
-  }
-
-  becomeReady(name: string): boolean {
-    let member = this.members.getByName(name)
-    if (!member) return false
-
-    member.isReady = true
-    return true
   }
 
   hasSpaceFor(size: number) {
     return this._maxSize - this.playersCount >= size
   }
 
-  has(entity: Match.Member.Instance | string): boolean {
-    if (typeof entity == 'string') return this.members.hasMember(entity)
-    else return this.members.hasMember(entity.name)
+  has(entity: Match.Player.Instance | string): boolean {
+    if (typeof entity == 'string') return this.players.has(entity)
+    else return this.players.has(entity.PublicData.name)
   }
 
   get(name: string) {
-    return this.members.getByName(name)
-  }
-
-  async move(
-    name: string,
-    command: Match.Lobby.Command.Instance | Match.Lobby.Command.Types | number,
-  ) {
-    await this._checkChat()
-    let lobby = StandOff_Lobbies.get(this._lobbyID)
-    if (!lobby) return false
-    switch (typeof command) {
-      case 'number':
-        return COMMANDS.move(name, this.id, command)
-      case 'string':
-        return COMMANDS.move(name, this.id, lobby.commands.get(command)!)
-      case 'object':
-        return COMMANDS.move(name, this.id, command.id)
-      default:
-        return false
-    }
+    return this.players.get(name)
   }
 
   get id() {
@@ -135,7 +109,8 @@ export class Command implements Match.Lobby.Command.Instance {
   /** Средний рейтинг среди всех участников команды */
   get GRI(): number {
     const GRIArray: number[] = []
-    for (let member of this._members.toArray) GRIArray.push(member.GRI)
+    for (let player of this._players.values())
+      GRIArray.push(player.PublicData.GRI)
     return getMedian(...GRIArray)
   }
 
@@ -145,12 +120,12 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get isOneTeam(): boolean {
     if (!this.isFilled) return false
-    let teamID: number | undefined
-    let members = this.members.toArray
-    for (let i = 0; i < members.length; i++) {
-      if (!teamID) teamID = members[i].teamID
-      if (!teamID && i == 0) return false
-      if (teamID != members[i].teamID) return false
+    let teamID: Match.Player.Team.ID | undefined
+    let players = Array.from(this._players.values())
+    for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
+      if (!teamID) teamID = players[playerIndex].PublicData.teamID
+      if (!teamID && playerIndex == 0) return false
+      if (teamID != players[playerIndex].PublicData.teamID) return false
     }
 
     return true
@@ -164,17 +139,14 @@ export class Command implements Match.Lobby.Command.Instance {
     return this._maxSize - (this.teamPlayersCount + this.soloPlayersCount)
   }
 
-  get members(): Match.Member.List {
-    return this._members
-  }
-
   /** Количество участников команды */
   get size(): number {
-    return this._members.count
+    return this._players.size
   }
 
   get isReady(): boolean {
-    for (let member of this.members.toArray) if (!member.isReady) return false
+    for (let member of this._players.values())
+      if (member.state < PlayerStates.ready) return false
     return true
   }
 
@@ -191,11 +163,19 @@ export class Command implements Match.Lobby.Command.Instance {
   }
 
   get players() {
-    return this._members.toArray
+    return this._players
   }
 
   get playersCount() {
-    return this._members.count
+    return this._players.size
+  }
+
+  get playersData(): Match.Player.Data[] {
+    const playersData = []
+    for (let player of this.players.values())
+      playersData.push(player.PublicData)
+
+    return playersData
   }
 
   get teamPlayersCount() {
@@ -214,49 +194,39 @@ export class Command implements Match.Lobby.Command.Instance {
     return Boolean(this._keyGuild)
   }
 
-  private _addTeamOfMember(id: number) {
+  private _addTeamOfMember(id: Match.Player.Team.ID) {
     if (TEAMS.has(id)) this._teamIDs.add(id)
   }
 
-  private _deleteTeamOfMember(id: number) {
+  private _deleteTeamOfMember(id: Match.Player.Team.ID) {
     if (this._teamIDs.has(id) && this._countOfTeamMembersInCommand(id) == 1)
       this._teamIDs.delete(id)
   }
 
-  private _countOfTeamMembersInCommand(id: number) {
+  private _countOfTeamMembersInCommand(id: Match.Player.Team.ID) {
     let team = TEAMS.get(id)!
     let count = 0
 
-    for (let member of team.members.toArray)
-      if (member.commandID == this.id) count++
+    for (let player of team.players.values())
+      if (player.PublicData.commandID == this.id) count++
 
     return count
   }
 
-  private _checkGuildAfterJoin(member: Match.Member.Instance) {
-    if (this.members.count == 0) {
-      this._keyGuild = member.guildName
+  private _checkGuildAfterJoin(playerData: Match.Player.Data) {
+    if (this.players.size == 0) {
+      this._keyGuild = playerData.guild
       return
     }
-    if (this._keyGuild != member.guildName) this._keyGuild = undefined
+    if (this._keyGuild != playerData.guild) this._keyGuild = undefined
   }
 
   private _checkGuildAfterLeave() {
-    let members = this.members.toArray
-    this._keyGuild = members[0].guildName
-    for (let i = 1; i < members.length; i++)
-      if (members[i].guildName != this._keyGuild)
+    let players = Array.from(this._players.values())
+    this._keyGuild = players[0].PublicData.guild
+    for (let i = 1; i < players.length; i++)
+      if (players[i].PublicData.guild != this._keyGuild)
         return (this._keyGuild = undefined)
-  }
-
-  private async _checkChat() {
-    if (this._chat) return
-
-    this._chat = await CLIENT_CHATS.spawn(
-      'command',
-      `lobby#${this._lobbyID}-${this._commandType}`,
-    )
-    for (let member of this._members.values()) this._chat.join(member.name)
   }
 }
 

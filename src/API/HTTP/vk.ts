@@ -13,7 +13,9 @@ router.get('/', (req, res, next) => {
   logger.trace(
     `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
       req.params,
-    )}; BODY: ${JSON.stringify(req.body)}; FILES: ${JSON.stringify(req.files)}`,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
   )
   fetch(
     `https://api.vk.com/method/wall.get?v=${v}&access_token=${access_token}&owner_id=${owner_id}&count=${count}`,
