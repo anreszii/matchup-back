@@ -27,6 +27,7 @@ export interface PlayerData extends Object {
   teamID?: Match.Player.Team.ID
   guild?: string
   prefix?: string
+  isReady: boolean
   flags: {
     searching: boolean
     ready: boolean

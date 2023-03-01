@@ -4,7 +4,7 @@ import { getMedian } from '../../../Utils/math'
 import { PLAYERS } from '../Player/Manager'
 import { TEAMS } from '../Team/Manager'
 import { Logger } from '../../../Utils/Logger'
-import { Name } from '../../../Interfaces/MatchMaking/Player'
+import { Name, PlayerStates } from '../../../Interfaces/MatchMaking/Player'
 
 export class Command implements Match.Lobby.Command.Instance {
   private _players: Map<Name, Match.Player.Instance> = new Map()
@@ -67,7 +67,6 @@ export class Command implements Match.Lobby.Command.Instance {
       this._deleteTeamOfMember(player.PublicData.teamID)
     this._checkGuildAfterLeave()
 
-    player.PublicData.flags.ready = false
     player.PublicData.commandID = undefined
     this._logger.trace(`MEMBER ${playerName} LEAVED COMMAND`)
     return this.players.delete(playerName)
@@ -76,14 +75,6 @@ export class Command implements Match.Lobby.Command.Instance {
   isCaptain(member: string | Match.Player.Instance): boolean {
     let name = typeof member == 'string' ? member : member.PublicData.name
     return name == this._captain
-  }
-
-  becomeReady(name: string): boolean {
-    const player = this.players.get(name)
-    if (!player) return false
-
-    player.PublicData.flags.ready = true
-    return true
   }
 
   hasSpaceFor(size: number) {
@@ -155,7 +146,7 @@ export class Command implements Match.Lobby.Command.Instance {
 
   get isReady(): boolean {
     for (let member of this._players.values())
-      if (!member.PublicData.flags.ready) return false
+      if (member.state < PlayerStates.ready) return false
     return true
   }
 

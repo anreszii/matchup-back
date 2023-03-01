@@ -67,6 +67,7 @@ export class Player implements Match.Player.Instance {
             ready: false,
             searching: false,
           },
+          isReady: false,
         }
 
         this.event(PlayerSignals.be_online)
@@ -126,12 +127,15 @@ export class Player implements Match.Player.Instance {
         this._setState(PlayerStates.online)
         break
       case PlayerSignals.be_ready:
+        //TODO убрать флаги
         this._setState(PlayerStates.ready)
         this.PublicData.flags.ready = true
+        this.PublicData.isReady = true
         break
       case PlayerSignals.be_unready:
         this._setState(PlayerStates.searching)
         this.PublicData.flags.ready = false
+        this.PublicData.isReady = false
         break
       case PlayerSignals.vote:
         this._setState(PlayerStates.voting)
@@ -165,7 +169,11 @@ export class Player implements Match.Player.Instance {
   }
 
   delete(): boolean {
-    if (this.state > PlayerStates.searching)
+    if (PlayerStates.voting > this.state && this.state > PlayerStates.searching)
+      StandOff_Lobbies.get(this.PublicData.lobbyID!)?.leave(
+        this.PublicData.name,
+      )
+    else if (this.state >= PlayerStates.voting)
       StandOff_Lobbies.get(this.PublicData.lobbyID!)?.markToDelete()
 
     if (this.PublicData.teamID)

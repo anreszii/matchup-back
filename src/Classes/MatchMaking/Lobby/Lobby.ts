@@ -361,7 +361,7 @@ export class Lobby implements Match.Lobby.Instance {
     let somebodyWasKicked = false
 
     for (let player of this.players.values()) {
-      if (!player.PublicData.flags.ready && passedTime > SECOND_IN_MS * 20) {
+      if (player.state < PlayerStates.ready && passedTime > SECOND_IN_MS * 20) {
         this.leave(player.PublicData.name)
         somebodyWasKicked = true
       }

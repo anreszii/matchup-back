@@ -51,7 +51,6 @@ export class Team implements Match.Player.Team.Instance {
     this._checkGuildAfterLeave()
 
     if (!this.players.delete(name)) return false
-    player.PublicData.flags.ready = false
     player.PublicData.teamID = undefined
     if (this._min == player) this._min = null
     if (this._max == player) this._max = null

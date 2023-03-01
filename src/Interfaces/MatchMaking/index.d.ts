@@ -68,7 +68,6 @@ export declare namespace Match {
         set captain(value: string)
         get captain(): string
 
-        becomeReady(name: string): boolean
         get isReady(): boolean
       }
     }
