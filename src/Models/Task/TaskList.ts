@@ -533,12 +533,22 @@ export class TaskList {
   }
 
   private _isCurrentDailyTask(task: DocumentType<Task>) {
-    if (!task.expires || task.expires.expirationType != 'day') return false
+    if (
+      !task.expires ||
+      task.expires.expirationType != 'day' ||
+      task.name.includes('completed')
+    )
+      return false
     return true
   }
 
   private _isCurrentWeeklyTask(task: DocumentType<Task>) {
-    if (!task.expires || task.expires.expirationType != 'week') return false
+    if (
+      !task.expires ||
+      task.expires.expirationType != 'week' ||
+      task.name.includes('completed')
+    )
+      return false
     return true
   }
 }
