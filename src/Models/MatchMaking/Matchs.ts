@@ -281,27 +281,24 @@ export class Match {
   }
 
   private async _checkTasksForUser(user: DocumentType<User>) {
-    const tasks: [DocumentType<Task>[], DocumentType<Task>[]] =
-      await TaskListModel.getForUser(user._id)
     const member = this.members.find(
       (value) => value.name == user.profile.username,
     )
     if (!member) throw new TechnicalError('member', TechnicalCause.REQUIRED)
 
-    const daily = tasks[0]
-    const weekly = tasks[1]
-    const promises = []
-
-    promises.push(this._checkTasks(daily, member))
-    promises.push(this._checkTasks(weekly, member))
-
-    const result = await Promise.all(promises)
-    const rewards = [...result[0], ...result[1]]
-
-    user.addMP(this._getMpFromRewards(rewards))
-    return true
+    return TaskListModel.getForUser(user._id)
+      .then(async (tasks) => {
+        user.addMP(
+          this._getMpFromRewards(await this._checkTasks(tasks, member)),
+        )
+        return true
+      })
+      .catch((e) => {
+        console.error(e)
+      })
   }
 
+  //TODO оптимизировать коллект тасков
   private async _checkTasks(tasks: DocumentType<Task>[], member: MemberRecord) {
     const rewards: Array<Reward> = []
     for (let task of tasks) {
