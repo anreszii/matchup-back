@@ -35,7 +35,29 @@ export class TaskList {
 
   static async getForUser(
     this: ReturnModelType<typeof TaskList>,
+    user: string,
+  ) {
+    return this._getListOfUser(user).then((list) => {
+      return this._loadCurrentTasksFromList(list as DocumentType<TaskList>)
+    })
+  }
+
+  static deleteForUser(
+    this: ReturnModelType<typeof TaskList>,
+    owner: string,
+  ): Promise<unknown> {
+    return this._getListOfUser(owner, false).then((list) => {
+      if (!list) return
+      return list.clear().then(() => {
+        return list.delete()
+      })
+    })
+  }
+
+  private static async _getListOfUser(
+    this: ReturnModelType<typeof TaskList>,
     user: User | Types.ObjectId | string,
+    createIfNull = true,
   ) {
     let userDocument: DocumentType<User> | null
     if (typeof user == 'string')
@@ -45,38 +67,35 @@ export class TaskList {
       throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
 
     return this.findOne({ owner: userDocument }).then((list) => {
-      if (list) return this._loadTasksFromID(list)
-
-      return this.create({ owner: userDocument, tasks: [] }).then((list) =>
-        this._loadTasksFromID(list),
-      )
+      if (!list && createIfNull)
+        return this.create({ owner: userDocument, tasks: [] })
+      return list
     })
   }
 
-  static async deleteForUser(
+  private static async _loadCurrentTasksFromList(
     this: ReturnModelType<typeof TaskList>,
-    owner: User | Types.ObjectId,
-  ) {
-    return this.findOne({ owner }).then((tasks) => {
-      if (!tasks) return
+    list: DocumentType<TaskList>,
+  ): Promise<DocumentType<Task>[]> {
+    return list
+      ._getCurrentTasks()
+      .then((tasks) => {
+        list.save()
+        return [...tasks.daily, ...tasks.weekly]
+      })
+      .catch((e) => {
+        throw e
+      })
+  }
 
-      return tasks.clear().then(() => {
-        return tasks.delete()
+  //TODO доделать оптимизацию удаления данных документа
+  clear(this: DocumentType<TaskList>): Promise<void> {
+    return TaskModel.find({ _id: this.tasks }).then((tasks) => {
+      if (!tasks) return
+      this._deleteTasks(tasks).then(() => {
+        return this.save().then(() => undefined)
       })
     })
-  }
-
-  async clear(this: DocumentType<TaskList>): Promise<unknown> {
-    const promises = []
-    for (let taskID of this.tasks) {
-      let task = await TaskModel.findById(taskID)
-      if (!task) continue
-      promises.push(task.delete())
-    }
-    this.tasks = []
-
-    Promise.all(promises)
-    return this.save()
   }
 
   getCompletedDailyTasksCount(this: DocumentType<TaskList>) {
@@ -97,21 +116,6 @@ export class TaskList {
 
       return counter
     })
-  }
-
-  private static async _loadTasksFromID(
-    this: ReturnModelType<typeof TaskList>,
-    list: DocumentType<TaskList>,
-  ): Promise<DocumentType<Task>[]> {
-    return list
-      ._getCurrentTasks()
-      .then((tasks) => {
-        list.save()
-        return [...tasks.daily, ...tasks.weekly]
-      })
-      .catch((e) => {
-        throw e
-      })
   }
 
   private _getCurrentTasks(this: DocumentType<TaskList>): Promise<LoadedTasks> {
