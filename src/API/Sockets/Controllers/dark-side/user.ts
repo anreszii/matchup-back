@@ -2,6 +2,7 @@ import { WebSocket } from 'uWebSockets.js'
 import { CONTROLLERS } from '../..'
 import { PLAYERS } from '../../../../Classes/MatchMaking/Player/Manager'
 import { TechnicalCause, TechnicalError } from '../../../../error'
+import { LeaderboardModel } from '../../../../Models'
 
 export async function is_online(socket: WebSocket, params: unknown[]) {
   let names = params[0]
@@ -14,14 +15,23 @@ export async function is_online(socket: WebSocket, params: unknown[]) {
 }
 CONTROLLERS.set('is_online', is_online)
 
-export async function notify(socket: WebSocket, params: unknown[]) {
-  const name = socket.username as string
-  let ms: number = 0
+export async function get_leaderboard_page(
+  socket: WebSocket,
+  params: unknown[],
+) {
+  const skip = params[0]
+  const limit = params[1]
 
-  if (typeof params[0] == 'number' && params[0] >= 0) ms = params[0]
-  setTimeout(() => {
-    PLAYERS.get(name)?.notify('test notification')
-  }, ms)
-  return true
+  if (!skip || !limit || typeof skip != 'number' || typeof limit != 'number')
+    throw new TechnicalError('params', TechnicalCause.INVALID_FORMAT)
+
+  const result = await LeaderboardModel.aggregate([
+    { $match: { type: 'user' } },
+    { $unwind: '$records' },
+    { $skip: skip },
+    { $limit: limit },
+  ])
+
+  return result
 }
-CONTROLLERS.set('notify', notify)
+CONTROLLERS.set('get_leaderboard_page', get_leaderboard_page)
