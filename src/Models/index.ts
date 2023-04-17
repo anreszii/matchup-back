@@ -31,7 +31,7 @@ export const DynamicTaskModel = getModelForClass(DynamicTask)
 export const ChatModel = getModelForClass(Chat)
 export const NotificationModel = getModelForClass(NotificationQueue)
 
-const LeaderboardModel = getModelForClass(Leaderboard)
+export const LeaderboardModel = getModelForClass(Leaderboard)
 setInterval(() => {
   LeaderboardModel.find({}).then((boards) => {
     for (let board of boards) board.updateLeaderboard()

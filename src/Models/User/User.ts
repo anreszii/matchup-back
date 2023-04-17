@@ -147,17 +147,24 @@ export class User {
 
   static async getTestData(
     this: ReturnModelType<typeof User>,
+    target_mpr?: number,
   ): Promise<DocumentType<User>[]> {
+    if (typeof target_mpr != 'number')
+      return this.find({
+        'profile.username': { $regex: 'test_' },
+        'credentials.email': { $regex: 'test_' },
+      }) as unknown as Promise<DocumentType<User>[]>
     return this.find({
       'profile.username': { $regex: 'test_' },
       'credentials.email': { $regex: 'test_' },
-    }) as unknown as Promise<DocumentType<User>[]>
+      'rating.GRI': target_mpr,
+    })
   }
 
   static async deleteTestData(this: ReturnModelType<typeof User>) {
     let documents = await this.getTestData()
     for (let document of documents) {
-      await TaskListModel.deleteForUser(document)
+      await TaskListModel.deleteForUser(document.profile.username)
       await document.delete()
     }
 
@@ -415,7 +422,7 @@ export class User {
     user.rating.GRI = getRandom(100, 2000)
 
     await user.save()
-    await TaskListModel.getForUser(user)
+    await TaskListModel.getForUser(user.profile.username)
 
     return user
   }
