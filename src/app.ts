@@ -3,8 +3,8 @@ require('dotenv').config()
 
 import io from 'gamesocket.io'
 export const WS_SERVER = io({
-  key_file_name: `${__dirname}/privkey.pem`,
-  cert_file_name: `${__dirname}/fullchain.pem`,
+  key_file_name: `/certificates/privkey.pem`,
+  cert_file_name: `/certificates/fullchain.pem`,
 })
 
 import express = require('express')
@@ -58,8 +58,8 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
 })
 
 const fs = require('fs')
-const privateKey = fs.readFileSync(`${__dirname}/privkey.pem`)
-const certificate = fs.readFileSync(`${__dirname}/fullchain.pem`)
+const privateKey = fs.readFileSync(`/certificates/privkey.pem`)
+const certificate = fs.readFileSync(`/certificates/fullchain.pem`)
 require('https')
   .createServer({ key: privateKey, cert: certificate }, app)
   .listen(Number(process.env.HTTP_PORT), () => {
