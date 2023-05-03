@@ -60,15 +60,22 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
 const fs = require('fs')
 const privateKey = fs.readFileSync(`/certificates/privkey.pem`)
 const certificate = fs.readFileSync(`/certificates/fullchain.pem`)
-require('https')
-  .createServer({ key: privateKey, cert: certificate }, app)
-  .listen(Number(process.env.HTTP_PORT), () => {
-    mainLogger.info(`HTTP SERVER INITIALIZED ON ${process.env.HTTP_PORT}`)
-  })
+try {
+  require('https')
+    .createServer({ key: privateKey, cert: certificate }, app)
+    .listen(Number(process.env.HTTP_PORT), () => {
+      mainLogger.info(`HTTP SERVER INITIALIZED ON ${process.env.HTTP_PORT}`)
+    })
 
-WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
-  if (ls)
-    mainLogger.info(
-      `WEBSOCKET SERVER INITIALIZED ON ${process.env.WEB_SOCKET_PORT}`,
-    )
-})
+  WS_SERVER.listen(Number(process.env.WEB_SOCKET_PORT!), (ls: unknown) => {
+    if (ls)
+      mainLogger.info(
+        `WEBSOCKET SERVER INITIALIZED ON ${process.env.WEB_SOCKET_PORT}`,
+      )
+  })
+} catch (e) {
+  if (typeof e == 'string') mainLogger.fatal(e)
+  else if (e instanceof Error)
+    mainLogger.fatal(`[ERROR ${e}]: ${e.message}; STACK: ${e.stack}`)
+  throw e
+}
