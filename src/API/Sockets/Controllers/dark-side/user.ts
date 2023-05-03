@@ -22,7 +22,9 @@ export async function get_leaderboard_page(
   const skip = params[0]
   const limit = params[1]
 
-  if (!skip || !limit || typeof skip != 'number' || typeof limit != 'number')
+  if (typeof skip != 'number' || typeof limit != 'number')
+    throw new TechnicalError('params', TechnicalCause.INVALID_FORMAT)
+  if (skip < 0 || limit <= 0)
     throw new TechnicalError('params', TechnicalCause.INVALID_FORMAT)
 
   const result = await LeaderboardModel.aggregate([
@@ -30,6 +32,14 @@ export async function get_leaderboard_page(
     { $unwind: '$records' },
     { $skip: skip },
     { $limit: limit },
+    {
+      $project: {
+        _id: 0,
+        name: '$records.name',
+        image: '$records.image',
+        rating: '$records.ratingPoints',
+      },
+    },
   ])
 
   return result
