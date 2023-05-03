@@ -26,7 +26,7 @@ export class Task {
   rewards!: Reward[]
   @prop({ required: true, _id: false })
   progress!: Progress
-  @prop()
+  @prop({ _id: false })
   expires?: ExpirationTime
 
   public addProgess(amount: number) {
@@ -37,11 +37,12 @@ export class Task {
   public async complete(this: DocumentType<Task>) {
     if (!this._hasRequiredPointsCount || this.flags.complete) return
 
-    const user = await UserModel.findById(this.owner)
-    if (user)
+    UserModel.findById(this.owner).then((user) => {
+      if (!user) return
       user.notify(
         `Выполнено задание [${this.name}:${this.progress.requiredPoints}]`,
       )
+    })
     this.flags.complete = true
     await this.save()
 
@@ -76,21 +77,25 @@ export class Task {
 
       case 'day': {
         date.setUTCDate(date.getUTCDate() + amount)
+        date.setHours(0, 0, 0, 0)
         break
       }
 
       case 'week': {
         date.setUTCDate(date.getUTCDate() + 7 * amount)
+        date.setHours(0, 0, 0, 0)
         break
       }
 
       case 'year': {
         date.setUTCMonth(date.getUTCMonth() + 12 * amount)
+        date.setHours(0, 0, 0, 0)
         break
       }
 
       default: {
         date.setUTCDate(date.getUTCDate() + amount)
+        date.setHours(0, 0, 0, 0)
         break
       }
     }

@@ -34,6 +34,14 @@ export type API_ACTION_LIST =
   | 'become_online'
   | 'become_offline'
   | 'notify'
+  | 'get_leaderboard_page'
+
+  /* TEST */
+  | 'test/notify'
+  | 'test/lobby_fullfill'
+  | 'test/lobby_get_ready'
+  | 'test/lobby_leave'
+  | 'test/lobby_delete'
 
 export const API_ACTIONS: Map<API_ACTION_LIST, number> = new Map()
 API_ACTIONS.set('get_lobby_count', 0)
@@ -66,6 +74,12 @@ API_ACTIONS.set('is_online', 0)
 API_ACTIONS.set('become_online', 0)
 API_ACTIONS.set('become_offline', 0)
 API_ACTIONS.set('notify', 0)
+API_ACTIONS.set('get_leaderboard_page', 0)
+API_ACTIONS.set('test/notify', 2)
+API_ACTIONS.set('test/lobby_fullfill', 2)
+API_ACTIONS.set('test/lobby_get_ready', 2)
+API_ACTIONS.set('test/lobby_leave', 2)
+API_ACTIONS.set('test/lobby_delete', 2)
 
 export function isValidAPIAction(action: string): action is API_ACTION_LIST {
   return API_ACTIONS.has(action as API_ACTION_LIST)
