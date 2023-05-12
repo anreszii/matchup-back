@@ -1,9 +1,9 @@
 import { Router, NextFunction, Request, Response } from 'express'
 import { validateToken, generateToken } from '../../Token'
 
-import { MatchListModel, UserModel } from '../../Models'
+import { UserModel } from '../../Models'
 
-import { Match, USER_ROLE } from '../../Interfaces/index'
+import { USER_ROLE } from '../../Interfaces/index'
 import {
   ServerCause,
   ServerError,
@@ -15,7 +15,6 @@ import { Mail, SMTP } from '../../Utils/smtp'
 import { generatePassword } from '../../Utils/passwordGenerator'
 import { DTO } from '../../Classes/DTO/DTO'
 import { Logger } from '../../Utils/Logger'
-import { StandOff_Lobbies } from '../../Classes/MatchMaking/Lobby/Manager'
 require('dotenv').config()
 
 let router = Router()
