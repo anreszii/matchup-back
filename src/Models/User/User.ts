@@ -355,7 +355,7 @@ export class User {
     return true
   }
 
-  isPremium(this: DocumentType<User>): Promise<boolean> {
+  is_premium(this: DocumentType<User>): Promise<boolean> {
     let result = this._checkPremium()
     if (typeof result == 'boolean')
       return Promise.resolve(this.premium.isPremium)
@@ -363,7 +363,7 @@ export class User {
     return result.then(() => this.premium.isPremium)
   }
 
-  extendPremium(this: DocumentType<User>, period: number) {
+  extend_premium(this: DocumentType<User>, period: number) {
     return PERIODS.findByPeriod(period).then((premiumPeriod) => {
       if (!premiumPeriod)
         throw new TechnicalError('period', TechnicalCause.NOT_EXIST)
@@ -374,10 +374,12 @@ export class User {
     })
   }
 
-  buy(this: DocumentType<User>, itemPrice: number) {
-    if (itemPrice < 0)
+  buy(this: DocumentType<User>, item_price: number) {
+    if (item_price < 0)
+      throw new TechnicalError('item price', TechnicalCause.INVALID_FORMAT)
+    if (this.profile.balance <= item_price)
       throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
-    this.profile.balance -= itemPrice
+    this.profile.balance -= item_price
   }
 
   addMP(amount: number) {
@@ -479,7 +481,7 @@ export class User {
   }
 
   private _extendPremiumStatus(this: DocumentType<User>, months: number) {
-    let status = this.isPremium()
+    let status = this.is_premium()
     let now = new Date()
     if (typeof status == 'boolean' && status && this.premium.expiresIn)
       now = this.premium.expiresIn

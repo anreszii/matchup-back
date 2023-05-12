@@ -229,7 +229,7 @@ export class Player implements Match.Player.Instance {
     return UserModel.findById(this.id)
       .then((user) => {
         if (!user) return false
-        return user.isPremium()
+        return user.is_premium()
       })
       .catch((e: Error) => {
         this._logger.fatal(`[ERROR ${e.name}]: ${e.message}; STACK: ${e.stack}`)

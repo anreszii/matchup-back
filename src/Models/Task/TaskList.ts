@@ -370,7 +370,7 @@ export class TaskList {
   private _ownerIsPremium(this: DocumentType<TaskList>): Promise<boolean> {
     return this._getOwner()
       .then((owner) => {
-        return owner.isPremium()
+        return owner.is_premium()
       })
       .catch((e) => {
         throw e

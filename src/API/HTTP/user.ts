@@ -289,7 +289,7 @@ router.post('/extend_premium', async (req, res, next) => {
     UserModel.findByName(name)
       .then(async (user) => {
         if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-        await user.extendPremium(periodInMonth)
+        await user.extend_premium(periodInMonth)
         const dto = new DTO({ status: 'success' })
         logger.trace(`SERVER RESPONSE: ${dto.to.JSON}`)
         res.status(200).json(dto.to.JSON)
@@ -321,7 +321,7 @@ router.get('/premium/:name', async (req, res, next) => {
     UserModel.findByName(name)
       .then(async (user) => {
         if (!user) throw new TechnicalError('user', TechnicalCause.NOT_EXIST)
-        await user.isPremium()
+        await user.is_premium()
         logger.trace(`SERVER RESPONSE: ${user.premium}`)
         res.status(200).json(user.premium)
       })
