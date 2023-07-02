@@ -377,7 +377,7 @@ export class User {
   buy(this: DocumentType<User>, item_price: number) {
     if (item_price < 0)
       throw new TechnicalError('item price', TechnicalCause.INVALID_FORMAT)
-    if (this.profile.balance <= item_price)
+    if (this.profile.balance < item_price)
       throw new TechnicalError('user balance', TechnicalCause.NEED_HIGHER_VALUE)
     this.profile.balance -= item_price
   }

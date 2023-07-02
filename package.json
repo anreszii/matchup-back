@@ -3,7 +3,7 @@
   "scripts": {
     "doc": "npx typedoc",
     "test": "node --test",
-    "build": "tsc ; npx prettier --config ./.prettierrc.json -w ./"
+    "build": "tsc && docker build . -t perceptioncontrol/matchup"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.266.0",

@@ -5,6 +5,8 @@ export class GuildMemberData {
   @prop({ required: true, ref: () => User })
   id!: Ref<User>
   @prop({ required: true })
+  name!: string
+  @prop({ required: true })
   mpr!: number
   @prop()
   role?: string

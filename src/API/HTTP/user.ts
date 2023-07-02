@@ -332,4 +332,27 @@ router.get('/premium/:name', async (req, res, next) => {
   }
 })
 
+router.get('/exist/:name', async (req, res, next) => {
+  const logger = new Logger('HTTP', 'user/premium/')
+  logger.trace(
+    `[${req.ip}] METHOD: ${req.method} PARAMS: ${JSON.stringify(
+      req.params,
+    )}; BODY: ${JSON.stringify(req.body)}; FILES IS UNDEFINED: ${
+      req.files == undefined
+    }`,
+  )
+  try {
+    const {name} = req.params
+    if (!name || typeof name != 'string')
+      throw new TechnicalError('name', TechnicalCause.INVALID_FORMAT)
+
+    UserModel.findByName(name).then((user) => {
+      if(!user) res.status(200).json({exist: false})
+      else res.status(200).json({exist: true})
+    })
+  } catch(e) {
+    next(e)
+  }
+})
+
 module.exports = router

@@ -1,5 +1,4 @@
 import { prop, Ref } from '@typegoose/typegoose'
-import { Image } from '../Image'
 import { GuildMemberData } from './Member'
 
 export class PublicInfo {
@@ -28,7 +27,6 @@ export class Terms {
   invitationOnly?: boolean
 }
 
-type Name = string
 export class PrivateInfo {
   @prop({ required: true, default: 'none' })
   chat!: string
@@ -38,14 +36,14 @@ export class PrivateInfo {
     type: () => GuildMemberData,
     _id: false,
   })
-  invites!: Map<Name, GuildMemberData>
+  invites!: GuildMemberData[]
   @prop({
     required: true,
-    default: new Map(),
+    default: new Array(),
     type: () => GuildMemberData,
     _id: false,
   })
-  requests!: Map<Name, GuildMemberData>
+  requests!: GuildMemberData[]
   @prop({ required: true, default: [], _id: false, type: () => String })
   blackList!: string[]
 }

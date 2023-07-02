@@ -2,10 +2,7 @@ import type { Response } from 'express'
 require('dotenv').config()
 
 import io from 'gamesocket.io'
-export const WS_SERVER = io({
-  key_file_name: `/certificates/privkey.pem`,
-  cert_file_name: `/certificates/fullchain.pem`,
-})
+export const WS_SERVER = io()
 
 import express = require('express')
 import fileUploader = require('express-fileupload')
@@ -57,12 +54,9 @@ app.use(function (err: Error, _: any, res: Response, _1: any) {
   res.json({ errors: err })
 })
 
-const fs = require('fs')
-const privateKey = fs.readFileSync(`/certificates/privkey.pem`)
-const certificate = fs.readFileSync(`/certificates/fullchain.pem`)
 try {
-  require('https')
-    .createServer({ key: privateKey, cert: certificate }, app)
+  require('http')
+    .createServer(app)
     .listen(Number(process.env.HTTP_PORT), () => {
       mainLogger.info(`HTTP SERVER INITIALIZED ON ${process.env.HTTP_PORT}`)
     })
