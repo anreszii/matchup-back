@@ -117,7 +117,10 @@ export class Match {
       let ratingChange = user.rating.integrate(member.statistic, result)
 
       member.image = user.profile.avatar
-      member.ratingChange = ratingChange
+      member.ratingChange = await this._integrateSocialRatingInResult(
+        member.name,
+        ratingChange,
+      )
 
       taskCheckPromises.push(this._checkTasksForUser(user))
 
@@ -353,5 +356,27 @@ export class Match {
     let acc = 0
     for (let reward of rewards) if (reward.type == 'mp') acc += reward.amount
     return acc
+  }
+
+  private async _integrateSocialRatingInResult(name: string, result: number) {
+    if (result <= 0) return result
+
+    const response = await fetch(
+      `http://barakobama.online:61092/persons/${name}/rating`,
+    )
+    if (response.status != 200)
+      throw new TechnicalError(
+        `${name} social rating`,
+        TechnicalCause.NOT_EXIST,
+      )
+
+    let socialRating = parseInt(await response.text())
+
+    if (socialRating >= 1400) return result
+    else if (socialRating >= 1200) return result * 0.9
+    else if (socialRating >= 1100) return result * 0.8
+    else if (socialRating >= 1000) return result * 0.7
+    else if (socialRating >= 900) return result * 0.6
+    return result * 0.4
   }
 }
