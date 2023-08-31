@@ -3,6 +3,7 @@
   "scripts": {
     "doc": "npx typedoc",
     "test": "node --test",
+    "test:only": "node --test --test-only",
     "build": "tsc && docker build . -t perceptioncontrol/matchup"
   },
   "dependencies": {
