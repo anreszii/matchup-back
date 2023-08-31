@@ -1,12 +1,6 @@
 import { prop, DocumentType, Ref } from '@typegoose/typegoose'
 
-import {
-  DAY_IN_MS,
-  HOUR_IN_MS,
-  MINUTE_IN_MS,
-  WEEK_IN_MS,
-  YEAR_IN_MS,
-} from '../../configs/time_constants'
+import { MINUTE_IN_MS } from '../../configs/time_constants'
 import { expirationTime, ExpirationTime } from './ExpirationTime'
 import { Flags } from './Flags'
 import { Progress } from './Progress'
